@@ -20,12 +20,12 @@ export const INTERESTS = ACTIVITIES;
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
-      { title: "Make yourself at home — Tagalong" },
+      { title: "Make yourself at home — Juntos" },
       {
         name: "description",
         content: "Choose your interests, your city and what you want to learn.",
       },
-      { property: "og:title", content: "Make yourself at home — Tagalong" },
+      { property: "og:title", content: "Make yourself at home — Juntos" },
       {
         property: "og:description",
         content: "Choose your interests, your city and what you want to learn.",
@@ -84,7 +84,7 @@ function Onboarding() {
   }, [user]);
   async function save() {
     if (!user) return;
-    const age=adultAge(dob);if(age===null || age<18 || age>120){setError("Tagalong is for adults aged 18 and over.");return;}
+    const age=adultAge(dob);if(age===null || age<18 || age>120){setError("Juntos is for adults aged 18 and over.");return;}
     setBusy(true);
     setError("");
     try {
@@ -126,7 +126,7 @@ function Onboarding() {
   return (
     <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8">
       <p className="font-display text-2xl">
-        Tagalong<span className="text-tangerine">.</span>
+        Juntos<span className="text-tangerine">.</span>
       </p>
       <p className="eyebrow mt-8">{profile?.onboarded ? "Your profile" : "Step 1 of 2"}</p>
       <h1 className="mt-2 text-4xl">Your kind of people</h1>
@@ -153,7 +153,7 @@ function Onboarding() {
         <fieldset className="space-y-3">
           <Label htmlFor="dob">Date of birth</Label>
           <Input id="dob" type="date" value={dob} onChange={e=>setDob(e.target.value)} required />
-          <p className="flex gap-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5"/>Private. Tagalong is 18+. Only age brackets are shown.</p>
+          <p className="flex gap-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5"/>Private. Juntos is 18+. Only age brackets are shown.</p>
           <legend className="text-sm font-bold">How do you describe your gender?</legend>
           <p className="flex gap-2 text-xs text-muted-foreground">
             <Lock className="h-3.5 w-3.5 shrink-0" />

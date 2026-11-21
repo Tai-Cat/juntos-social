@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750">
+<rect width="1200" height="750" fill="#0F1E3D"/>
+<g fill="none" stroke="#B9D3EA" stroke-width="4" stroke-linecap="round" opacity=".75">
+<path d="M80 750C120 600 90 480 160 360"/><path d="M130 520c-50-20-70-60-60-100 40 10 60 50 60 100zM150 430c40-30 80-30 110-10-30 30-70 30-110 10zM118 610c-55 0-85-30-95-70 45 0 80 30 95 70z"/>
+<path d="M1120 0c-30 140 10 230-60 340"/><path d="M1080 200c50 10 80 50 80 90-45-5-75-45-80-90zM1060 120c-45 25-85 20-110-5 35-25 75-25 110 5zM1095 300c-50 20-90 5-110-30 40-15 80 0 110 30z"/>
+<path d="M980 680l20-20M990 650v40M970 670h40" stroke="#E8D9A8"/><path d="M220 120l14-14M227 100v28M213 114h28" stroke="#E8D9A8"/><path d="M560 640l12-12M566 622v24M554 634h24" stroke="#E8D9A8"/>
+</g>
+<rect x="250" y="160" width="700" height="430" fill="none" stroke="#E8D9A8" stroke-width="3"/>
+<text x="600" y="240" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="30" letter-spacing="10" fill="#E8D9A8">MIM2028</text>
+<text x="600" y="345" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="100" fill="#FFF8EE">Winter Gala</text>
+<text x="600" y="420" text-anchor="middle" font-family="Georgia, serif" font-size="56" fill="#FFF8EE">Dinner</text>
+<text x="600" y="500" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#E8D9A8">SATURDAY 12 DECEMBER · LE CERCLE</text>
+<text x="600" y="550" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#B9D3EA">Partners welcome · tickets dropping soon</text>
+<text x="1130" y="710" text-anchor="end" font-family="Georgia, serif" font-size="36" font-weight="700" fill="#E8D9A8">Juntos.</text>
+</svg>

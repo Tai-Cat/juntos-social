@@ -1,3 +1,4 @@
+import { priceLabel } from "@/lib/tagalong";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -102,7 +103,7 @@ export default function ExploreMap({
           <h3 className="text-xl">{selected.title}</h3>
           <p className="mt-1 text-xs">
             {formatWhen(selected.starts_at)} ·{" "}
-            {Number(selected.base_price) === 0 ? "Free" : `€${selected.base_price}`}
+            {priceLabel(selected,false)}
           </p>
           <p className="my-2 flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="h-3 w-3" />

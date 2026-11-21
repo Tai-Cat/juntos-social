@@ -10,7 +10,11 @@ export function LocationPicker({
   value,
   onChange,
   onPosition,
+  autoLocate = true,
+  compact = false,
 }: {
+  autoLocate?: boolean;
+  compact?: boolean;
   value: string;
   onChange: (city: string) => void;
   onPosition?: (position: Position) => void;
@@ -59,14 +63,14 @@ export function LocationPicker({
     );
   }
   useEffect(() => {
-    locate();
+    if (autoLocate) locate();
   }, []);
   const results = search
     ? CITIES.filter((c) => c.toLowerCase().includes(search.toLowerCase())).slice(0, 12)
     : recent;
   return (
     <>
-      <Button variant="outline" className="rounded-full bg-card" onClick={() => setOpen(true)}>
+      <Button variant="outline" size={compact ? "sm" : "default"} aria-label={`Location: ${cityName(value || "Paris")}`} className="min-w-0 max-w-[9rem] rounded-full bg-card sm:max-w-[14rem]" onClick={() => setOpen(true)}>
         <MapPin className="text-tangerine" />
         <span className="min-w-0 truncate font-bold">{cityName(value || "Paris")}</span>
       </Button>

@@ -9,10 +9,19 @@ export function photoKeys() {
   return { unsplash: process.env["UNSPLASH_ACCESS_KEY"] ?? "", pexels: process.env["PEXELS_API_KEY"] ?? "" };
 }
 
+/** Object or scene shots without faces, per the brief. */
+const OBJECT_QUERIES: Record<string, string> = {
+  "sourdough baking": "sourdough starter jar", pottery: "pottery wheel clay", ceramics: "ceramic bowls studio", "dog walks": "dog on forest trail",
+  coffee: "coffee cup on table", "climbing and bouldering": "climbing wall holds", tennis: "empty tennis court", markets: "market stall produce",
+  ramen: "ramen bowl", yoga: "yoga mat studio", cycling: "bicycle street", "wine tasting": "wine glasses cellar", "board games": "board game pieces table",
+  "sauna and cold plunge": "sauna interior wood", running: "running track empty", "co-working": "laptop desk cafe", "laundry runs": "laundromat machines",
+  museums: "museum gallery hall", "book clubs": "books stack cafe", photography: "vintage camera", "street food crawls": "street food stall", "dinner parties": "dinner table setting",
+};
 export function searchTerms(activity: string, title = "") {
+  const object = OBJECT_QUERIES[activity.toLowerCase().trim()];
   const stop = new Set(["the", "and", "with", "for", "a", "an", "in", "at", "of", "to", "on", "our", "your", "example", "night", "session", "evening", "morning", "club", "intro"]);
   const words = title.toLowerCase().replace(/[^a-z\s-]/g, " ").split(/\s+/).filter((w) => w.length > 3 && !stop.has(w));
-  return [...new Set([activity.toLowerCase().trim(), [activity, ...words.slice(0, 2)].join(" ").trim()])].filter(Boolean);
+  return [...new Set([...(object ? [object] : []), `${activity.toLowerCase().trim()} still life`, activity.toLowerCase().trim(), [activity, ...words.slice(0, 2)].join(" ").trim()])].filter(Boolean);
 }
 
 async function fetchProviders(query: string): Promise<StockPhoto[]> {

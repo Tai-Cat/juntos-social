@@ -4,13 +4,13 @@ import { Feed } from "./feed";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Tagalong — turn your plans into plus-ones" },
+      { title: "Juntos — turn your plans into plus-ones" },
       {
         name: "description",
         content:
           "Meet people in real life by joining plans they're already doing, at home or while travelling.",
       },
-      { property: "og:title", content: "Tagalong — turn your plans into plus-ones" },
+      { property: "og:title", content: "Juntos — turn your plans into plus-ones" },
       {
         property: "og:description",
         content: "Turn your plans into plus-ones, and venues' empty slots into full tables.",

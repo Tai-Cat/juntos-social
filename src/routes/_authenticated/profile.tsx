@@ -26,9 +26,9 @@ import { useOrganisations,useOrgMemberships } from "@/hooks/use-organisations";
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "Your profile — Tagalong" },
+      { title: "Your profile — Juntos" },
       { name: "description", content: "Your plans, trips and reliability." },
-      { property: "og:title", content: "Your profile — Tagalong" },
+      { property: "og:title", content: "Your profile — Juntos" },
       { property: "og:description", content: "Your plans, trips and reliability." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

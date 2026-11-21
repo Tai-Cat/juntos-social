@@ -1,3 +1,4 @@
+import { planFallback } from "@/lib/placeholder";
 import { PlanInvites } from "@/components/tagalong/PlanInvites";
 import { PhotoCarousel } from "@/components/tagalong/PhotoCarousel";
 import { Share2, Bookmark,Download } from "lucide-react";
@@ -49,9 +50,9 @@ import {
 export const Route = createFileRoute("/plans/$planId")({
   head: () => ({
     meta: [
-      { title: "Plan — Tagalong" },
+      { title: "Plan — Juntos" },
       { name: "description", content: "Join this plan and meet people in real life." },
-      { property: "og:title", content: "Plan — Tagalong" },
+      { property: "og:title", content: "Plan — Juntos" },
       { property: "og:description", content: "Join this plan and meet people in real life." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -267,11 +268,13 @@ function PlanDetail() {
           photos={plan.photos}
           genre={plan.genre}
           label={plan.activity}
+          fallback={planFallback(plan)}
           credits
           example={plan.is_example}
         />
       </div>
       <div className="mt-4 flex gap-2">
+        {plan.ticket_url&&<Button asChild><a href={plan.ticket_url} target="_blank" rel="noreferrer">Tickets</a></Button>}
         <Button variant="outline" title="Add to my calendar" onClick={()=>{try{downloadICS({id:plan.id,planId:plan.id,title:plan.title,start:plan.starts_at,duration:plan.duration_minutes,kind:"going",example:plan.is_example,recurring:plan.recurring_weekly,area:plan.area_label,image:plan.image_url});}catch{toast.error("Calendar download couldn't complete");}}}><Download/><span className="hidden sm:inline">Calendar</span></Button>
         <Button
           variant="outline"

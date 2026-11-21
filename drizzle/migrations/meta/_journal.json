@@ -120,6 +120,20 @@
       "when": 1795272312905,
       "tag": "0016_real_photos_personal_interests",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795273064068,
+      "tag": "0017_v6_settings_friend_prefs_org_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795273098777,
+      "tag": "0018_rename_juntos_messages_org_events",
+      "breakpoints": true
     }
   ]
 }

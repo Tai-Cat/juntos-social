@@ -42,12 +42,12 @@ export const Route = createFileRoute("/_authenticated/post")({
   validateSearch: (s) => search.parse(s),
   head: () => ({
     meta: [
-      { title: "Post a plan — Tagalong" },
+      { title: "Post a plan — Juntos" },
       {
         name: "description",
         content: "Turn something you're already doing into a plan others can join.",
       },
-      { property: "og:title", content: "Post a plan — Tagalong" },
+      { property: "og:title", content: "Post a plan — Juntos" },
       {
         property: "og:description",
         content: "Turn something you're already doing into a plan others can join.",
@@ -135,7 +135,7 @@ function PostPlan() {
       toast.error("Pick a time in the future");
       return;
     }
-    if (!canUseHostTools(plus,capacity,weekly,autoApprove)) { toast.error("These host tools require Tagalong Plus"); return; }
+    if (!canUseHostTools(plus,capacity,weekly,autoApprove)) { toast.error("These host tools require Juntos Plus"); return; }
     setBusy(true);
     try {
       const photos:string[]=[];

@@ -30,8 +30,8 @@ export function Membership() {
           </p>
         </article>
         <article className="genre-ideas rounded-lg border border-border p-5">
-          <p className="eyebrow">{plus ? "Your demo membership" : "A little more Tagalong"}</p>
-          <h3 className="mt-2 text-3xl">Tagalong Plus</h3>
+          <p className="eyebrow">{plus ? "Your demo membership" : "A little more Juntos"}</p>
+          <h3 className="mt-2 text-3xl">Juntos Plus</h3>
           <p className="mt-2 font-bold">€5 / month</p>
           <div className="mt-4 flex items-center justify-between">
             <span className="text-sm">Simulate Plus (demo)</span>

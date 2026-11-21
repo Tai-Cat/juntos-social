@@ -13,12 +13,12 @@ import { Empty } from "@/components/tagalong/bits";
 export const Route = createFileRoute("/travel")({
   head: () => ({
     meta: [
-      { title: "Travel together — Tagalong" },
+      { title: "Travel together — Juntos" },
       {
         name: "description",
         content: "Meet overlapping travellers and join plans in your next city.",
       },
-      { property: "og:title", content: "Travel together — Tagalong" },
+      { property: "og:title", content: "Travel together — Juntos" },
       {
         property: "og:description",
         content: "Meet overlapping travellers and join plans in your next city.",

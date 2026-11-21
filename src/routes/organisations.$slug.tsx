@@ -8,7 +8,7 @@ import {supabase} from "@/integrations/supabase/client";
 import {useSession} from "@/hooks/use-auth";
 import {Button} from "@/components/ui/button";
 import type {PlanWithHost} from "@/lib/tagalong";
-export const Route=createFileRoute("/organisations/$slug")({head:()=>({meta:[{title:"Organisation events — Tagalong"},{name:"description",content:"Meet through institutions, clubs and communities on Tagalong."},{property:"og:title",content:"Organisation events — Tagalong"},{property:"og:description",content:"Discover events from institutions, clubs and communities."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:OrganisationPage});
+export const Route=createFileRoute("/organisations/$slug")({head:()=>({meta:[{title:"Organisation events — Juntos"},{name:"description",content:"Meet through institutions, clubs and communities on Juntos."},{property:"og:title",content:"Organisation events — Juntos"},{property:"og:description",content:"Discover events from institutions, clubs and communities."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:OrganisationPage});
 function OrganisationPage(){
  const {slug}=Route.useParams(),{user}=useSession(),members=useOrgMemberships();
  const orgQ=useQuery({queryKey:["organisation",slug,user?.id],queryFn:async()=>{const {data,error}=await supabase.from("organisations").select("*").eq("slug",slug).maybeSingle();if(error)throw error;return data;}});

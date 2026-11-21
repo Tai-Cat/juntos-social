@@ -28,12 +28,12 @@ import { whatsOn } from "@/lib/whats-on.functions";
 export const Route = createFileRoute("/trips/$tripId")({
   head: () => ({
     meta: [
-      { title: "Your trip — Tagalong" },
+      { title: "Your trip — Juntos" },
       {
         name: "description",
         content: "Travellers overlapping with you, plans and what's on in the city.",
       },
-      { property: "og:title", content: "Your trip — Tagalong" },
+      { property: "og:title", content: "Your trip — Juntos" },
       {
         property: "og:description",
         content: "Travellers overlapping with you, plans and what's on in the city.",

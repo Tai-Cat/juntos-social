@@ -15,13 +15,50 @@ const COLORS: Record<string, [string, string]> = {
   tech: ["#E1EEF8", "#3A86C2"], ideas: ["#FFF3C9", "#B98A00"], outdoors: ["#E4F1E0", "#4F8F3A"],
   social: ["#FBE2DD", "#D9473A"], wellness: ["#ECE7F7", "#7C6BC4"], place: ["#E1EEF8", "#3A86C2"],
 };
-export function placeholderImage(genre: string) {
+const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
+const svgUri = (svg: string) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+function hash(s: string) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); }
+function wrap(text: string, max: number, lines: number) {
+  const out: string[] = []; let cur = "";
+  for (const w of text.split(/\s+/)) {
+    if ((cur + " " + w).trim().length > max && cur) { out.push(cur); cur = w; } else cur = (cur + " " + w).trim();
+  }
+  if (cur) out.push(cur);
+  if (out.length > lines) { out.length = lines; out[lines - 1] = out[lines - 1]!.replace(/.{0,2}$/, "…"); }
+  return out;
+}
+const titleCase = (t: string) => t.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+/** Illustrated, object-focused header: a scattered pattern of the category's object with a label — never a lone icon. */
+export function placeholderImage(genre: string, label?: string) {
   const key = ICONS[genre] ? genre : "outdoors";
   const [bg, fg] = COLORS[key] ?? ["#FFF3E3", "#E2642A"];
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120"><rect width="160" height="120" fill="${bg}"/><g transform="translate(62 42) scale(1.5)" fill="none" stroke="${fg}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[key]}</g></svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  const seed = hash(`${genre}${label ?? ""}`);
+  const marks = Array.from({ length: 9 }, (_, i) => {
+    const x = ((seed >> i) % 7) * 24 + (i % 3) * 52 - 10, y = Math.floor(i / 3) * 34 - 6 + ((seed >> (i + 3)) % 9);
+    const sc = 0.9 + ((seed >> (i + 1)) % 5) * 0.25, r = ((seed >> (i + 2)) % 60) - 30;
+    return `<g transform="translate(${x} ${y}) rotate(${r} 12 12) scale(${sc})" opacity="${i % 2 ? 0.35 : 0.6}">${ICONS[key]}</g>`;
+  }).join("");
+  const big = `<g transform="translate(96 22) scale(2.6) rotate(-8 12 12)" stroke-width="1.4">${ICONS[key]}</g>`;
+  const text = label ? `<rect x="0" y="86" width="160" height="34" fill="${bg}" opacity=".85"/><text x="10" y="108" font-family="Georgia, serif" font-size="13" font-weight="700" fill="${fg}">${esc(wrap(titleCase(label), 22, 1)[0] ?? "")}</text>` : "";
+  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120"><rect width="160" height="120" fill="${bg}"/><g fill="none" stroke="${fg}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${marks}${big}</g>${text}</svg>`);
+}
+/** Luma-style flyer header generated from the event itself. */
+export function flyerImage(p: { title: string; starts_at?: string | null; genre?: string | null; area_label?: string | null }) {
+  const key = p.genre && COLORS[p.genre] ? p.genre : "food";
+  const [soft, strong] = COLORS[key]!;
+  const lines = wrap(p.title, 15, 3);
+  const d = p.starts_at ? new Date(p.starts_at) : null;
+  const date = d ? d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }).toUpperCase() + " · " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "";
+  const size = lines.length > 2 ? 34 : 40;
+  const title = lines.map((l, i) => `<text x="28" y="${70 + i * (size + 4)}" font-family="Georgia, serif" font-size="${size}" font-weight="700" fill="#FFF8EE">${esc(l)}</text>`).join("");
+  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250"><rect width="400" height="250" fill="${strong}"/><circle cx="350" cy="40" r="90" fill="${soft}" opacity=".22"/><rect y="196" width="400" height="54" fill="${soft}"/><g transform="translate(330 120) scale(2.2)" fill="none" stroke="#FFF8EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".55">${ICONS[key]}</g>${title}<text x="28" y="222" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="800" fill="${strong}">${esc(date)}</text><text x="28" y="240" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#2A2824">${esc((p.area_label ?? "").slice(0, 48))}</text><text x="378" y="236" text-anchor="end" font-family="Georgia, serif" font-size="16" font-weight="700" fill="#2A2824">Juntos.</text></svg>`);
+}
+/** Cover when no real photo exists: roughly half flyers, half illustrated object headers (deterministic per plan). */
+export function planFallback(p: { id: string; title: string; starts_at?: string | null; genre?: string | null; area_label?: string | null; activity?: string | null }) {
+  return hash(p.id) % 2 === 0 ? flyerImage(p) : placeholderImage(p.genre ?? "outdoors", p.activity ?? p.title);
 }
 /** Bundled generated assets look AI-made, so only uploads and licensed stock photos count as real. */
 export const isRealPhoto = (url: string | null | undefined) =>
-  !!url && (url.startsWith("storage:") || url.startsWith("data:") || /^https:\/\/(images\.unsplash\.com|images\.pexels\.com)\//.test(url) || /\/storage\/v1\/object\//.test(url));
-export const photoOr = (url: string | null | undefined, genre: string) => (url && isRealPhoto(url) ? url : placeholderImage(genre));
+  !!url && (url.startsWith("storage:") || url.startsWith("data:") || url.startsWith("/flyers/") || /^https:\/\/(images\.unsplash\.com|images\.pexels\.com)\//.test(url) || /\/storage\/v1\/object\//.test(url));
+export const photoOr = (url: string | null | undefined, p: string | Parameters<typeof planFallback>[0]) =>
+  url && isRealPhoto(url) ? url : typeof p === "string" ? placeholderImage(p) : planFallback(p);

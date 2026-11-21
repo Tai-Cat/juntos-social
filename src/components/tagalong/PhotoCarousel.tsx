@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useGallery } from "@/hooks/use-gallery";
 import { usePhotoCredits } from "@/hooks/use-photos";
 import { placeholderImage } from "@/lib/placeholder";
-export function PhotoCarousel({ photos:source, label,planId,genre="outdoors",credits=false,example=false }: { photos: string[]; label: string;planId?:string;genre?:string;credits?:boolean;example?:boolean }) {
+export function PhotoCarousel({ photos:source, label,planId,genre="outdoors",credits=false,example=false,fallback }: { fallback?:string;photos: string[]; label: string;planId?:string;genre?:string;credits?:boolean;example?:boolean }) {
   const gallery=useGallery(planId,source);
-  const photos=gallery.length?gallery:[placeholderImage(genre)];
+  const photos=gallery.length?gallery:[fallback??placeholderImage(genre,label)];
   const creditRows=usePhotoCredits(credits?photos:[]);
   const uploads=source.filter(p=>p.startsWith("storage:")).length>0;
   const [ref, api] = useEmblaCarousel({ loop: true });

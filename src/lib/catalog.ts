@@ -82,7 +82,7 @@ export function genreOf(activity: string) {
   );
 }
 export function imageFor(activity: string, genre: string = genreOf(activity)) {
-  return placeholderImage(GENRES.some((g) => g.id === genre) ? genre : genreOf(activity));
+  return placeholderImage(GENRES.some((g) => g.id === genre) ? genre : genreOf(activity), activity);
 }
 export const CITIES = [
   "Paris, France",

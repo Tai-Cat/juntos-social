@@ -13,9 +13,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/chat/$userId")({
   head: () => ({
     meta: [
-      { title: "Your conversation — Tagalong" },
+      { title: "Your conversation — Juntos" },
       { name: "description", content: "Talk privately about plans, shared interests and trips." },
-      { property: "og:title", content: "Your conversation — Tagalong" },
+      { property: "og:title", content: "Your conversation — Juntos" },
       {
         property: "og:description",
         content: "Talk privately about plans, shared interests and trips.",

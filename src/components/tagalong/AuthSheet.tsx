@@ -61,7 +61,7 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
       <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground={false}>
         <DrawerContent className="max-h-[92dvh] overflow-y-auto">
           <DrawerHeader>
-            <DrawerTitle>Join Tagalong to {reason}</DrawerTitle>
+            <DrawerTitle>Join Juntos to {reason}</DrawerTitle>
           </DrawerHeader>
           <div className="mx-auto w-full max-w-md px-6 pb-8">
             <AuthForm

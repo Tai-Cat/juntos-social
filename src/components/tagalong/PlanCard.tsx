@@ -1,3 +1,5 @@
+import { planFallback } from "@/lib/placeholder";
+import { priceLabel } from "@/lib/tagalong";
 import { FriendsGoing } from "./PlanInvites";
 import { PhotoCarousel } from "./PhotoCarousel";
 import { useQuery } from "@tanstack/react-query";
@@ -79,6 +81,7 @@ export function PlanCard({
           photos={plan.photos}
           genre={plan.genre}
           label={plan.activity}
+          fallback={planFallback(plan)}
         />
         <div className="absolute left-3 top-3">
           <span className={`category-chip ${genreClass(plan.genre)}`}>{plan.activity}</span>
@@ -124,7 +127,7 @@ export function PlanCard({
             {plan.going_count}/{plan.capacity} going
           </span>
           <span className="font-bold">
-            {Number(plan.base_price) === 0 ? "Free" : `~€${Number(plan.base_price)} / person`}
+            {Number(plan.base_price) > 0 ? `${priceLabel(plan)} / person` : priceLabel(plan)}
           </span>
           <span className="ml-auto capitalize">
             {plan.required_level === "any" ? "All abilities" : plan.required_level}

@@ -120,6 +120,45 @@ export type Database = {
           },
         ]
       }
+      friend_preferences: {
+        Row: {
+          frequency: string
+          friend_id: string
+          note: string
+          time_window: string
+          user_id: string
+        }
+        Insert: {
+          frequency?: string
+          friend_id: string
+          note?: string
+          time_window?: string
+          user_id: string
+        }
+        Update: {
+          frequency?: string
+          friend_id?: string
+          note?: string
+          time_window?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_preferences_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           created_at: string
@@ -857,6 +896,7 @@ export type Database = {
           required_level: string
           starts_at: string
           step_free: boolean
+          ticket_url: string | null
           title: string
           what_to_bring: string
         }
@@ -902,6 +942,7 @@ export type Database = {
           required_level?: string
           starts_at: string
           step_free?: boolean
+          ticket_url?: string | null
           title: string
           what_to_bring?: string
         }
@@ -947,6 +988,7 @@ export type Database = {
           required_level?: string
           starts_at?: string
           step_free?: boolean
+          ticket_url?: string | null
           title?: string
           what_to_bring?: string
         }
@@ -1279,19 +1321,43 @@ export type Database = {
         Row: {
           demo_plus: boolean
           doodle_background: boolean
+          gender_plans_only: boolean
           hang_frequency: string
+          languages: string[]
+          max_distance_km: number
+          meet_genders: string[]
+          notify_alerts: boolean
+          notify_invites: boolean
+          notify_messages: boolean
+          profile_visibility: string
           user_id: string
         }
         Insert: {
           demo_plus?: boolean
           doodle_background?: boolean
+          gender_plans_only?: boolean
           hang_frequency?: string
+          languages?: string[]
+          max_distance_km?: number
+          meet_genders?: string[]
+          notify_alerts?: boolean
+          notify_invites?: boolean
+          notify_messages?: boolean
+          profile_visibility?: string
           user_id: string
         }
         Update: {
           demo_plus?: boolean
           doodle_background?: boolean
+          gender_plans_only?: boolean
           hang_frequency?: string
+          languages?: string[]
+          max_distance_km?: number
+          meet_genders?: string[]
+          notify_alerts?: boolean
+          notify_invites?: boolean
+          notify_messages?: boolean
+          profile_visibility?: string
           user_id?: string
         }
         Relationships: [
@@ -1432,6 +1498,7 @@ export type Database = {
         Args: { _plan: string; _user: string }
         Returns: boolean
       }
+      leave_org: { Args: { _org: string }; Returns: undefined }
       mark_no_show: { Args: { _request: string }; Returns: undefined }
       org_access: { Args: { _org: string; _user: string }; Returns: boolean }
       org_admin: { Args: { _org: string; _user: string }; Returns: boolean }

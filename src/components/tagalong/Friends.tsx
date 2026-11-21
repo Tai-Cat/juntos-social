@@ -1,3 +1,4 @@
+import { FriendReminder } from "./FriendReminder";
 import { SocialExamples } from "./SocialExamples";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -263,6 +264,7 @@ export function FriendsPanel() {
             </span>
             <span className="flex-1">{firstName(f.person?.name)}</span>
             <VerifiedBadge verified={!!f.person?.verified} />
+            {f.person && <FriendReminder friendId={f.person.id} name={firstName(f.person.name)} />}
             {f.person && (
               <Button asChild size="sm" variant="outline">
                 <Link to="/chat/$userId" params={{ userId: f.person.id }}>

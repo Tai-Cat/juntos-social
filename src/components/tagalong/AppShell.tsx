@@ -1,10 +1,14 @@
 import { useAuthAction } from "./AuthSheet";
 import { Button } from "@/components/ui/button";
 import { useEffect, type ReactNode } from "react";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Compass, Plane, Inbox, Plus, User, MapPin, CalendarDays } from "lucide-react";
+import { Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
+import { Compass, Plane, Inbox, Plus, User, CalendarDays, Map, List, ArrowLeft } from "lucide-react";
 import { useMyProfile } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { LocationPicker } from "./LocationPicker";
+import { setExplorePrefs, useExplorePrefs } from "@/lib/explore-prefs";
+import { cityName } from "@/lib/catalog";
+import { JuntosLogo } from "./JuntosLogo";
 const NAV = [
   { to: "/feed", label: "Explore", icon: Compass },
   { to: "/travel", label: "Travel", icon: Plane },
@@ -12,11 +16,15 @@ const NAV = [
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
-export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
+export function AppShell({ children }: { children: ReactNode; title?: string }) {
   const { profile, loading, user } = useMyProfile();
   const auth = useAuthAction();
   const loc = useLocation();
   const navigate = useNavigate();
+  const router = useRouter();
+  const prefs = useExplorePrefs();
+  const city = prefs.city ?? cityName(profile?.home_city ?? "Paris");
+  const onExplore = loc.pathname === "/" || loc.pathname === "/feed";
   useEffect(() => {
     if (
       !loading &&
@@ -27,19 +35,59 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
     )
       navigate({ to: "/onboarding" });
   }, [profile, loading, loc.pathname, navigate]);
+  const mapOn = prefs.view === "map";
   return (
     <div className="mx-auto min-h-screen max-w-7xl border-x border-border">
-      <header className="sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/95 px-5 py-4 backdrop-blur sm:px-8">
-        <Link to="/feed" className="font-display text-3xl font-semibold">
-          Tagalong<span className="text-tangerine">.</span>
-        </Link>
-        <span className="flex min-w-0 items-center gap-2 text-xs font-semibold">
-          <Button asChild size="icon" variant="ghost" aria-label="Calendar" title="Calendar"><Link to="/calendar"><CalendarDays className="h-5 w-5"/></Link></Button>
-          <MapPin className="h-3.5 w-3.5 shrink-0 text-tangerine" />
-          {title ?? (user ? profile?.home_city : "Good company, nearby")}
-        </span>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:gap-3 sm:px-8">
+        <Link to="/feed" aria-label="Juntos home" className="shrink-0"><JuntosLogo /></Link>
+        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
+          <LocationPicker
+            compact
+            autoLocate={!prefs.city}
+            value={city}
+            onChange={(v) => setExplorePrefs({ city: v })}
+            onPosition={(position) => setExplorePrefs({ position })}
+          />
+          <Button
+            size="icon"
+            variant={onExplore && mapOn ? "secondary" : "ghost"}
+            aria-label={mapOn ? "Show list" : "Show map"}
+            title={mapOn ? "Show list" : "Show map"}
+            onClick={() => {
+              setExplorePrefs({ view: onExplore && mapOn ? "browse" : "map" });
+              if (!onExplore) navigate({ to: "/feed" });
+            }}
+          >
+            {onExplore && mapOn ? <List className="h-5 w-5" /> : <Map className="h-5 w-5" />}
+          </Button>
+          <Button asChild size="icon" variant={loc.pathname.startsWith("/calendar") ? "secondary" : "ghost"} aria-label="Calendar" title="Calendar">
+            <Link to="/calendar"><CalendarDays className="h-5 w-5" /></Link>
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full"
+            aria-label={user ? "Your profile" : "Sign in"}
+            onClick={() => auth(() => navigate({ to: "/profile" }), "profile")}
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-tangerine-soft font-display text-sm font-bold text-tangerine">
+              {profile?.name?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />}
+            </span>
+          </Button>
+        </div>
       </header>
-      <main className="app-main px-4 pb-28 pt-6 sm:px-8">{children}</main>
+      <main className="app-main px-4 pb-28 pt-4 sm:px-8">
+        {!onExplore && (
+          <div className="mb-4 flex items-center gap-1 text-sm">
+            <Button variant="ghost" size="sm" className="-ml-2" onClick={() => (window.history.length > 1 ? router.history.back() : navigate({ to: "/feed" }))}>
+              <ArrowLeft /> Back
+            </Button>
+            <span className="text-muted-foreground">·</span>
+            <Button asChild variant="link" size="sm" className="text-tangerine"><Link to="/feed">Explore</Link></Button>
+          </div>
+        )}
+        {children}
+      </main>
       <nav
         aria-label="Main navigation"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
@@ -61,12 +109,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                   active ? "text-tangerine" : "text-muted-foreground",
                 )}
               >
-                <span
-                  className={cn(
-                    "grid h-8 w-10 place-items-center rounded-lg",
-                    active && "bg-tangerine-soft",
-                  )}
-                >
+                <span className={cn("grid h-8 w-10 place-items-center rounded-lg", active && "bg-tangerine-soft")}>
                   <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 1.8} />
                 </span>
                 {label}

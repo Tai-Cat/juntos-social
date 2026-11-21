@@ -12,10 +12,10 @@ import { errMsg } from "@/lib/tagalong";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Tagalong" },
-      { name: "description", content: "Sign in or create your Tagalong account with email." },
-      { property: "og:title", content: "Sign in — Tagalong" },
-      { property: "og:description", content: "Sign in or create your Tagalong account." },
+      { title: "Sign in — Juntos" },
+      { name: "description", content: "Sign in or create your Juntos account with email." },
+      { property: "og:title", content: "Sign in — Juntos" },
+      { property: "og:description", content: "Sign in or create your Juntos account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -27,7 +27,7 @@ function AuthPage() {
   return (
     <div className="mx-auto min-h-screen max-w-md px-6 py-8">
       <Link to="/" className="font-display text-2xl">
-        Tagalong
+        Juntos
       </Link>
       <div className="mt-8">
         <AuthForm />
@@ -132,7 +132,7 @@ export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
           </div>
         ) : (
           <>
-            <h1 className="text-3xl">{mode === "signin" ? "Welcome back" : "Join Tagalong"}</h1>
+            <h1 className="text-3xl">{mode === "signin" ? "Welcome back" : "Join Juntos"}</h1>
             <form onSubmit={submit} className="mt-8 space-y-5">
               {formError && (
                 <p role="alert" className="text-sm text-destructive">

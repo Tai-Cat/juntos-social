@@ -16,9 +16,9 @@ import { readIntent } from "@/lib/auth-intent";
 export const Route = createFileRoute("/_authenticated/verify")({
   head: () => ({
     meta: [
-      { title: "Verify it's you — Tagalong" },
+      { title: "Verify it's you — Juntos" },
       { name: "description", content: "Demo identity verification." },
-      { property: "og:title", content: "Verify it's you — Tagalong" },
+      { property: "og:title", content: "Verify it's you — Juntos" },
       { property: "og:description", content: "Demo identity verification." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

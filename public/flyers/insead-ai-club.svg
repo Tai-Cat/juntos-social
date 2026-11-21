@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750">
+<rect width="1200" height="750" fill="#1E2A44"/>
+<rect x="760" y="0" width="440" height="750" fill="#3A86C2"/>
+<g fill="none" stroke="#FFF8EE" stroke-width="8" stroke-linejoin="round" transform="translate(820 200)"><rect x="0" y="0" width="320" height="210" rx="16"/><path d="M-40 250h400l-30-40H-10z"/><path d="M60 80l-35 30 35 30M260 80l35 30-35 30M180 60l-40 100" stroke="#F6C33B"/></g>
+<text x="70" y="110" font-family="Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#9CC9EC" letter-spacing="6">AI DEVELOPMENT CLUB</text>
+<text x="70" y="240" font-family="Georgia, serif" font-size="104" font-weight="700" fill="#FFF8EE">Your site,</text>
+<text x="70" y="360" font-family="Georgia, serif" font-size="104" font-weight="700" fill="#F6C33B">live.</text>
+<text x="70" y="440" font-family="Helvetica, Arial, sans-serif" font-size="36" fill="#FFF8EE">Build and host your portfolio with AI</text>
+<text x="70" y="490" font-family="Helvetica, Arial, sans-serif" font-size="30" fill="#9CC9EC">Night 1 of a 6-night build series · bring your laptop</text>
+<rect x="70" y="560" width="560" height="110" rx="14" fill="#F6C33B"/>
+<text x="100" y="613" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="800" fill="#1E2A44">THU 26 NOV · 7:15PM</text>
+<text x="100" y="652" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#1E2A44">DT2 · INSEAD Fontainebleau · Free</text>
+<text x="1130" y="700" text-anchor="end" font-family="Georgia, serif" font-size="40" font-weight="700" fill="#FFF8EE">Juntos.</text>
+</svg>

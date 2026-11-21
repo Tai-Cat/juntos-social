@@ -1,3 +1,4 @@
+import { JuntosLogo } from "@/components/tagalong/JuntosLogo";
 import { AuthSheetProvider } from "@/components/tagalong/AuthSheet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -77,12 +78,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Tagalong — join plans, meet people in real life" },
+      { title: "Juntos — join plans, meet people in real life" },
       {
         name: "description",
         content: "Turn your plans into plus-ones, and venues' empty slots into full tables.",
       },
-      { property: "og:title", content: "Tagalong" },
+      { property: "og:title", content: "Juntos" },
       {
         property: "og:description",
         content: "Turn your plans into plus-ones, and venues' empty slots into full tables.",
@@ -108,7 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 // Light mode is intentional, independent of device preference.
-const themeScript = `(function(){try{document.documentElement.classList.remove('dark');document.documentElement.dataset.doodles=localStorage.getItem('tagalong-doodles')==='off'?'off':'on'}catch(e){}})()`;
+const themeScript = `(function(){try{document.documentElement.classList.remove('dark');document.documentElement.dataset.doodles=localStorage.getItem('tagalong-doodles')==='off'?'off':'on';if(sessionStorage.getItem('juntos-splash')==='seen')document.documentElement.dataset.splash='seen'}catch(e){}})()`;
+const SPLASH_LINES = ["Good plans, great company.", "Turn your plans into plus-ones.", "Find a plan.", "Join the company.", "Meet in real life."];
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
@@ -118,6 +120,12 @@ function RootShell({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
+        <div className="splash" aria-hidden="true">
+          <JuntosLogo size="lg" />
+          <div className="splash-lines">
+            {SPLASH_LINES.map((l, i) => <p key={l} style={{ animationDelay: `${i * 1.2}s` }}>{l}</p>)}
+          </div>
+        </div>
         {children}
         <Scripts />
       </body>
@@ -129,6 +137,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
+  useEffect(() => {
+    try { sessionStorage.setItem("juntos-splash", "seen"); } catch {}
+    document.documentElement.dataset["splash"] = "seen";
+  }, []);
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;

@@ -20,9 +20,9 @@ import { errMsg, firstName, formatWhen } from "@/lib/tagalong";
 export const Route = createFileRoute("/_authenticated/inbox")({
   head: () => ({
     meta: [
-      { title: "Join requests — Tagalong" },
+      { title: "Join requests — Juntos" },
       { name: "description", content: "Approve or decline people who want to join your plans." },
-      { property: "og:title", content: "Join requests — Tagalong" },
+      { property: "og:title", content: "Join requests — Juntos" },
       {
         property: "og:description",
         content: "Approve or decline people who want to join your plans.",

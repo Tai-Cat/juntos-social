@@ -7,10 +7,10 @@ import {safeReturn} from "@/lib/auth-return";
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
     meta: [
-      { title: "Confirm your email — Tagalong" },
-      { name: "description", content: "Finish confirming your Tagalong account." },
-      { property: "og:title", content: "Confirm your email — Tagalong" },
-      { property: "og:description", content: "Finish confirming your Tagalong account." },
+      { title: "Confirm your email — Juntos" },
+      { name: "description", content: "Finish confirming your Juntos account." },
+      { property: "og:title", content: "Confirm your email — Juntos" },
+      { property: "og:description", content: "Finish confirming your Juntos account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -47,7 +47,7 @@ function Callback() {
   }, [navigate]);
   return (
     <main className="mx-auto max-w-md px-6 py-16">
-      <h1 className="text-3xl">Welcome to Tagalong</h1>
+      <h1 className="text-3xl">Welcome to Juntos</h1>
       {error ? (
         <>
           <p role="alert" className="my-6 text-muted-foreground">

@@ -78,3 +78,11 @@ export function sharedInterests(a: string[], b: string[]) {
   const s = new Set(a.map((x) => x.toLowerCase()));
   return b.filter((x) => s.has(x.toLowerCase()));
 }
+/** Negative base_price means "price to be announced"; Singapore plans are priced in SGD. */
+export function priceLabel(p: { base_price: number | string; city?: string | null }, approx = true) {
+  const n = Number(p.base_price);
+  if (n < 0) return "Price TBA";
+  if (n === 0) return "Free";
+  const cur = p.city === "Singapore" ? "S$" : "€";
+  return `${approx && cur === "€" ? "~" : ""}${cur}${n}`;
+}

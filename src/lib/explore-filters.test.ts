@@ -87,3 +87,9 @@ describe("Explore rules", () => {
       matchesPlan({ ...p, step_free: false }, { ...emptyFilters("Paris"), stepFree: true }),
     ).toBe(false));
 });
+import { priceLabel } from "./tagalong";
+describe("price labels", () => {
+  it("shows Price TBA for a to-be-announced price", () => expect(priceLabel({ base_price: -1 })).toBe("Price TBA"));
+  it("shows Singapore prices in SGD", () => expect(priceLabel({ base_price: 29.98, city: "Singapore" })).toBe("S$29.98"));
+  it("shows free plans as Free", () => expect(priceLabel({ base_price: 0 })).toBe("Free"));
+});
