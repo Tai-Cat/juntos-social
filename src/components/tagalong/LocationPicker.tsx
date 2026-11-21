@@ -10,7 +10,6 @@ export function LocationPicker({
   value,
   onChange,
   onPosition,
-  autoLocate = true,
   compact = false,
 }: {
   autoLocate?: boolean;
@@ -35,11 +34,20 @@ export function LocationPicker({
     setRecent(next);
     localStorage.setItem("tagalong-places", JSON.stringify(next));
   }
+  /** One quiet note per browser, never stacked (fixed toast id). */
+  function noteOnce(msg: string) {
+    if (localStorage.getItem("juntos-location-noted")) return;
+    localStorage.setItem("juntos-location-noted", "1");
+    toast(msg, { id: "juntos-location" });
+  }
+  // Only called when the user taps "Use my location"; asks the browser at most once per session.
   function locate() {
-    if (!navigator.geolocation) {
-      toast("Location isn't available. Choose a city instead.");
+    if (!navigator.geolocation || localStorage.getItem("juntos-location-denied")) {
+      noteOnce("Location isn't available. Your home city is selected.");
       return;
     }
+    if (sessionStorage.getItem("juntos-location-asked")) return;
+    sessionStorage.setItem("juntos-location-asked", "1");
     navigator.geolocation.getCurrentPosition(
       async (p) => {
         const point = { lat: p.coords.latitude, lng: p.coords.longitude };
@@ -55,16 +63,16 @@ export function LocationPicker({
           const city = data.address?.city ?? data.address?.town ?? data.address?.village;
           if (city) choose([city, data.address?.country].filter(Boolean).join(", "));
         } catch {
-          toast("Couldn't find your city. Your saved city is still selected.");
+          noteOnce("Couldn't find your city. Your home city is selected.");
         }
       },
-      () => toast("Location unavailable. Your home city is selected."),
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) localStorage.setItem("juntos-location-denied", "1");
+        noteOnce("Location unavailable. Your home city is selected.");
+      },
       { timeout: 10000, maximumAge: 300000 },
     );
   }
-  useEffect(() => {
-    if (autoLocate) locate();
-  }, []);
   const results = search
     ? CITIES.filter((c) => c.toLowerCase().includes(search.toLowerCase())).slice(0, 12)
     : recent;

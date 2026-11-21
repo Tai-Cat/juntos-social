@@ -1,3 +1,4 @@
+import { VisibilitySelect, type Visibility } from "@/components/tagalong/PlanVisibility";
 import { canUseHostTools } from "@/lib/membership";
 import { CITY_CENTERS } from "@/lib/spatial";
 import { usePlus } from "@/hooks/use-plus";
@@ -89,6 +90,7 @@ function PostPlan() {
   const [duration, setDuration] = useState(120);
   const [intro, setIntro] = useState("");
   const [privatePlan, setPrivatePlan] = useState(false);
+  const [visibility, setVisibility] = useState<Visibility>("public");
   const [early, setEarly] = useState(false);
   const [area, setArea] = useState("");
   const [address, setAddress] = useState("");
@@ -161,6 +163,7 @@ function PostPlan() {
           duration_minutes: duration,
           host_intro: intro,
           is_private: privatePlan,
+          visibility,
           early_booking: plus && early,
           required_level: plus && level ? level : "any",
           kind,
@@ -349,7 +352,8 @@ function PostPlan() {
           )}
         </div>
         <div className="divide-y divide-border border-y border-border">
-          <Toggle label="Private plan" checked={privatePlan} onChange={setPrivatePlan} />
+          <VisibilitySelect value={visibility} onChange={setVisibility} />
+          <Toggle label="Invite-only for chosen people" checked={privatePlan} onChange={setPrivatePlan} />
           <Toggle
             label="Plus early booking badge (coming soon)"
             checked={early}

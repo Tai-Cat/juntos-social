@@ -226,7 +226,7 @@ function ProfilePage() {
                         className="flex justify-between py-3 text-sm"
                       >
                         <span>{p.title}</span>
-                        <span className="text-muted-foreground">{formatWhen(p.starts_at)}</span>
+                        <span className="text-muted-foreground">{new Date(p.starts_at).getTime()<Date.now()?`Past · ${new Date(p.starts_at).toLocaleDateString()}`:formatWhen(p.starts_at)}</span>
                       </Link>
                     </li>
                   ))}

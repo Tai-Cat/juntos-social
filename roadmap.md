@@ -41,3 +41,18 @@
 - [x] Remove generated flyers + illustrated placeholders everywhere; plain tinted placeholder only
 - [x] INSEAD events use relevant photos (no uploaded flyers exist)
 - [x] Test Explore, Travel, organisation page, plan page
+
+## Events and visibility (now)
+- [x] Image order: upload → Unsplash → AI generated (credited "AI generated")
+- [x] Visibility: Public / Friends and groups / Anyone with the link (token, copy/share, reset/disable, lock + Private label)
+- [x] Past events: out of feeds, Past tab on org/profile, not joinable
+- [x] Seed 5 past + 2 upcoming events, 6 INSEAD clubs (you as admin)
+
+## Location (now)
+- [x] Ask location only on "Use my location" tap, once per session; one quiet fallback note
+
+## Example data fade-out (next)
+- [ ] Per city: ≥6 real upcoming public events hides examples; else top up to 6, sorted after real
+- [ ] Same gap-fill rule in categories, organisations, Travel, calendar, map, friends
+- [ ] Examples excluded from My plans, counts, notifications, analytics; not joinable for payment
+- [ ] Admin: Settings switch to hide all examples; delete-all-examples action

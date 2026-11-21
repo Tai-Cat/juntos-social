@@ -797,6 +797,55 @@ export type Database = {
           },
         ]
       }
+      plan_link_access: {
+        Row: {
+          created_at: string
+          plan_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          plan_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          plan_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_link_access_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_member_notes: {
+        Row: {
+          note: string
+          plan_id: string
+        }
+        Insert: {
+          note: string
+          plan_id: string
+        }
+        Update: {
+          note?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_member_notes_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: true
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_messages: {
         Row: {
           body: string
@@ -879,31 +928,39 @@ export type Database = {
           description: string | null
           duration_minutes: number
           early_booking: boolean
+          ends_at: string | null
           example_host_name: string | null
           example_host_reliability: number | null
           example_host_verified: boolean | null
           genre: string
           going_count: number
+          has_virtual_option: boolean
           host_id: string | null
           host_intro: string
           id: string
           image_url: string | null
+          interest_only: boolean
           interest_tags: string[]
           is_example: boolean
           is_private: boolean
           is_public_place: boolean
           is_travel: boolean
           kind: string
+          link_enabled: boolean
+          members_note: string | null
           organisation_id: string | null
           parent_plan_id: string | null
           photos: string[]
           private_participants: string[]
           recurring_weekly: boolean
           required_level: string
+          share_token: string
           starts_at: string
           step_free: boolean
           ticket_url: string | null
           title: string
+          venue_tbc: boolean
+          visibility: string
           what_to_bring: string
         }
         Insert: {
@@ -925,31 +982,39 @@ export type Database = {
           description?: string | null
           duration_minutes?: number
           early_booking?: boolean
+          ends_at?: string | null
           example_host_name?: string | null
           example_host_reliability?: number | null
           example_host_verified?: boolean | null
           genre?: string
           going_count?: number
+          has_virtual_option?: boolean
           host_id?: string | null
           host_intro?: string
           id?: string
           image_url?: string | null
+          interest_only?: boolean
           interest_tags?: string[]
           is_example?: boolean
           is_private?: boolean
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
+          link_enabled?: boolean
+          members_note?: string | null
           organisation_id?: string | null
           parent_plan_id?: string | null
           photos?: string[]
           private_participants?: string[]
           recurring_weekly?: boolean
           required_level?: string
+          share_token?: string
           starts_at: string
           step_free?: boolean
           ticket_url?: string | null
           title: string
+          venue_tbc?: boolean
+          visibility?: string
           what_to_bring?: string
         }
         Update: {
@@ -971,31 +1036,39 @@ export type Database = {
           description?: string | null
           duration_minutes?: number
           early_booking?: boolean
+          ends_at?: string | null
           example_host_name?: string | null
           example_host_reliability?: number | null
           example_host_verified?: boolean | null
           genre?: string
           going_count?: number
+          has_virtual_option?: boolean
           host_id?: string | null
           host_intro?: string
           id?: string
           image_url?: string | null
+          interest_only?: boolean
           interest_tags?: string[]
           is_example?: boolean
           is_private?: boolean
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
+          link_enabled?: boolean
+          members_note?: string | null
           organisation_id?: string | null
           parent_plan_id?: string | null
           photos?: string[]
           private_participants?: string[]
           recurring_weekly?: boolean
           required_level?: string
+          share_token?: string
           starts_at?: string
           step_free?: boolean
           ticket_url?: string | null
           title?: string
+          venue_tbc?: boolean
+          visibility?: string
           what_to_bring?: string
         }
         Relationships: [
@@ -1488,6 +1561,10 @@ export type Database = {
           title: string
         }[]
       }
+      has_plan_link_access: {
+        Args: { _plan: string; _user: string }
+        Returns: boolean
+      }
       invite_teaser: {
         Args: { _token: string }
         Returns: {
@@ -1506,6 +1583,7 @@ export type Database = {
       }
       leave_org: { Args: { _org: string }; Returns: undefined }
       mark_no_show: { Args: { _request: string }; Returns: undefined }
+      open_plan_link: { Args: { _token: string }; Returns: string }
       org_access: { Args: { _org: string; _user: string }; Returns: boolean }
       org_admin: { Args: { _org: string; _user: string }; Returns: boolean }
       org_member: { Args: { _org: string; _user: string }; Returns: boolean }
@@ -1528,6 +1606,20 @@ export type Database = {
         }[]
       }
       people_blocked: { Args: { a: string; b: string }; Returns: boolean }
+      plan_link_teaser: {
+        Args: { _token: string }
+        Returns: {
+          activity: string
+          area_label: string
+          city: string
+          genre: string
+          host_name: string
+          id: string
+          image_url: string
+          starts_at: string
+          title: string
+        }[]
+      }
       public_host: {
         Args: { _id: string }
         Returns: {
@@ -1546,6 +1638,7 @@ export type Database = {
         Args: { _answer: string; _org: string }
         Returns: string
       }
+      reset_plan_link: { Args: { _plan: string }; Returns: string }
       respond_friend: {
         Args: { _accept: boolean; _id: string }
         Returns: undefined

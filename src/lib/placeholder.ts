@@ -16,6 +16,6 @@ export function planFallback(p: { id: string; title: string; starts_at?: string 
 }
 /** Bundled generated assets look AI-made, so only uploads and licensed stock photos count as real. */
 export const isRealPhoto = (url: string | null | undefined) =>
-  !!url && (url.startsWith("storage:") || /^https:\/\/(images\.unsplash\.com|images\.pexels\.com)\//.test(url) || /\/storage\/v1\/object\//.test(url));
+  !!url && (url.startsWith("storage:") || url.startsWith("/generated/") || /^https:\/\/(images\.unsplash\.com|images\.pexels\.com)\//.test(url) || /\/storage\/v1\/object\//.test(url));
 export const photoOr = (url: string | null | undefined, p: string | Parameters<typeof planFallback>[0]) =>
   url && isRealPhoto(url) ? url : typeof p === "string" ? placeholderImage(p) : planFallback(p);

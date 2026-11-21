@@ -22,6 +22,7 @@ import { Route as AuthenticatedPostRouteImport } from './routes/_authenticated/p
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedVerifyRouteImport } from './routes/_authenticated/verify'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ETokenRouteImport } from './routes/e.$token'
 import { Route as FriendsInviteRouteImport } from './routes/friends.invite'
 import { Route as InvitesTokenRouteImport } from './routes/invites.$token'
 import { Route as OrganisationsSlugRouteImport } from './routes/organisations.$slug'
@@ -95,6 +96,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const ETokenRoute = ETokenRouteImport.update({
+  id: '/e/$token',
+  path: '/e/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FriendsInviteRoute = FriendsInviteRouteImport.update({
   id: '/friends/invite',
   path: '/friends/invite',
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/verify': typeof AuthenticatedVerifyRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/e/$token': typeof ETokenRoute
   '/friends/invite': typeof FriendsInviteRoute
   '/invites/$token': typeof InvitesTokenRoute
   '/organisations/$slug': typeof OrganisationsSlugRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/verify': typeof AuthenticatedVerifyRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/e/$token': typeof ETokenRoute
   '/friends/invite': typeof FriendsInviteRoute
   '/invites/$token': typeof InvitesTokenRoute
   '/organisations/$slug': typeof OrganisationsSlugRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/verify': typeof AuthenticatedVerifyRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/e/$token': typeof ETokenRoute
   '/friends/invite': typeof FriendsInviteRoute
   '/invites/$token': typeof InvitesTokenRoute
   '/organisations/$slug': typeof OrganisationsSlugRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/verify'
     | '/auth/callback'
+    | '/e/$token'
     | '/friends/invite'
     | '/invites/$token'
     | '/organisations/$slug'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/verify'
     | '/auth/callback'
+    | '/e/$token'
     | '/friends/invite'
     | '/invites/$token'
     | '/organisations/$slug'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/verify'
     | '/auth/callback'
+    | '/e/$token'
     | '/friends/invite'
     | '/invites/$token'
     | '/organisations/$slug'
@@ -283,6 +295,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   FeedRoute: typeof FeedRoute
   TravelRoute: typeof TravelRoute
+  ETokenRoute: typeof ETokenRoute
   FriendsInviteRoute: typeof FriendsInviteRoute
   InvitesTokenRoute: typeof InvitesTokenRoute
   OrganisationsSlugRoute: typeof OrganisationsSlugRoute
@@ -383,6 +396,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/e/$token': {
+      id: '/e/$token'
+      path: '/e/$token'
+      fullPath: '/e/$token'
+      preLoaderRoute: typeof ETokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/friends/invite': {
       id: '/friends/invite'
@@ -485,6 +505,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   FeedRoute: FeedRoute,
   TravelRoute: TravelRoute,
+  ETokenRoute: ETokenRoute,
   FriendsInviteRoute: FriendsInviteRoute,
   InvitesTokenRoute: InvitesTokenRoute,
   OrganisationsSlugRoute: OrganisationsSlugRoute,

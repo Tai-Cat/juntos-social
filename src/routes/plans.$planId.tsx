@@ -1,7 +1,8 @@
 import { planFallback } from "@/lib/placeholder";
+import { PlanVisibilityPanel, MemberNote, InterestedButton } from "@/components/tagalong/PlanVisibility";
 import { PlanInvites } from "@/components/tagalong/PlanInvites";
 import { PhotoCarousel } from "@/components/tagalong/PhotoCarousel";
-import { Share2, Bookmark,Download } from "lucide-react";
+import { Share2, Bookmark, Download } from "lucide-react";
 import { useAge } from "@/hooks/use-age";
 import { ageAllowed,ageLabel } from "@/lib/age";
 import { rememberIntent } from "@/lib/auth-intent";
@@ -123,6 +124,7 @@ function PlanDetail() {
   const plan = planQ.data;
   const hostQ = useQuery({queryKey:["public-host",plan?.host_id],enabled:!!plan?.host_id,queryFn:async()=>{if(!plan?.host_id)return null;return (await supabase.rpc("public_host",{_id:plan.host_id})).data?.[0]??null;}});
   const isHost = !!plan && plan.host_id === user?.id;
+  const isPast = !!plan && new Date(plan.ends_at ?? plan.starts_at).getTime() < Date.now();
   const approved =
     myReq.data?.status === "approved" ||
     (!!user && !!plan?.is_private && plan.private_participants.includes(user.id));
@@ -316,6 +318,15 @@ function PlanDetail() {
         {plan.is_example && <ExampleTag />}
       </div>
       <h1 className="mt-2 text-3xl leading-tight">{plan.title}</h1>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {plan.visibility==="link"&&<span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-bold"><Lock className="h-3 w-3"/>Private</span>}
+        {plan.visibility==="friends"&&<span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-bold"><Lock className="h-3 w-3"/>Friends and groups</span>}
+        {isPast&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">Past · {new Date(plan.starts_at).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})}</span>}
+        {plan.venue_tbc&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Venue to be confirmed</span>}
+        {plan.has_virtual_option&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Virtual option</span>}
+      </div>
+      {isHost&&<PlanVisibilityPanel plan={plan}/>}
+      <MemberNote planId={plan.id}/>
       {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-3 inline-flex rounded-full bg-sky-soft px-3 py-1 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
       {plan.organisation_id&&organisations.data?.filter(o=>o.id===plan.organisation_id).map(o=><p className="mt-3 text-sm" key={o.id}>Hosted by <Link className="font-bold text-grass" to="/organisations/$slug" params={{slug:o.slug}}>{o.name}</Link></p>)}
       {plan.description && <p className="mt-3 text-muted-foreground">{plan.description}</p>}
@@ -416,7 +427,9 @@ function PlanDetail() {
       )}
 
       {/* Join / status */}
-      {!isHost && (
+      {isPast && !isHost && <p className="mt-6 rounded-lg border border-border bg-card p-4 text-sm">This event has already happened, so it can't be joined.</p>}
+      {plan.interest_only && !isPast && !isHost && <InterestedButton planId={plan.id}/>}
+      {!isHost && !isPast && !plan.interest_only && (
         <div className="mt-6 space-y-4">
           {!myReq.data && !ended && (
             <>
