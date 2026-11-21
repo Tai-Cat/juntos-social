@@ -1,3 +1,4 @@
+import {photoOr,isRealPhoto} from "@/lib/placeholder";
 import { SocialExamples } from "./SocialExamples";
 import { useEffect,useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -203,7 +204,7 @@ export function InvitesInbox() {
         (i) =>
           i.plan && (
             <article key={i.id} className="overflow-hidden rounded-lg border border-border bg-card">
-              {i.plan.image_url && (
+              {isRealPhoto(i.plan.image_url) && (
                 <img
                   className="aspect-[16/10] max-h-[28dvh] w-full object-cover"
                   src={i.plan.image_url}

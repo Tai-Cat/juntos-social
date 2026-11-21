@@ -7,7 +7,8 @@ import { usePlus } from "@/hooks/use-plus";
 import { Switch } from "@/components/ui/switch";
 import { Choice } from "@/components/tagalong/Choice";
 import { TripCard } from "@/components/tagalong/TripCard";
-import { imageFor, PLUS_MONTHLY_EUR } from "@/lib/catalog";
+import { PLUS_MONTHLY_EUR } from "@/lib/catalog";
+import { PersonalInterests } from "@/components/tagalong/PersonalInterests";
 import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -182,29 +183,17 @@ function ProfilePage() {
         <>
           <section className="mt-7">
             <h2 className="mb-3 text-2xl">Your interests and levels</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {profile.interests.map((i) => (
-                <div
-                  key={i}
-                  className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-3"
-                >
-                  <img
-                    src={imageFor(i)}
-                    alt=""
-                    className="h-14 w-14 shrink-0 rounded-md object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="mb-1 truncate text-sm font-bold capitalize">{i}</p>
-                    <Choice
-                      label="Any level"
-                      value={levels.data?.find((l) => l.interest === i)?.level ?? "any"}
-                      onChange={(v) => setLevel(i, v)}
-                      options={["any", "beginner", "intermediate", "advanced"]}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PersonalInterests
+              interests={profile.interests}
+              levels={Object.fromEntries((levels.data ?? []).map((l) => [l.interest, l.level]))}
+              onLevel={setLevel}
+              onChange={async (next) => {
+                if (!user) return;
+                const { error } = await supabase.from("profiles").update({ interests: next }).eq("id", user.id);
+                if (error) toast.error(error.message);
+                else { qc.invalidateQueries({ queryKey: ["profile"] }); qc.invalidateQueries({ queryKey: ["community-interests"] }); }
+              }}
+            />
           </section>
           {profile.learning_interests.length > 0 && (
             <section className="mt-6">

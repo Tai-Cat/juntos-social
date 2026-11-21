@@ -113,6 +113,13 @@
       "when": 1795271195195,
       "tag": "0015_tagalong_v4_private_profile_save",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795272312905,
+      "tag": "0016_real_photos_personal_interests",
+      "breakpoints": true
     }
   ]
 }

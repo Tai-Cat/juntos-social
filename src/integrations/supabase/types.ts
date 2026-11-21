@@ -585,6 +585,68 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_credits: {
+        Row: {
+          created_at: string
+          interest: string | null
+          photo: string
+          photographer: string
+          photographer_url: string
+          plan_id: string | null
+          provider: string
+          provider_id: string
+          source_url: string
+        }
+        Insert: {
+          created_at?: string
+          interest?: string | null
+          photo: string
+          photographer: string
+          photographer_url: string
+          plan_id?: string | null
+          provider: string
+          provider_id: string
+          source_url: string
+        }
+        Update: {
+          created_at?: string
+          interest?: string | null
+          photo?: string
+          photographer?: string
+          photographer_url?: string
+          plan_id?: string | null
+          provider?: string
+          provider_id?: string
+          source_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_credits_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_search_cache: {
+        Row: {
+          created_at: string
+          query: string
+          results: Json
+        }
+        Insert: {
+          created_at?: string
+          query: string
+          results: Json
+        }
+        Update: {
+          created_at?: string
+          query?: string
+          results?: Json
+        }
+        Relationships: []
+      }
       plan_addresses: {
         Row: {
           address: string
@@ -781,6 +843,7 @@ export type Database = {
           host_intro: string
           id: string
           image_url: string | null
+          interest_tags: string[]
           is_example: boolean
           is_private: boolean
           is_public_place: boolean
@@ -825,6 +888,7 @@ export type Database = {
           host_intro?: string
           id?: string
           image_url?: string | null
+          interest_tags?: string[]
           is_example?: boolean
           is_private?: boolean
           is_public_place?: boolean
@@ -869,6 +933,7 @@ export type Database = {
           host_intro?: string
           id?: string
           image_url?: string | null
+          interest_tags?: string[]
           is_example?: boolean
           is_private?: boolean
           is_public_place?: boolean
@@ -1299,6 +1364,13 @@ export type Database = {
           recurring_weekly: boolean
           starts_at: string
           title: string
+        }[]
+      }
+      community_interests: {
+        Args: never
+        Returns: {
+          interest: string
+          people: number
         }[]
       }
       confirm_org_email_demo: {

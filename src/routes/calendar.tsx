@@ -1,3 +1,4 @@
+import {matchesInterests} from "@/lib/interests";
 import {useMemo,useState} from "react";
 import {createFileRoute,Link,useNavigate} from "@tanstack/react-router";
 import {useQuery} from "@tanstack/react-query";
@@ -27,7 +28,7 @@ function CalendarPage(){
  const base=useMemo(()=>{
   const out:CalendarEvent[]=[];
   const item=(p:Plan,kind:CalendarEvent["kind"],example=false):CalendarEvent=>({id:`${kind}-${p.id}`,planId:p.id,title:p.title,start:p.starts_at,duration:p.duration_minutes,kind,example,recurring:p.recurring_weekly,area:p.area_label,image:p.image_url});
-  for(const p of plansQ.data??[]){if(joinedQ.data?.some(j=>j.plan_id===p.id)||user&&p.host_id===user.id)out.push(item(p,"going"));if(savedQ.data?.some(s=>s.plan_id===p.id))out.push(item(p,"saved"));if(!p.is_private && (profile?.interests.length?profile.interests.some(i=>i.toLowerCase()===p.activity.toLowerCase()):p.city==="Paris"))out.push(item(p,"suggested",p.is_example));}
+  for(const p of plansQ.data??[]){if(joinedQ.data?.some(j=>j.plan_id===p.id)||user&&p.host_id===user.id)out.push(item(p,"going"));if(savedQ.data?.some(s=>s.plan_id===p.id))out.push(item(p,"saved"));if(!p.is_private && (profile?.interests.length?matchesInterests(p,profile.interests):p.city==="Paris"))out.push(item(p,"suggested",p.is_example));}
   for(const f of friendQ.data??[])out.push({id:`friend-${f.friend_id}-${f.plan_id}`,planId:f.plan_id,title:f.title,start:f.starts_at,duration:f.duration_minutes,kind:"friend",friendId:f.friend_id,friendName:f.friend_name,example:false,recurring:f.recurring_weekly,area:f.area_label,image:f.image_url});
   if(examples){const demos=(plansQ.data??[]).filter(p=>p.is_example&&p.city==="Paris");demos.slice(0,2).forEach(p=>out.push(item(p,"going",true)));demos.slice(2,4).forEach(p=>out.push(item(p,"saved",true)));demos.slice(4,8).forEach((p,i)=>out.push({...item(p,"friend",true),friendId:i%2?"example-leo":"example-mira",friendName:i%2?"Leo":"Mira",recurring:i===0||p.recurring_weekly}));}
   return out;

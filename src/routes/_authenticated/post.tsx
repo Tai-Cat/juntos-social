@@ -1,10 +1,14 @@
 import { canUseHostTools } from "@/lib/membership";
 import { CITY_CENTERS } from "@/lib/spatial";
 import { usePlus } from "@/hooks/use-plus";
-import { ACTIVITIES, genreOf, imageFor, cityName, cityImage, GENRES } from "@/lib/catalog";
+import { ACTIVITIES, genreOf, cityName, GENRES } from "@/lib/catalog";
 import { Choice } from "@/components/tagalong/Choice";
 import { PlusCard } from "@/components/tagalong/PlusCard";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ensurePlanPhotos } from "@/lib/image-search.functions";
+import { PhotoUploader } from "@/components/tagalong/PhotoUploader";
+import { InterestSearch } from "@/components/tagalong/InterestSearch";
 import { createFileRoute, useNavigate,Link } from "@tanstack/react-router";
 import {useAge} from "@/hooks/use-age";
 import {useOrganisations,useOrgMemberships} from "@/hooks/use-organisations";
@@ -72,6 +76,8 @@ function PostPlan() {
   const age=useAge(),organisations=useOrganisations(),memberships=useOrgMemberships();
   const [ageBracket,setAgeBracket]=useState(""),[ageMin,setAgeMin]=useState(18),[ageMax,setAgeMax]=useState(34),[orgId,setOrgId]=useState("");
   const [photoFiles,setPhotoFiles]=useState<File[]>([]);
+  const [tags,setTags]=useState<string[]>([]);
+  const fillPhotos=useServerFn(ensurePlanPhotos);
   const [level, setLevel] = useState("");
   const [activity, setActivity] = useState(s.category ? s.category.toLowerCase() : "co-working");
   const navigate = useNavigate();
@@ -121,7 +127,6 @@ function PostPlan() {
     e.preventDefault();
     if (!user) return;
     if(!age.data?.age_verified){toast.error("Complete demo age verification before hosting.");return;}
-    if(photoFiles.length<3||photoFiles.length>5){toast.error("Add 3 to 5 distinct photos for this plan.");return;}
     if (!publicPlace) {
       toast.error("Plans must be at a public place or partner venue");
       return;
@@ -146,6 +151,7 @@ function PostPlan() {
           genre: genreOf(activity),
           image_url:null,
           photos,
+          interest_tags:tags,
           age_min:ageBracket==="custom"?ageMin:bracket?.min??null,
           age_max:ageBracket==="custom"?ageMax:bracket?.max??null,
           organisation_id:orgId||null,
@@ -181,6 +187,7 @@ function PostPlan() {
       if (e2) throw e2;
       qc.invalidateQueries({ queryKey: ["plans"] });
       toast.success("Plan posted");
+      if(!photos.length){try{const r=await fillPhotos({data:{planId:data.id}});if(r.status==="missing_keys")toast.message("Stock photos aren't switched on yet, so a placeholder is shown.");}catch{/* placeholder stays */}}
       navigate({ to: "/plans/$planId", params: { planId: data.id } });
     } catch (err) {
       toast.error(errMsg(err));
@@ -208,7 +215,8 @@ function PostPlan() {
 
       <form onSubmit={submit} className="mt-6 space-y-5">
         {!age.data?.age_verified&&<div className="border-y border-border py-4"><p className="text-sm">Complete the adult demo check before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/verify">Verify your age</Link></Button></div>}
-        <Field label="Event photos (3 to 5 distinct photos)" id="event-photos"><Input id="event-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={async e=>{const files=Array.from(e.target.files??[]);if(files.length<3||files.length>5||files.some(f=>f.size>8*1024*1024||!["image/jpeg","image/png","image/webp"].includes(f.type))){toast.error("Choose 3 to 5 JPG, PNG or WebP photos, under 8 MB each.");return;}const hashes=await Promise.all(files.map(async f=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",await f.arrayBuffer()))).join("")));if(new Set(hashes).size!==files.length){toast.error("Each photo needs to be different.");return;}setPhotoFiles(files);}}/><p className="text-xs text-muted-foreground">{photoFiles.length?`${photoFiles.length} photos selected`:"Your own relevant photos, not reused on another plan."}</p></Field>
+        <PhotoUploader files={photoFiles} onChange={setPhotoFiles}/>
+        <div className="space-y-2"><Label>Tag interests (optional)</Label><InterestSearch label="Tag an interest" exclude={tags} disabled={tags.length>=8} onAdd={t=>setTags(v=>[...v,t])}/>{tags.length>0&&<div className="flex flex-wrap gap-2">{tags.map(t=><Chip key={t} active onClick={()=>setTags(v=>v.filter(x=>x!==t))}>{t} ×</Chip>)}</div>}<p className="text-xs text-muted-foreground">Helps people with matching personal interests find this plan.</p></div>
         <div className="space-y-2"><Label>Age bracket (optional)</Label><Choice label="Any adult bracket" value={ageBracket} onChange={setAgeBracket} options={[...AGE_BRACKETS,{value:"custom",label:"Custom range"}]}/>{ageBracket==="custom"&&<div className="grid grid-cols-2 gap-3"><Input aria-label="Minimum age" type="number" min={18} max={120} value={ageMin} onChange={e=>setAgeMin(Number(e.target.value))}/><Input aria-label="Maximum age" type="number" min={ageMin} max={120} value={ageMax} onChange={e=>setAgeMax(Number(e.target.value))}/></div>}</div>
         {!!memberships.data?.some(m=>m.role==="admin")&&<div className="space-y-2"><Label>Post on behalf of</Label><Choice label="Yourself" value={orgId} onChange={setOrgId} options={(organisations.data??[]).filter(o=>memberships.data?.some(m=>m.organisation_id===o.id&&m.role==="admin")).map(o=>({value:o.id,label:o.name}))}/></div>}
         <div className="space-y-2">
@@ -382,7 +390,7 @@ function PostPlan() {
           size="lg"
           variant="accent"
           className="w-full"
-          disabled={busy || !publicPlace || !age.data?.age_verified || photoFiles.length<3}
+          disabled={busy || !publicPlace || !age.data?.age_verified}
         >
           Post plan
         </Button>

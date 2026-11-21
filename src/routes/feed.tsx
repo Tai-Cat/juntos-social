@@ -1,3 +1,4 @@
+import {matchesInterests} from "@/lib/interests";
 import { HangNudges } from "@/components/tagalong/HangNudges";
 import { lazy, Suspense } from "react";
 import { ClientOnly } from "@tanstack/react-router";
@@ -159,6 +160,7 @@ export function Feed() {
       ) : !visible.length ? (
         <Empty>No plans match yet. Try fewer filters, or save an alert.</Empty>
       ) : view==="list" ? <CompactEventList plans={visible}/> : <>
+        {!!profile?.interests.length&&<EventRow title="Suggested for you" plans={visible.filter(p=>matchesInterests(p,profile.interests))}/>}
         <EventRow title="This week" plans={visible.filter(p=>new Date(p.starts_at).getTime()<Date.now()+7*86400000)}/>
         <EventRow title="Near you" plans={visible}/>
         <EventRow title="Friends are going" plans={visible.filter(p=>friendPlans.data?.some(f=>f.plan_id===p.id))}/>

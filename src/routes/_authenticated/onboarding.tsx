@@ -14,6 +14,8 @@ import { GENDER_OPTIONS, errMsg } from "@/lib/tagalong";
 import { ACTIVITIES, cityName } from "@/lib/catalog";
 import { adultAge } from "@/lib/age";
 import {readIntent} from "@/lib/auth-intent";
+import { PersonalInterests } from "@/components/tagalong/PersonalInterests";
+import { MAX_INTERESTS } from "@/lib/interests";
 export const INTERESTS = ACTIVITIES;
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -176,7 +178,9 @@ function Onboarding() {
           <p className="my-2 text-xs text-muted-foreground">
             {interests.length} interests selected
           </p>
-          <InterestPicker selected={interests} onChange={setInterests} city={city} />
+          <InterestPicker selected={interests} onChange={v=>v.length>MAX_INTERESTS?setError(`Up to ${MAX_INTERESTS} interests.`):setInterests(v)} city={city} />
+          <h3 className="mb-2 mt-5 text-lg">Your interests, in order</h3>
+          <PersonalInterests interests={interests} onChange={setInterests} />
         </section>
         <section>
           <h2 className="text-2xl">I want to learn</h2>

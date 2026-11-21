@@ -10,7 +10,6 @@ import { useOrganisations } from "@/hooks/use-organisations";
 import { downloadICS } from "@/lib/calendar";
 import { useAuthAction } from "@/components/tagalong/AuthSheet";
 import { SimilarPeople } from "@/components/tagalong/SimilarPeople";
-import { imageFor } from "@/lib/catalog";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -265,12 +264,11 @@ function PlanDetail() {
       <div className="mt-5 overflow-hidden rounded-lg">
         <PhotoCarousel
           planId={plan.id}
-          photos={
-            plan.photos.length
-              ? plan.photos
-              : [plan.image_url || imageFor(plan.activity, plan.genre)]
-          }
+          photos={plan.photos}
+          genre={plan.genre}
           label={plan.activity}
+          credits
+          example={plan.is_example}
         />
       </div>
       <div className="mt-4 flex gap-2">

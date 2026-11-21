@@ -3,7 +3,7 @@ import { PhotoCarousel } from "./PhotoCarousel";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { distanceKm } from "@/lib/spatial";
-import { genreClass, imageFor } from "@/lib/catalog";
+import { genreClass } from "@/lib/catalog";
 import { Link } from "@tanstack/react-router";
 import { Accessibility, MapPin } from "lucide-react";
 import { AUDIENCE_LABEL, formatWhen, hostOf, type PlanWithHost } from "@/lib/tagalong";
@@ -76,11 +76,8 @@ export function PlanCard({
       <div className="relative">
         <PhotoCarousel
           planId={plan.id}
-          photos={
-            plan.photos.length
-              ? plan.photos
-              : [plan.image_url || imageFor(plan.activity, plan.genre)]
-          }
+          photos={plan.photos}
+          genre={plan.genre}
           label={plan.activity}
         />
         <div className="absolute left-3 top-3">

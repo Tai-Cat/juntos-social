@@ -1,4 +1,4 @@
-import { PHOTOS } from "./media";
+import { placeholderImage } from "./placeholder";
 export const GENRES = [
   {
     id: "active",
@@ -82,41 +82,7 @@ export function genreOf(activity: string) {
   );
 }
 export function imageFor(activity: string, genre: string = genreOf(activity)) {
-  const a = activity.toLowerCase();
-  const specific: Record<string, string> = {
-    ramen: "ramen",
-    tennis: "tennis",
-    padel: "tennis",
-    running: "running",
-    "climbing and bouldering": "climbing",
-    climbing: "climbing",
-    yoga: "yoga",
-    pilates: "yoga",
-    swimming: "swimming",
-    hiking: "hiking",
-    coffee: "coffee",
-    matcha: "coffee",
-    tea: "coffee",
-    "laundry runs": "coffee",
-    "co-working": "tech",
-    pottery: "pottery",
-    museums: "art",
-    galleries: "art",
-    "dog walks": "dogs",
-    photography: "art",
-    "book clubs": "books",
-    "library sessions": "books",
-  };
-  const photo =
-    specific[a] ??
-    (/wine|champagne|gin|cocktail|beer|whisky/.test(a)
-      ? "wine"
-      : /cook|baking|pizza/.test(a)
-        ? "cooking"
-        : /jazz|music|karaoke|vinyl/.test(a)
-          ? "music"
-          : (GENRES.find((g) => g.id === genre)?.photo ?? "park"));
-  return PHOTOS[photo] ?? PHOTOS["park"] ?? "";
+  return placeholderImage(GENRES.some((g) => g.id === genre) ? genre : genreOf(activity));
 }
 export const CITIES = [
   "Paris, France",
@@ -185,8 +151,8 @@ export const CITIES = [
   "Bogotá, Colombia",
 ];
 export const cityName = (value: string) => value.split(",")[0]?.trim() || value;
-export function cityImage(city: string) {
-  return PHOTOS[city.toLowerCase().replaceAll(" ", "-")] ?? PHOTOS["paris"] ?? "";
+export function cityImage(_city: string) {
+  return placeholderImage("place");
 }
 export function countryFlag(country: string) {
   const code: Record<string, string> = {
