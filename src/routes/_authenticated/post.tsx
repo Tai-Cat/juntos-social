@@ -6,7 +6,7 @@ import { usePlus } from "@/hooks/use-plus";
 import { ACTIVITIES, genreOf, cityName, GENRES } from "@/lib/catalog";
 import { Choice } from "@/components/tagalong/Choice";
 import { PlusCard } from "@/components/tagalong/PlusCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ensurePlanPhotos } from "@/lib/image-search.functions";
 import { PhotoUploader } from "@/components/tagalong/PhotoUploader";
@@ -15,9 +15,9 @@ import { createFileRoute, useNavigate,Link } from "@tanstack/react-router";
 import {useAge} from "@/hooks/use-age";
 import {useOrganisations,useOrgMemberships} from "@/hooks/use-organisations";
 import {AGE_BRACKETS} from "@/lib/age";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Copy, Lock, Plus, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile } from "@/hooks/use-auth";
@@ -38,6 +38,7 @@ const search = z.object({
   city: z.string().optional(),
   country: z.string().optional(),
   travel: z.boolean().optional(),
+  from: z.string().uuid().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/post")({
@@ -80,7 +81,7 @@ function PostPlan() {
   const myOrgIds=new Set((memberships.data??[]).filter(m=>hostRoles.includes(m.role)).map(m=>m.organisation_id));
   const adminOrgIds=new Set((memberships.data??[]).filter(m=>m.role==="owner"||m.role==="admin").map(m=>m.organisation_id));
   const postAsOptions=(organisations.data??[]).filter(o=>!o.archived&&(myOrgIds.has(o.id)||(!!o.parent_id&&adminOrgIds.has(o.parent_id)))).map(o=>{const parent=o.parent_id?organisations.data?.find(p=>p.id===o.parent_id):undefined;return {value:o.id,label:parent?`${parent.name} › ${o.name}`:o.name};});
-  const [ageBracket,setAgeBracket]=useState(""),[ageMin,setAgeMin]=useState(18),[ageMax,setAgeMax]=useState(34),[orgId,setOrgId]=useState("");
+  const [ageBrackets,setAgeBrackets]=useState<string[]>([]),[customAge,setCustomAge]=useState(false),[ageMin,setAgeMin]=useState(18),[ageMax,setAgeMax]=useState(34),[orgId,setOrgId]=useState("");
   const [photoFiles,setPhotoFiles]=useState<File[]>([]);
   const [tags,setTags]=useState<string[]>([]);
   const fillPhotos=useServerFn(ensurePlanPhotos);
@@ -100,6 +101,7 @@ function PostPlan() {
   const [area, setArea] = useState("");
   const [address, setAddress] = useState("");
   const [when, setWhen] = useState("");
+  const [moreWhens, setMoreWhens] = useState<string[]>([]);
   const [capacity, setCapacity] = useState(6);
   const [kind, setKind] = useState<"chill" | "partner_venue">("chill");
   const [price, setPrice] = useState(0);
@@ -112,6 +114,68 @@ function PostPlan() {
   const city = cityName(s.city ?? profile?.home_city ?? "Paris");
   const country = s.country ?? (city === "Paris" ? "France" : "");
   const isTravel = s.travel ?? (!!s.city && s.city !== profile?.home_city);
+
+  // Your recent plans: one tap fills the form again (duplicate, then just change the date).
+  const myPlans = useQuery({
+    queryKey: ["my-hosted-plans", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plans")
+        .select("id,title,category,activity,kind,capacity,base_price,duration_minutes,host_intro,what_to_bring,description,area_label,audience,step_free,interest_tags,age_min,age_max,visibility,starts_at")
+        .eq("host_id", user?.id ?? "")
+        .order("starts_at", { ascending: false })
+        .limit(6);
+      if (error) throw error;
+      return data;
+    },
+  });
+  const intros = [...new Set((myPlans.data ?? []).map((pl) => (pl.host_intro ?? "").trim()).filter(Boolean))].slice(0, 3);
+
+  // Remember the last host intro so it's filled in automatically next time.
+  useEffect(() => {
+    if (intro) return;
+    try {
+      const saved = localStorage.getItem("juntos-host-intro");
+      if (saved) setIntro(saved);
+      else if (intros[0]) setIntro(intros[0]);
+    } catch {
+      if (intros[0]) setIntro(intros[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intros[0]]);
+
+  async function fillFrom(planId: string) {
+    const pl = myPlans.data?.find((x) => x.id === planId) ?? (await supabase.from("plans").select("id,title,category,activity,kind,capacity,base_price,duration_minutes,host_intro,what_to_bring,description,area_label,audience,step_free,interest_tags,age_min,age_max,visibility,starts_at").eq("id", planId).maybeSingle()).data;
+    if (!pl) return;
+    setTitle(pl.title);
+    setCategory(pl.category ?? "");
+    setActivity(pl.activity ?? "");
+    setKind(pl.kind as "chill" | "partner_venue");
+    setCapacity(pl.capacity);
+    setPrice(Number(pl.base_price));
+    setDuration(pl.duration_minutes);
+    if (pl.host_intro) setIntro(pl.host_intro);
+    setBring(pl.what_to_bring ?? "");
+    setDescription(pl.description ?? "");
+    setArea(pl.area_label);
+    setAudience(pl.audience);
+    setStepFree(pl.step_free);
+    setTags(pl.interest_tags ?? []);
+    if (pl.visibility) setVisibility(pl.visibility as Visibility);
+    const match = AGE_BRACKETS.filter((b) => pl.age_min != null && pl.age_max != null && b.min >= pl.age_min && b.max <= pl.age_max).map((b) => b.value);
+    if (match.length) setAgeBrackets(match);
+    else if (pl.age_min != null || pl.age_max != null) { setCustomAge(true); setAgeMin(pl.age_min ?? 18); setAgeMax(pl.age_max ?? 120); }
+    const { data: addr } = await supabase.rpc("get_plan_address", { _plan: pl.id });
+    if (typeof addr === "string") setAddress(addr);
+    setWhen("");
+    setMoreWhens([]);
+    toast.message("Copied from your plan. Pick the new date and time.");
+  }
+  useEffect(() => {
+    if (s.from) void fillFrom(s.from);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.from]);
 
   function useTemplate(t: (typeof TEMPLATES)[number]) {
     setTitle(t.title);
@@ -138,8 +202,9 @@ function PostPlan() {
       toast.error("Plans must be at a public place or partner venue");
       return;
     }
-    if (new Date(when).getTime() < Date.now()) {
-      toast.error("Pick a time in the future");
+    const dates = [when, ...moreWhens].filter(Boolean);
+    if (!dates.length || dates.some((d) => new Date(d).getTime() < Date.now())) {
+      toast.error("Pick times in the future for every date");
       return;
     }
     if (!canUseHostTools(plus,capacity,weekly,autoApprove)) { toast.error("These host tools require Juntos Plus"); return; }
@@ -147,7 +212,13 @@ function PostPlan() {
     try {
       const photos:string[]=[];
       for(const file of photoFiles){const suffix=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";const path=`${user.id}/${crypto.randomUUID()}.${suffix}`;const {error}=await supabase.storage.from("plan-photos").upload(path,file,{contentType:file.type});if(error)throw error;photos.push(`storage:plan-photos/${path}`);}
-      const bracket=AGE_BRACKETS.find(b=>b.value===ageBracket);
+      // Several brackets become one span (e.g. 18–24 + 25–34 = 18–34).
+      const picked=AGE_BRACKETS.filter(b=>ageBrackets.includes(b.value));
+      const spanMin=customAge?ageMin:picked.length?Math.min(...picked.map(b=>b.min)):null;
+      const spanMax=customAge?ageMax:picked.length?Math.max(...picked.map(b=>b.max)):null;
+      try { if (intro.trim()) localStorage.setItem("juntos-host-intro", intro.trim()); } catch { /* storage blocked */ }
+      let firstId = "";
+      for (const date of dates) {
       const { data, error } = await supabase
         .from("plans")
         .insert({
@@ -159,8 +230,8 @@ function PostPlan() {
           image_url:null,
           photos,
           interest_tags:tags,
-          age_min:ageBracket==="custom"?ageMin:bracket?.min??null,
-          age_max:ageBracket==="custom"?ageMax:bracket?.max??null,
+          age_min:spanMin,
+          age_max:spanMax,
           organisation_id:orgId||null,
           area_lat: CITY_CENTERS[city]?.[0] ?? null,
           area_lng: CITY_CENTERS[city]?.[1] ?? null,
@@ -173,7 +244,7 @@ function PostPlan() {
           required_level: plus && level ? level : "any",
           kind,
           area_label: area,
-          starts_at: new Date(when).toISOString(),
+          starts_at: new Date(date).toISOString(),
           capacity,
           base_price: price,
           audience,
@@ -193,10 +264,12 @@ function PostPlan() {
         .from("plan_addresses")
         .insert({ plan_id: data.id, address });
       if (e2) throw e2;
-      qc.invalidateQueries({ queryKey: ["plans"] });
-      toast.success("Plan posted");
       if(!photos.length){try{const r=await fillPhotos({data:{planId:data.id}});if(r.status==="missing_keys")toast.message("Stock photos aren't switched on yet, so a placeholder is shown.");}catch{/* placeholder stays */}}
-      navigate({ to: "/plans/$planId", params: { planId: data.id } });
+      if (!firstId) firstId = data.id;
+      }
+      qc.invalidateQueries({ queryKey: ["plans"] });
+      toast.success(dates.length > 1 ? `${dates.length} plans posted` : "Plan posted");
+      navigate({ to: "/plans/$planId", params: { planId: firstId } });
     } catch (err) {
       toast.error(errMsg(err));
     } finally {
@@ -212,6 +285,18 @@ function PostPlan() {
         {isTravel && " · travel plan"}
       </p>
 
+      {!!myPlans.data?.length && (
+        <>
+          <p className="eyebrow mb-2 mt-6">Repeat one of your plans</p>
+          <div className="flex flex-wrap gap-2 pb-1">
+            {myPlans.data.map((pl) => (
+              <Chip key={pl.id} active={false} onClick={() => void fillFrom(pl.id)}>
+                <Copy className="h-3 w-3" aria-hidden /> {pl.title}
+              </Chip>
+            ))}
+          </div>
+        </>
+      )}
       <p className="eyebrow mb-2 mt-6">Quick start</p>
       <div className="flex flex-wrap gap-2 pb-1">
         {TEMPLATES.map((t) => (
@@ -222,13 +307,12 @@ function PostPlan() {
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
-        {age.data&&!age.data.date_of_birth&&<div className="border-y border-border py-4"><p className="text-sm">Add your date of birth (18+) before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/onboarding">Add date of birth</Link></Button></div>}
-        <PhotoUploader files={photoFiles} onChange={setPhotoFiles}/>
-        <div className="space-y-2"><Label>Tag interests (optional)</Label><InterestSearch label="Tag an interest" exclude={tags} disabled={tags.length>=8} onAdd={t=>setTags(v=>[...v,t])}/>{tags.length>0&&<div className="flex flex-wrap gap-2">{tags.map(t=><Chip key={t} active onClick={()=>setTags(v=>v.filter(x=>x!==t))}>{t} ×</Chip>)}</div>}<p className="text-xs text-muted-foreground">Helps people with matching personal interests find this plan.</p></div>
-        <div className="space-y-2"><Label>Age bracket (optional)</Label><Choice label="Any adult bracket" value={ageBracket} onChange={setAgeBracket} options={[...AGE_BRACKETS,{value:"custom",label:"Custom range"}]}/>{ageBracket==="custom"&&<div className="grid grid-cols-2 gap-3"><Input aria-label="Minimum age" type="number" min={18} max={120} value={ageMin} onChange={e=>setAgeMin(Number(e.target.value))}/><Input aria-label="Maximum age" type="number" min={ageMin} max={120} value={ageMax} onChange={e=>setAgeMax(Number(e.target.value))}/></div>}</div>
-        {postAsOptions.length>0&&<div className="space-y-2"><Label>Post as</Label><Choice label="Myself" value={orgId} onChange={setOrgId} options={postAsOptions}/><p className="text-xs text-muted-foreground">Post as yourself, or any organisation or group you host or admin.</p></div>}
+        <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+          <Field label="What's the plan called?" id="t">
+            <Input id="t" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Sunday run along the Seine" />
+          </Field>
         <div className="space-y-2">
-          <Label>Activity</Label>
+          <Label>Type of activity</Label>
           <Input
             aria-label="Activity"
             list="post-activities"
@@ -243,6 +327,12 @@ function PostPlan() {
             ))}
           </datalist>
         </div>
+        </div>
+        {age.data&&!age.data.date_of_birth&&<div className="border-y border-border py-4"><p className="text-sm">Add your date of birth (18+) before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/onboarding">Add date of birth</Link></Button></div>}
+        <PhotoUploader files={photoFiles} onChange={setPhotoFiles}/>
+        <div className="space-y-2"><Label>Tag interests (optional)</Label><InterestSearch label="Tag an interest" exclude={tags} disabled={tags.length>=8} onAdd={t=>setTags(v=>[...v,t])}/>{tags.length>0&&<div className="flex flex-wrap gap-2">{tags.map(t=><Chip key={t} active onClick={()=>setTags(v=>v.filter(x=>x!==t))}>{t} ×</Chip>)}</div>}<p className="text-xs text-muted-foreground">Helps people with matching personal interests find this plan.</p></div>
+        <div className="space-y-2"><Label>Age ranges (optional)</Label><p className="text-xs text-muted-foreground">Pick one or more. Leave empty for any adult.</p><div className="flex flex-wrap gap-2">{AGE_BRACKETS.map(b=><Chip key={b.value} active={!customAge&&ageBrackets.includes(b.value)} onClick={()=>{setCustomAge(false);setAgeBrackets(v=>v.includes(b.value)?v.filter(x=>x!==b.value):[...v,b.value]);}}>{b.label}</Chip>)}<Chip active={customAge} onClick={()=>{setCustomAge(v=>!v);setAgeBrackets([]);}}>Custom</Chip></div>{customAge&&<div className="grid grid-cols-2 gap-3"><Input aria-label="Minimum age" type="number" min={18} max={120} value={ageMin} onChange={e=>setAgeMin(Number(e.target.value))}/><Input aria-label="Maximum age" type="number" min={ageMin} max={120} value={ageMax} onChange={e=>setAgeMax(Number(e.target.value))}/></div>}</div>
+        {postAsOptions.length>0&&<div className="space-y-2"><Label>Post as</Label><Choice label="Myself" value={orgId} onChange={setOrgId} options={postAsOptions}/><p className="text-xs text-muted-foreground">Post as yourself, or any organisation or group you host or admin.</p></div>}
         <div className="space-y-2">
           <Label>Required level</Label>
           {plus ? (
@@ -256,27 +346,42 @@ function PostPlan() {
             <PlusCard />
           )}
         </div>
-        <Field label="Title" id="t">
-          <Input id="t" required value={title} onChange={(e) => setTitle(e.target.value)} />
-        </Field>
         <Field label="Details (optional)" id="d">
           <Textarea id="d" value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>
         <Field label="What to bring" id="bring">
           <Input id="bring" value={bring} onChange={(e) => setBring(e.target.value)} />
         </Field>
-        <Field label="Duration (minutes)" id="duration">
-          <Input
-            id="duration"
-            type="number"
-            min={15}
-            max={1440}
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
-          />
+        <Field label="How long?" id="duration">
+          <div className="flex items-center gap-3">
+            <input
+              aria-label="Duration slider"
+              type="range"
+              min={15}
+              max={480}
+              step={15}
+              value={Math.min(duration, 480)}
+              onChange={(e) => setDuration(Number(e.target.value))}
+              className="h-2 flex-1 cursor-pointer accent-[var(--logo-pink)]"
+            />
+            <div className="flex items-center gap-1">
+              <Input id="duration" type="number" min={15} max={1440} step={5} value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-20" />
+              <span className="text-xs text-muted-foreground">min</span>
+            </div>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">{Math.floor(duration / 60) ? `${Math.floor(duration / 60)} h ` : ""}{duration % 60 ? `${duration % 60} min` : ""}</p>
         </Field>
         <Field label="Host intro" id="intro">
-          <Textarea id="intro" value={intro} onChange={(e) => setIntro(e.target.value)} />
+          <Textarea id="intro" value={intro} onChange={(e) => setIntro(e.target.value)} placeholder="A line about you, e.g. I run here most Sundays and love showing newcomers around." />
+          {intros.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {intros.map((t) => (
+                <Chip key={t} active={intro === t} onClick={() => setIntro(t)}>
+                  {t.length > 40 ? `${t.slice(0, 40)}…` : t}
+                </Chip>
+              ))}
+            </div>
+          )}
         </Field>
         <Field label="Area shown publicly" id="a" hint="Neighbourhood only, e.g. Bastille, 11e">
           <Input id="a" required value={area} onChange={(e) => setArea(e.target.value)} />
@@ -307,6 +412,15 @@ function PostPlan() {
               value={when}
               onChange={(e) => setWhen(e.target.value)}
             />
+            {moreWhens.map((w, i) => (
+              <div key={i} className="mt-2 flex items-center gap-2">
+                <Input aria-label={`Extra date ${i + 1}`} type="datetime-local" required value={w} onChange={(e) => setMoreWhens((v) => v.map((x, j) => (j === i ? e.target.value : x)))} />
+                <Button type="button" variant="ghost" size="icon" aria-label="Remove this date" onClick={() => setMoreWhens((v) => v.filter((_, j) => j !== i))}><X className="h-4 w-4" /></Button>
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => setMoreWhens((v) => [...v, ""])}>
+              <Plus className="h-4 w-4" /> Add another date
+            </Button>
           </Field>
           <Field label="People (incl. you)" id="c">
             <Input
