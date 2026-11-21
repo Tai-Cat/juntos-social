@@ -3,26 +3,31 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type StockPhoto = { provider: "unsplash" | "pexels"; provider_id: string; url: string; photographer: string; photographer_url: string; source_url: string; download?: string };
 type Admin = SupabaseClient<Database>;
-const UTM = "utm_source=tagalong&utm_medium=referral";
+const UTM = "utm_source=juntos&utm_medium=referral";
 
 export function photoKeys() {
   return { unsplash: process.env["UNSPLASH_ACCESS_KEY"] ?? "", pexels: process.env["PEXELS_API_KEY"] ?? "" };
 }
 
-/** Object or scene shots without faces, per the brief. */
-const OBJECT_QUERIES: Record<string, string> = {
-  "sourdough baking": "sourdough starter jar", pottery: "pottery wheel clay", ceramics: "ceramic bowls studio", "dog walks": "dog on forest trail",
-  coffee: "coffee cup on table", "climbing and bouldering": "climbing wall holds", tennis: "empty tennis court", markets: "market stall produce",
-  ramen: "ramen bowl", yoga: "yoga mat studio", cycling: "bicycle street", "wine tasting": "wine glasses cellar", "board games": "board game pieces table",
-  "sauna and cold plunge": "sauna interior wood", running: "running track empty", "co-working": "laptop desk cafe", "laundry runs": "laundromat machines",
-  museums: "museum gallery hall", "book clubs": "books stack cafe", photography: "vintage camera", "street food crawls": "street food stall", "dinner parties": "dinner table setting",
+/** Curated object or scene shots without faces. Titles are never used as queries: words like "wander" or "portfolio" pull unrelated images (e.g. stock charts). */
+const OBJECT_QUERIES: Record<string, string[]> = {
+  "sourdough baking": ["sourdough bread loaf", "sourdough starter jar"], pottery: ["pottery wheel clay", "handmade ceramic bowls"], ceramics: ["ceramic bowls studio"],
+  "dog walks": ["dog on forest trail", "dog leash park"], coffee: ["coffee cup on table"], "climbing and bouldering": ["climbing wall holds", "bouldering gym wall"],
+  tennis: ["empty tennis court"], markets: ["fruit vegetable market stall", "fresh produce market crates"], ramen: ["ramen bowl", "japanese noodle soup"],
+  yoga: ["yoga mat studio"], cycling: ["bicycle street"], "wine tasting": ["wine barrels cellar", "port wine glasses"], "board games": ["board game pieces table"],
+  "sauna and cold plunge": ["sauna interior wood", "spa towels stones"], running: ["riverside running path", "running shoes path"], "co-working": ["laptop desk cafe", "coworking space desks"],
+  "laundry runs": ["laundromat machines"], museums: ["museum gallery hall", "art museum interior"], "book clubs": ["books stack cafe"], photography: ["vintage camera"],
+  "street food crawls": ["street food stall", "food festival stalls"], "dinner parties": ["dinner table setting", "elegant dinner table candles"], ai: ["laptop code screen", "computer desk workspace"],
+  "baking classes": ["pastel de nata", "pastry baking flour"], "chess in the park": ["chess board park", "chess pieces"], "urban sketching": ["sketchbook drawing pencils", "watercolor sketch city"],
+  volleyball: ["beach volleyball net", "volleyball on sand"], "wellness walks": ["city viewpoint sunset", "evening street walk old town"],
 };
-export function searchTerms(activity: string, title = "") {
-  const object = OBJECT_QUERIES[activity.toLowerCase().trim()];
-  const stop = new Set(["the", "and", "with", "for", "a", "an", "in", "at", "of", "to", "on", "our", "your", "example", "night", "session", "evening", "morning", "club", "intro"]);
-  const words = title.toLowerCase().replace(/[^a-z\s-]/g, " ").split(/\s+/).filter((w) => w.length > 3 && !stop.has(w));
-  return [...new Set([...(object ? [object] : []), `${activity.toLowerCase().trim()} still life`, activity.toLowerCase().trim(), [activity, ...words.slice(0, 2)].join(" ").trim()])].filter(Boolean);
+export function searchTerms(activity: string, _title = "") {
+  const a = activity.toLowerCase().trim();
+  return [...new Set([...(OBJECT_QUERIES[a] ?? []), `${a} still life`, a])].filter(Boolean);
 }
+/** Drops photos whose description suggests faces/people or off-topic finance imagery. */
+const BLOCKED = /\b(man|men|woman|women|person|people|girl|boy|face|portrait|selfie|child|kid|crowd|couple|chart|graph|stock|trading|crypto|bitcoin|finance|candlestick)\b/i;
+export const isSafeDescription = (d: string | null | undefined) => !d || !BLOCKED.test(d);
 
 async function fetchProviders(query: string): Promise<StockPhoto[]> {
   const keys = photoKeys();
@@ -31,8 +36,8 @@ async function fetchProviders(query: string): Promise<StockPhoto[]> {
   if (keys.unsplash) jobs.push((async () => {
     const r = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=15&content_filter=high`, { headers: { Authorization: `Client-ID ${keys.unsplash}`, "Accept-Version": "v1" } });
     if (!r.ok) { console.error("unsplash search failed", r.status); return; }
-    const j = (await r.json()) as { results: { id: string; urls: { regular: string }; links: { html: string; download_location: string }; user: { name: string; links: { html: string } } }[] };
-    for (const p of j.results) out.push({ provider: "unsplash", provider_id: `unsplash:${p.id}`, url: p.urls.regular, photographer: p.user.name, photographer_url: `${p.user.links.html}?${UTM}`, source_url: `${p.links.html}?${UTM}`, download: p.links.download_location });
+    const j = (await r.json()) as { results: { id: string; alt_description?: string | null; description?: string | null; urls: { regular: string }; links: { html: string; download_location: string }; user: { name: string; links: { html: string } } }[] };
+    for (const p of j.results) if (isSafeDescription(`${p.alt_description ?? ""} ${p.description ?? ""}`)) out.push({ provider: "unsplash", provider_id: `unsplash:${p.id}`, url: p.urls.regular, photographer: p.user.name, photographer_url: `${p.user.links.html}?${UTM}`, source_url: `${p.links.html}?${UTM}`, download: p.links.download_location });
   })());
   if (keys.pexels) jobs.push((async () => {
     const r = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&orientation=landscape&per_page=15`, { headers: { Authorization: keys.pexels } });

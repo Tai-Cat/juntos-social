@@ -6,7 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { cityImage, countryFlag } from "@/lib/catalog";
+import { countryFlag } from "@/lib/catalog";
+import { CityPhoto } from "@/hooks/use-city-photo";
 import { useBlocks } from "@/hooks/use-auth";
 import { useMyProfile } from "@/hooks/use-auth";
 import { AppShell } from "@/components/tagalong/AppShell";
@@ -140,11 +141,7 @@ function TripPage() {
         <ArrowLeft className="h-4 w-4" />
         Plans
       </Link>
-      <img
-        src={cityImage(t.city)}
-        alt={t.city}
-        className="mt-5 aspect-[16/9] max-h-96 w-full rounded-lg object-cover"
-      />
+      <CityPhoto city={t.city} alt={`${t.city}, ${t.country} skyline`} className="mt-5 aspect-[16/9] max-h-96 w-full rounded-lg object-cover" />
       <p className="eyebrow mt-6">
         {countryFlag(t.country)} {t.country}
       </p>

@@ -1,17 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import type { Trip } from "@/lib/tagalong";
 import { formatDates } from "@/lib/tagalong";
-import { cityImage, countryFlag } from "@/lib/catalog";
+import { countryFlag } from "@/lib/catalog";
+import { CityPhoto } from "@/hooks/use-city-photo";
 import { ExampleTag } from "./bits";
 export function TripCard({ trip: t }: { trip: Trip }) {
   return (
     <Link to="/trips/$tripId" params={{ tripId: t.id }} className="plan-card genre-tech block">
-      <img
-        src={cityImage(t.city)}
-        alt={`${t.city}, ${t.country}`}
-        className="aspect-[16/9] w-full object-cover"
-        loading="lazy"
-      />
+      <CityPhoto city={t.city} alt={`${t.city}, ${t.country} skyline`} className="aspect-[16/9] w-full object-cover" />
       <div className="p-5">
         <div className="flex items-center gap-2">
           <span aria-label={t.country}>{countryFlag(t.country)}</span>

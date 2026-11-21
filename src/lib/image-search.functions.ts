@@ -26,7 +26,7 @@ export const ensurePlanPhotos = createServerFn({ method: "POST" })
     const keys = photoKeys();
     if (!keys.unsplash && !keys.pexels) return { photos: [], status: "missing_keys" };
     const candidates = [];
-    for (const term of searchTerms(plan.activity, plan.title).reverse()) candidates.push(...(await cachedSearch(supabaseAdmin, term)));
+    for (const term of searchTerms(plan.activity, plan.title)) candidates.push(...(await cachedSearch(supabaseAdmin, term)));
     const claimed = await claimPhotos(supabaseAdmin, candidates, 5, { plan_id: plan.id });
     if (!claimed.length) return { photos: [], status: "none" };
     const photos = claimed.map((c) => c.url);
@@ -47,4 +47,15 @@ export const ensureInterestPhoto = createServerFn({ method: "POST" })
     if (!keys.unsplash && !keys.pexels) return { photo: null, status: "missing_keys" };
     const claimed = await claimPhotos(supabaseAdmin, await cachedSearch(supabaseAdmin, data.interest), 1, { interest: data.interest });
     return { photo: claimed[0]?.url ?? null, status: claimed.length ? "ok" : "none" };
+  });
+
+/** A shared skyline/landmark photo per city for trip and city cards. Public: cities are not private. */
+export const getCityPhoto = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ city: z.string().trim().min(1).max(80) }).parse(input))
+  .handler(async ({ data }): Promise<{ photo: string | null }> => {
+    const keys = photoKeys();
+    if (!keys.unsplash && !keys.pexels) return { photo: null };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const results = await cachedSearch(supabaseAdmin, `${data.city} city skyline landmark`);
+    return { photo: results[0]?.url ?? null };
   });
