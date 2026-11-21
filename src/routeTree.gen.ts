@@ -41,6 +41,7 @@ import { Route as AuthenticatedEditPlanPlanIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedOrganisationAdminOrgIdRouteImport } from './routes/_authenticated/organisation-admin.$orgId'
 import { Route as AuthenticatedOrganisationsNewRouteImport } from './routes/_authenticated/organisations.new'
 import { Route as AuthenticatedPeopleUserIdRouteImport } from './routes/_authenticated/people.$userId'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicAiImageKindRefRouteImport } from './routes/api/public/ai-image.$kind.$ref'
 
 const IndexRoute = IndexRouteImport.update({
@@ -207,6 +208,11 @@ const AuthenticatedPeopleUserIdRoute =
     path: '/people/$userId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAiImageKindRefRoute = ApiPublicAiImageKindRefRouteImport.update({
   id: '/api/public/ai-image/$kind/$ref',
   path: '/api/public/ai-image/$kind/$ref',
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
   '/organisations/new': typeof AuthenticatedOrganisationsNewRoute
   '/people/$userId': typeof AuthenticatedPeopleUserIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/ai-image/$kind/$ref': typeof ApiPublicAiImageKindRefRoute
 }
 export interface FileRoutesByTo {
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
   '/organisations/new': typeof AuthenticatedOrganisationsNewRoute
   '/people/$userId': typeof AuthenticatedPeopleUserIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/ai-image/$kind/$ref': typeof ApiPublicAiImageKindRefRoute
 }
 export interface FileRoutesById {
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/_authenticated/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
   '/_authenticated/organisations/new': typeof AuthenticatedOrganisationsNewRoute
   '/_authenticated/people/$userId': typeof AuthenticatedPeopleUserIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/ai-image/$kind/$ref': typeof ApiPublicAiImageKindRefRoute
 }
 export interface FileRouteTypes {
@@ -351,6 +360,7 @@ export interface FileRouteTypes {
     | '/organisation-admin/$orgId'
     | '/organisations/new'
     | '/people/$userId'
+    | '/api/public/stripe-webhook'
     | '/api/public/ai-image/$kind/$ref'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/organisation-admin/$orgId'
     | '/organisations/new'
     | '/people/$userId'
+    | '/api/public/stripe-webhook'
     | '/api/public/ai-image/$kind/$ref'
   id:
     | '__root__'
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/_authenticated/organisation-admin/$orgId'
     | '/_authenticated/organisations/new'
     | '/_authenticated/people/$userId'
+    | '/api/public/stripe-webhook'
     | '/api/public/ai-image/$kind/$ref'
   fileRoutesById: FileRoutesById
 }
@@ -443,6 +455,7 @@ export interface RootRouteChildren {
   PlansPlanIdRoute: typeof PlansPlanIdRoute
   SharedTokenRoute: typeof SharedTokenRoute
   TripsTripIdRoute: typeof TripsTripIdRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicAiImageKindRefRoute: typeof ApiPublicAiImageKindRefRoute
 }
 
@@ -672,6 +685,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPeopleUserIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ai-image/$kind/$ref': {
       id: '/api/public/ai-image/$kind/$ref'
       path: '/api/public/ai-image/$kind/$ref'
@@ -746,6 +766,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlansPlanIdRoute: PlansPlanIdRoute,
   SharedTokenRoute: SharedTokenRoute,
   TripsTripIdRoute: TripsTripIdRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicAiImageKindRefRoute: ApiPublicAiImageKindRefRoute,
 }
 export const routeTree = rootRouteImport

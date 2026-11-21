@@ -341,3 +341,7 @@ html[data-splash="seen"] .splash {
   .splash-lines p { animation: none; }
   .splash-lines p:first-child { opacity: 1; }
 }
+
+/* Sign-up and sign-in on phones: keep the focused field and the button below it
+   clear of the on-screen keyboard when Safari scrolls the field into view. */
+.auth-page input:focus { scroll-margin-top: 96px; scroll-margin-bottom: 160px; }
