@@ -1,3 +1,4 @@
+import { SignUpPrompt } from "@/components/tagalong/SignUpPrompt";
 import {matchesInterests} from "@/lib/interests";
 import { fadeExamples } from "@/lib/examples";
 import { useExamplesHidden } from "@/hooks/use-app-config";
@@ -144,8 +145,9 @@ export function Feed() {
       ) : view==="list" ? <CompactEventList plans={visible}/> : <>
         {!!profile?.interests.length&&<EventRow title="Suggested for you" plans={visible.filter(p=>matchesInterests(p,profile.interests))}/>}
         <EventRow title="This week" plans={visible.filter(p=>new Date(p.starts_at).getTime()<Date.now()+7*86400000)}/>
+        {ready && !user && <SignUpPrompt/>}
         <EventRow title="Near you" plans={visible}/>
-        <EventRow title="Friends are going" plans={visible.filter(p=>friendPlans.data?.some(f=>f.plan_id===p.id))}/>
+        {user && <EventRow title="Friends are going" plans={visible.filter(p=>friendPlans.data?.some(f=>f.plan_id===p.id))}/>}
         <EventRow title="Free and chill" plans={visible.filter(p=>Number(p.base_price)===0)}/>
         <EventRow title={`Popular in ${filters.city}`} plans={[...visible].sort((a,b)=>b.going_count-a.going_count)}/>
         <section className="mt-8 border-t border-border pt-5"><h2 className="text-xl">Browse by category</h2><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">{GENRES.map((g,i)=>{const Icon=[Dumbbell,Utensils,Palette,Laptop,BookOpen,Trees,Dice5,Flower2][i]??BookOpen;return <Button key={g.id} variant="outline" className={`h-auto min-w-0 items-start justify-start gap-3 whitespace-normal rounded-lg p-4 text-left ${genreClass(g.id)}`} onClick={()=>setFilters(f=>({...f,genre:f.genre===g.id?"":g.id}))}><Icon className="h-5 w-5 shrink-0"/><span><span className="block text-xs font-bold">{g.label}</span><span className="mt-1 block text-[11px] text-muted-foreground">{visible.filter(p=>p.genre===g.id).length} events</span></span></Button>;})}</div></section>
@@ -153,12 +155,17 @@ export function Feed() {
         {!!teasers.data?.length&&<section className="mt-7"><h2 className="text-xl">From member communities</h2><div className="grid gap-x-6 md:grid-cols-2">{teasers.data.filter(p=>p.city===filters.city&&new Date(p.starts_at).getTime()>Date.now()).map(p=><LockedEventTeaser key={p.id} plan={p}/>)}</div></section>}
         <OrganisationDirectory title="Featured calendars"/>
       </>}
-      <HangNudges />
-      <SimilarPeople
-        city={filters.city}
-        activity={filters.activity}
-        level={plus ? filters.level : ""}
-      />
+      {/* Friends and people only for signed-in members. */}
+      {user && (
+        <>
+          <HangNudges />
+          <SimilarPeople
+            city={filters.city}
+            activity={filters.activity}
+            level={plus ? filters.level : ""}
+          />
+        </>
+      )}
     </AppShell>
   );
 }

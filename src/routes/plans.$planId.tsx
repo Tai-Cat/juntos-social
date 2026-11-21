@@ -1,3 +1,4 @@
+import { MapLink } from "@/components/tagalong/MapLink";
 import { planFallback } from "@/lib/placeholder";
 import { PlanPeople } from "@/components/tagalong/PlanPeople";
 import { PlanVisibilityPanel, MemberNote, InterestedButton, WaitingListButton } from "@/components/tagalong/PlanVisibility";
@@ -373,7 +374,7 @@ function PlanDetail() {
           {plan.recurring_weekly && <span className="text-muted-foreground"> · weekly</span>}
         </Row>
         <Row icon={<MapPin className="h-4 w-4" />}>
-          {plan.area_label}, {plan.city}
+          <MapLink query={`${plan.area_label}, ${plan.city}`}>{plan.area_label}, {plan.city}</MapLink>
         </Row>
         <Row icon={<Users className="h-4 w-4" />}>
           {plan.going_count >= plan.capacity && <span className="mr-2 rounded-full bg-foreground px-2.5 py-0.5 text-xs font-bold text-background">Sold out</span>}
@@ -406,7 +407,7 @@ function PlanDetail() {
               <Unlock className="mt-0.5 h-4 w-4 text-tangerine" />
               <div>
                 <p className="eyebrow">Exact venue</p>
-                <p className="mt-1 font-medium">{address.data ?? "Loading…"}</p>
+                <p className="mt-1 font-medium">{address.data ? <MapLink query={`${address.data}, ${plan.city}`}>{address.data}</MapLink> : "Loading…"}</p>
               </div>
             </div>
           ) : (

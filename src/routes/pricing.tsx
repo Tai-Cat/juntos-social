@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Crown, Minus } from "lucide-react";
+import { Check, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-auth";
 import { PayLink } from "@/components/tagalong/PayLink";
 import { CLUB_ONCE_LINK, CLUB_PAYMENT_LINK, CLUB_PERKS, MANAGE_SUBSCRIPTION_LINK, PLUS_ONCE_LINK, PLUS_PAYMENT_LINK } from "@/lib/plus";
 import { AppShell } from "@/components/tagalong/AppShell";
 import { PLUS_FEATURES } from "@/components/tagalong/Membership";
+import { BenefitsCompare } from "@/components/tagalong/BenefitsCompare";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -23,24 +24,8 @@ export const Route = createFileRoute("/pricing")({
   component: Pricing,
 });
 
-type Cell3 = string | boolean;
-const ROWS: { name: string; free: Cell3; plus: Cell3; club: Cell3 }[] = [
-  { name: "Browse, join, chat, make friends", free: true, plus: true, club: true },
-  { name: "Group discounts set by venues", free: true, plus: true, club: true },
-  { name: "Saved alerts", free: "2", plus: "Unlimited", club: "Unlimited" },
-  { name: "Create groups and communities", free: "3", plus: "Unlimited", club: "Unlimited" },
-  ...PLUS_FEATURES.filter((f) => f.ready && f.name !== "Unlimited saved alerts").map((f) => ({ name: f.name, free: false, plus: true, club: true })),
-  { name: "Featured plans: yours show first in Explore", free: false, plus: false, club: true },
-  { name: "Guests per plan", free: "+1", plus: "+1", club: "+2" },
-  { name: "Early access to Travel matches", free: false, plus: false, club: true },
-  { name: "Club badge on your profile", free: false, plus: false, club: true },
-];
 const SOON = PLUS_FEATURES.filter((f) => !f.ready);
 
-function Cell({ v }: { v: Cell3 }) {
-  if (typeof v === "string") return <span className="text-xs font-semibold">{v}</span>;
-  return v ? <Check className="mx-auto h-4 w-4 text-grass" aria-label="Included" /> : <Minus className="mx-auto h-4 w-4 text-muted-foreground" aria-label="Not included" />;
-}
 
 function Pricing() {
   const { user } = useSession();
@@ -78,15 +63,9 @@ function Pricing() {
         <b>1 month</b> is a single payment that simply ends after 30 days, with nothing to cancel. Payments by Stripe.{" "}
         <a href={MANAGE_SUBSCRIPTION_LINK} target="_blank" rel="noopener noreferrer" className="underline">Manage your subscription</a>.
       </p>
-      <div className="mt-8 max-w-4xl overflow-x-auto">
-        <table className="w-full min-w-[480px] text-sm">
-          <thead><tr className="border-b border-border text-left"><th className="py-2">Benefits</th><th className="w-16 text-center">Free</th><th className="w-16 text-center">Plus</th><th className="w-16 text-center">Club</th></tr></thead>
-          <tbody>
-            {ROWS.map((r) => (
-              <tr key={r.name} className="border-b border-border"><td className="py-2.5 pr-2">{r.name}</td><td className="text-center"><Cell v={r.free} /></td><td className="text-center"><Cell v={r.plus} /></td><td className="text-center"><Cell v={r.club} /></td></tr>
-            ))}
-          </tbody>
-        </table>
+      <h2 className="mt-10 text-2xl">Compare benefits</h2>
+      <div className="mt-3 max-w-2xl">
+        <BenefitsCompare />
       </div>
       {SOON.length > 0 && (
         <p className="mt-4 max-w-4xl text-xs text-muted-foreground">On the way for members: {SOON.map((f) => f.name).join(", ")}.</p>
