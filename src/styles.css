@@ -345,3 +345,41 @@ html[data-splash="seen"] .splash {
 /* Sign-up and sign-in on phones: keep the focused field and the button below it
    clear of the on-screen keyboard when Safari scrolls the field into view. */
 .auth-page input:focus { scroll-margin-top: 96px; scroll-margin-bottom: 160px; }
+
+/* First-visit welcome on the home link. Hidden once someone has tapped through
+   (html[data-welcome="seen"] is set before paint by the head script). */
+.welcome-screen {
+  position: fixed; inset: 0; z-index: 45; overflow-y: auto;
+  display: grid; place-items: center; padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  background: var(--background);
+  background-image: radial-gradient(circle at 20% 10%, color-mix(in oklab, var(--logo-pink) 14%, transparent), transparent 45%),
+    radial-gradient(circle at 85% 90%, color-mix(in oklab, var(--logo-yellow) 18%, transparent), transparent 45%);
+}
+html[data-welcome="seen"] .welcome-screen { display: none; }
+body.welcome-open { overflow: hidden; }
+.welcome-card {
+  width: 100%; max-width: 440px; border-radius: 28px; padding: 28px 22px;
+  background: var(--card); border: 1px solid var(--border);
+  box-shadow: 0 20px 50px -20px rgb(42 40 36 / 0.25);
+}
+.welcome-cta {
+  display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px; padding: 15px 20px; font-weight: 800; font-size: 1.05rem; color: #fff;
+  background: linear-gradient(90deg, var(--logo-pink), var(--logo-orange));
+  box-shadow: 0 10px 24px -10px var(--logo-pink); transition: transform .15s ease, box-shadow .15s ease;
+}
+.welcome-cta:hover { transform: translateY(-1px); box-shadow: 0 14px 28px -10px var(--logo-pink); }
+.welcome-cta:active { transform: translateY(0); }
+
+/* "Get the Juntos app" pop-up (phones). */
+.install-popup-backdrop {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+  background: rgb(42 40 36 / 0.35); padding: 12px; animation: install-fade .2s ease;
+}
+.install-popup {
+  position: relative; width: 100%; max-width: 420px; border-radius: 28px; padding: 26px 20px 18px;
+  margin-bottom: env(safe-area-inset-bottom); background: var(--card); border: 1px solid var(--border);
+  box-shadow: 0 -10px 40px -10px rgb(42 40 36 / 0.3); animation: install-up .28s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes install-fade { from { opacity: 0 } }
+@keyframes install-up { from { transform: translateY(40px); opacity: 0 } }
