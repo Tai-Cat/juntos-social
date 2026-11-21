@@ -55,3 +55,6 @@ use the editor.
 - Example fade-out is a pure client rule in `src/lib/examples.ts` (tested) plus the admin `app_config.hide_examples` switch. Why: one rule for every list.
 - Sub-groups use `organisations.parent_id`; `org_member`/`org_admin` inherit from the parent (membership only when the club has no own question). Why: parent members join clubs without a second check.
 - Age gating is a self-declared adult DOB; the Verify flow only grants the Verified badge. Why: no ID check is required to join or host.
+- Organisation entry rules live in `organisations.entry_rule` (NULL on a club = inherit parent) and are applied only inside `request_org_access`; a domain counts only when the email is confirmed (auth sign-up email or server-written `user_verified_emails`). Why: clients must not self-approve.
+- Join-request notifications are created by a DB trigger on `organisation_requests`; phone push is sent by the authenticated `notifyOrgAdmins` server function using VAPID web push from a push-only worker (`public/push-sw.js`, no caching). Why: in-app alerts never depend on the client, and no app-shell service worker runs in preview.
+- Attendee lists come from the `plan_people` RPC and person pages from `person_card`, both enforcing plan visibility, blocks and "Only me" privacy server-side. Why: profiles are not readable directly across users for these views.

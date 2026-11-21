@@ -169,6 +169,20 @@
       "when": 1795280134544,
       "tag": "0023_tighten_open_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795289475520,
+      "tag": "0024_join_requests_notifications_entry_rules_people",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795289846555,
+      "tag": "0025_plans_capacity_up_to_500",
+      "breakpoints": true
     }
   ]
 }

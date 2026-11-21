@@ -2,13 +2,14 @@ import { useAuthAction } from "./AuthSheet";
 import { Button } from "@/components/ui/button";
 import { useEffect, type ReactNode } from "react";
 import { Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
-import { Compass, Plane, Inbox, Plus, User, CalendarDays, Map, List, ArrowLeft } from "lucide-react";
+import { Compass, Plane, Inbox, Plus, User, CalendarDays, Map, List, ArrowLeft, Bell } from "lucide-react";
 import { useMyProfile } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { LocationPicker } from "./LocationPicker";
 import { setExplorePrefs, useExplorePrefs } from "@/lib/explore-prefs";
 import { cityName } from "@/lib/catalog";
 import { JuntosLogo } from "./JuntosLogo";
+import { useNotificationFeed } from "./Notifications";
 const NAV = [
   { to: "/feed", label: "Explore", icon: Compass },
   { to: "/travel", label: "Travel", icon: Plane },
@@ -36,6 +37,8 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
       navigate({ to: "/onboarding" });
   }, [profile, loading, loc.pathname, navigate]);
   const mapOn = prefs.view === "map";
+  const unread = useNotificationFeed();
+  const badge = unread > 9 ? "9+" : String(unread);
   return (
     <div className="mx-auto min-h-screen max-w-7xl border-x border-border">
       <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:gap-3 sm:px-8">
@@ -63,6 +66,14 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
           <Button asChild size="icon" variant={loc.pathname.startsWith("/calendar") ? "secondary" : "ghost"} aria-label="Calendar" title="Calendar">
             <Link to="/calendar"><CalendarDays className="h-5 w-5" /></Link>
           </Button>
+          {user && (
+            <Button asChild size="icon" variant="ghost" className="relative" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} title="Notifications">
+              <Link to="/inbox" search={{ tab: "notifications" }}>
+                <Bell className="h-5 w-5" />
+                {unread > 0 && <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-logo-pink px-1 text-[10px] font-bold text-primary-foreground">{badge}</span>}
+              </Link>
+            </Button>
+          )}
           <Button
             size="icon"
             variant="ghost"
@@ -109,8 +120,9 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
                   active ? "text-tangerine" : "text-muted-foreground",
                 )}
               >
-                <span className={cn("grid h-8 w-10 place-items-center rounded-lg", active && "bg-tangerine-soft")}>
+                <span className={cn("relative grid h-8 w-10 place-items-center rounded-lg", active && "bg-tangerine-soft")}>
                   <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 1.8} />
+                  {to === "/profile" && unread > 0 && <span aria-label={`${unread} unread notifications`} className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-logo-pink px-1 text-[10px] font-bold text-primary-foreground">{badge}</span>}
                 </span>
                 {label}
               </Button>

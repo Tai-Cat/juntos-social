@@ -8,6 +8,7 @@ import { rememberIntent, readIntent, clearIntent, completeIntent, type AuthInten
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { AuthForm } from "@/routes/auth";
 import { useSession } from "@/hooks/use-auth";
+import { useKeyboardInset } from "@/hooks/use-keyboard-inset";
 const AuthContext = createContext<(action: (account: User) => void, reason?: string, intent?:AuthIntent) => void>(
   () => {},
 );
@@ -21,6 +22,7 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
   const loc=useLocation();
   const qc=useQueryClient();
   const processing=useRef(false);
+  const kb=useKeyboardInset();
   useEffect(()=>{
     const saved=readIntent();
     if(!user || !saved || processing.current || loc.pathname.startsWith("/verify") || loc.pathname.startsWith("/onboarding"))return;
@@ -57,8 +59,11 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={request}>
       {children}
-      <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground={false}>
-        <DrawerContent className="max-h-[92dvh] overflow-y-auto">
+      <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground={false} repositionInputs={false}>
+        <DrawerContent
+          className="max-h-[92dvh] overflow-y-auto overscroll-contain"
+          style={kb.bottom > 0 ? { bottom: kb.bottom, maxHeight: kb.height - 8 } : undefined}
+        >
           <DrawerHeader>
             <DrawerTitle>Join Juntos to {reason}</DrawerTitle>
           </DrawerHeader>

@@ -1,16 +1,18 @@
-export const MAX_INTERESTS = 30;
 export const COMMUNITY_THRESHOLD = 3;
+/** Optional skill levels set from Profile; "any" means Not set. Several interests may share a level. */
+export const INTEREST_LEVELS = [
+  { value: "any", label: "Not set" },
+  { value: "beginner", label: "Beginner" },
+  { value: "intermediate", label: "Intermediate" },
+  { value: "advanced", label: "Advanced" },
+  { value: "professional", label: "Professional" },
+] as const;
 export const normalizeInterest = (v: string) => v.toLowerCase().trim().replace(/\s+/g, " ").slice(0, 60);
-/** Adds a normalized interest to the end, ignoring duplicates; returns null once the 30 limit is reached. */
-export function addInterest(list: string[], raw: string): string[] | null {
+/** Adds a normalized interest to the end, ignoring duplicates. There is no limit on how many. */
+export function addInterest(list: string[], raw: string): string[] {
   const n = normalizeInterest(raw);
   if (!n || list.includes(n)) return list;
-  if (list.length >= MAX_INTERESTS) return null;
   return [...list, n];
-}
-export function moveInterest(list: string[], from: number, to: number) {
-  if (to < 0 || to >= list.length) return list;
-  const next = [...list]; const [x] = next.splice(from, 1); if (x !== undefined) next.splice(to, 0, x); return next;
 }
 /** A plan suits someone when its activity or any interest tag is one of their interests. */
 export function matchesInterests(plan: { activity: string; interest_tags?: string[] | null }, interests: string[]) {

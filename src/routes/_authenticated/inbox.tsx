@@ -5,6 +5,7 @@ import { FindPeople, FriendsPanel } from "@/components/tagalong/Friends";
 import { InvitesInbox } from "@/components/tagalong/PlanInvites";
 import { HangNudges } from "@/components/tagalong/HangNudges";
 import { Conversations } from "@/components/tagalong/Conversations";
+import { NotificationsList } from "@/components/tagalong/Notifications";
 import { AlertsInbox } from "@/components/tagalong/AlertsInbox";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,12 +32,14 @@ export const Route = createFileRoute("/_authenticated/inbox")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { tab?: string } => (typeof s["tab"] === "string" ? { tab: s["tab"] } : {}),
   component: Inbox,
 });
 
 function Inbox() {
   const { user } = useSession();
-  const [tab, setTab] = useState("messages"),
+  const search = Route.useSearch();
+  const [tab, setTab] = useState(search.tab ?? "messages"),
     [find, setFind] = useState(false);
   const qc = useQueryClient();
   const q = useQuery({
@@ -84,7 +87,7 @@ function Inbox() {
       </div>
       <FindPeople open={find} onOpenChange={setFind} />
       <div className="mb-6 flex gap-2 overflow-x-auto">
-        {["messages", "invites", "requests", "nudges"].map((t) => (
+        {["messages", "notifications", "invites", "requests", "nudges"].map((t) => (
           <Button
             className="capitalize"
             key={t}
@@ -100,6 +103,8 @@ function Inbox() {
           <Conversations /><SocialExamples kind="message"/>
           <AlertsInbox />
         </>
+      ) : tab === "notifications" ? (
+        <NotificationsList />
       ) : tab === "invites" ? (
         <InvitesInbox />
       ) : tab === "nudges" ? (

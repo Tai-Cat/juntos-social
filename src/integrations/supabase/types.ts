@@ -413,6 +413,9 @@ export type Database = {
           alert_id: string | null
           created_at: string
           id: string
+          kind: string
+          link: string | null
+          organisation_id: string | null
           plan_id: string | null
           read: boolean
           title: string
@@ -422,6 +425,9 @@ export type Database = {
           alert_id?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          link?: string | null
+          organisation_id?: string | null
           plan_id?: string | null
           read?: boolean
           title: string
@@ -431,6 +437,9 @@ export type Database = {
           alert_id?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          link?: string | null
+          organisation_id?: string | null
           plan_id?: string | null
           read?: boolean
           title?: string
@@ -442,6 +451,13 @@ export type Database = {
             columns: ["alert_id"]
             isOneToOne: false
             referencedRelation: "saved_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
           {
@@ -575,16 +591,22 @@ export type Database = {
       }
       organisation_members: {
         Row: {
+          joined_at: string | null
+          joined_via: string
           organisation_id: string
           role: string
           user_id: string
         }
         Insert: {
+          joined_at?: string | null
+          joined_via?: string
           organisation_id: string
           role?: string
           user_id: string
         }
         Update: {
+          joined_at?: string | null
+          joined_via?: string
           organisation_id?: string
           role?: string
           user_id?: string
@@ -680,6 +702,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string
+          entry_rule: string | null
           group_discounts: boolean
           id: string
           is_example: boolean
@@ -706,6 +729,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string
+          entry_rule?: string | null
           group_discounts?: boolean
           id?: string
           is_example?: boolean
@@ -732,6 +756,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string
+          entry_rule?: string | null
           group_discounts?: boolean
           id?: string
           is_example?: boolean
@@ -1357,6 +1382,38 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -1623,6 +1680,32 @@ export type Database = {
           },
         ]
       }
+      user_verified_emails: {
+        Row: {
+          email: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          email: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          email?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_verified_emails_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waves: {
         Row: {
           created_at: string
@@ -1685,6 +1768,7 @@ export type Database = {
           title: string
         }[]
       }
+      can_view_plan: { Args: { _plan: string; _uid: string }; Returns: boolean }
       community_interests: {
         Args: never
         Returns: {
@@ -1738,6 +1822,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      effective_entry_rule: { Args: { _org: string }; Returns: string }
       find_people: {
         Args: { _search: string }
         Returns: {
@@ -1794,6 +1879,7 @@ export type Database = {
       }
       leave_org: { Args: { _org: string }; Returns: undefined }
       mark_no_show: { Args: { _request: string }; Returns: undefined }
+      my_domain_ok: { Args: { _org: string }; Returns: boolean }
       open_plan_link: { Args: { _token: string }; Returns: string }
       org_access: { Args: { _org: string; _user: string }; Returns: boolean }
       org_admin: { Args: { _org: string; _user: string }; Returns: boolean }
@@ -1829,6 +1915,18 @@ export type Database = {
         }[]
       }
       people_blocked: { Args: { a: string; b: string }; Returns: boolean }
+      person_card: {
+        Args: { _user: string }
+        Returns: {
+          friend_status: string
+          hidden: boolean
+          home_city: string
+          id: string
+          interests: string[]
+          name: string
+          verified: boolean
+        }[]
+      }
       plan_link_teaser: {
         Args: { _token: string }
         Returns: {
@@ -1841,6 +1939,16 @@ export type Database = {
           image_url: string
           starts_at: string
           title: string
+        }[]
+      }
+      plan_people: {
+        Args: { _plan: string }
+        Returns: {
+          hidden: boolean
+          name: string
+          status: string
+          user_id: string
+          verified: boolean
         }[]
       }
       public_host: {
@@ -1898,6 +2006,10 @@ export type Database = {
           _min?: number
           _other: string
         }
+        Returns: undefined
+      }
+      set_entry_rule: {
+        Args: { _org: string; _rule: string }
         Returns: undefined
       }
       set_hide_examples: { Args: { _hide: boolean }; Returns: undefined }
@@ -1971,6 +2083,10 @@ export type Database = {
           _section: string
         }
         Returns: undefined
+      }
+      user_has_domain: {
+        Args: { _domains: string[]; _user: string }
+        Returns: boolean
       }
     }
     Enums: {

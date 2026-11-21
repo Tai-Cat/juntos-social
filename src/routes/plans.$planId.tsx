@@ -1,4 +1,5 @@
 import { planFallback } from "@/lib/placeholder";
+import { PlanPeople } from "@/components/tagalong/PlanPeople";
 import { PlanVisibilityPanel, MemberNote, InterestedButton } from "@/components/tagalong/PlanVisibility";
 import { PlanInvites } from "@/components/tagalong/PlanInvites";
 import { PhotoCarousel } from "@/components/tagalong/PhotoCarousel";
@@ -534,9 +535,10 @@ function PlanDetail() {
         </Card>
       )}
 
-      {isMember && (members.data?.length ?? 0) > 0 && (
+      {!plan.is_example && <PlanPeople planId={plan.id} />}
+      {isHost && (members.data?.length ?? 0) > 0 && (
         <section className="mt-8">
-          <p className="eyebrow mb-3">Who's going</p>
+          <p className="eyebrow mb-3">Manage guests</p>
           <ul className="divide-y divide-border border-y border-border">
             {(members.data ?? []).map((m) => {
               const p = m.profiles as {

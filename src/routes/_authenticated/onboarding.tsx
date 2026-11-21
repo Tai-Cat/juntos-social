@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Lock } from "lucide-react";
+import { Lock, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,11 @@ import { Chip } from "@/components/tagalong/bits";
 import { CityInput } from "@/components/tagalong/CityInput";
 import { InterestPicker } from "@/components/tagalong/InterestPicker";
 import { GENDER_OPTIONS, errMsg } from "@/lib/tagalong";
-import { ACTIVITIES, cityName } from "@/lib/catalog";
+import { ACTIVITIES, activityLabel, cityName } from "@/lib/catalog";
 import { adultAge } from "@/lib/age";
 import {readIntent} from "@/lib/auth-intent";
-import { PersonalInterests } from "@/components/tagalong/PersonalInterests";
-import { MAX_INTERESTS } from "@/lib/interests";
+import { InterestSearch } from "@/components/tagalong/InterestSearch";
+import { addInterest } from "@/lib/interests";
 export const INTERESTS = ACTIVITIES;
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -23,12 +23,12 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
       { title: "Make yourself at home — Juntos" },
       {
         name: "description",
-        content: "Choose your interests, your city and what you want to learn.",
+        content: "Choose your interests and your home city.",
       },
       { property: "og:title", content: "Make yourself at home — Juntos" },
       {
         property: "og:description",
-        content: "Choose your interests, your city and what you want to learn.",
+        content: "Choose your interests and your home city.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -95,8 +95,8 @@ function Onboarding() {
           name: name.trim(),
           pronouns: pronouns.trim() || null,
           home_city: cityName(city),
-          interests,
-          learning_interests: learning,
+          interests: [...new Set([...interests, ...learning])],
+          learning_interests: [],
           onboarded: true,
         })
         .select("id")
@@ -133,13 +133,13 @@ function Onboarding() {
       <p className="font-display text-2xl">
         Juntos<span className="text-tangerine">.</span>
       </p>
-      <p className="eyebrow mt-8">{profile?.onboarded ? "Your profile" : "Step 1 of 2"}</p>
+      <p className="eyebrow mt-8">{profile?.onboarded ? "Your profile" : "One quick step"}</p>
       <h1 className="mt-2 text-4xl">Your kind of people</h1>
       <div className="mt-8 space-y-6">
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="n">First name</Label>
-            <Input id="n" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="n" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="p">Pronouns (optional)</Label>
@@ -181,20 +181,23 @@ function Onboarding() {
           )}
         </fieldset>
         <section>
-          <h2 className="text-2xl">What are you into?</h2>
+          <h2 className="text-2xl">I'm interested in</h2>
           <p className="my-2 text-xs text-muted-foreground">
-            {interests.length} interests selected
+            Pick as many as you like. {interests.length > 0 && `${interests.length} selected. `}You can add skill levels later from your profile.
           </p>
-          <InterestPicker selected={interests} onChange={v=>v.length>MAX_INTERESTS?setError(`Up to ${MAX_INTERESTS} interests.`):setInterests(v)} city={city} />
-          <h3 className="mb-2 mt-5 text-lg">Your interests, in order</h3>
-          <PersonalInterests interests={interests} onChange={setInterests} />
-        </section>
-        <section>
-          <h2 className="text-2xl">I want to learn</h2>
-          <p className="my-2 text-xs text-muted-foreground">
-            {learning.length} new adventures selected
-          </p>
-          <InterestPicker selected={learning} onChange={setLearning} city={city} />
+          <InterestPicker selected={interests} onChange={setInterests} city={city} />
+          <div className="mt-4">
+            <InterestSearch exclude={interests} onAdd={(v) => setInterests(addInterest(interests, v))} />
+          </div>
+          {interests.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {interests.map((i) => (
+                <Chip key={i} active onClick={() => setInterests(interests.filter((x) => x !== i))}>
+                  <span className={i === "ai" ? "" : "capitalize"}>{activityLabel(i)}</span> <X className="h-3 w-3" aria-label={`Remove ${i}`} />
+                </Chip>
+              ))}
+            </div>
+          )}
         </section>
         {error && (
           <p role="alert" className="text-sm text-destructive">

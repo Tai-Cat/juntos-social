@@ -1,3 +1,4 @@
+import { notifyOrgAdmins } from "@/lib/org-notify.functions";
 import {useState} from "react";
 import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {Link} from "@tanstack/react-router";
@@ -37,9 +38,21 @@ export function OrganisationDirectory({title="Browse by organisation"}:{title?:s
 }
 export function OrganisationAccess({org}:{org:Org}){
  const memberships=useOrgMemberships(),{user}=useSession(),auth=useAuthAction(),qc=useQueryClient();
- const [answer,setAnswer]=useState(""),[email,setEmail]=useState(""),[code,setCode]=useState(""),[demoCode,setDemoCode]=useState(""),[busy,setBusy]=useState(false);
+ const [answer,setAnswer]=useState(""),[busy,setBusy]=useState(false);
  const req=useQuery({queryKey:["org-request",org.id,user?.id],enabled:!!user,queryFn:async()=>{if(!user)return null;return (await supabase.from("organisation_requests").select("status").eq("organisation_id",org.id).eq("user_id",user.id).maybeSingle()).data;}});
+ const rule=useQuery({queryKey:["org-entry",org.id,user?.id],queryFn:async()=>{const r=await supabase.rpc("effective_entry_rule",{_org:org.id});const d=user?await supabase.rpc("my_domain_ok",{_org:org.id}):{data:false};return {rule:(r.data as string|null)??"manual",domainOk:!!d.data};}});
  if(org.visibility==="open" || memberships.data?.some(m=>m.organisation_id===org.id))return null;
- async function request(){setBusy(true);const {data,error}=await supabase.rpc("request_org_access",{_org:org.id,_answer:answer});setBusy(false);if(error)toast.error(error.message);else {toast.success(data==="approved"?"Access approved":"Request sent to the organisation admin");await qc.invalidateQueries();}}
- return <section className="my-6 border-y border-border py-6"><h2 className="flex items-center gap-2 text-2xl"><Lock className="h-5 w-5"/>Members only</h2><p className="my-3 text-sm text-muted-foreground">Join {org.name} to see full event details.</p><div className="grid gap-6 sm:grid-cols-2"><div className="space-y-3"><Label htmlFor={`question-${org.id}`}>{org.question}</Label><Input id={`question-${org.id}`} value={answer} maxLength={2000} onChange={e=>setAnswer(e.target.value)}/>{req.data&&<p className="text-sm text-muted-foreground">Request: {req.data.status}</p>}<Button disabled={!answer.trim()||busy} onClick={()=>auth(()=>void request(),"request organisation access")}>Request access</Button></div>{org.allowed_domains.length>0&&<div className="space-y-3"><p className="text-sm font-bold">Verify organisation email · Demo</p><p className="text-xs text-muted-foreground">Allowed: {org.allowed_domains.join(", ")}. Demo codes appear here; no email is sent.</p><Input aria-label="Organisation email" type="email" value={email} onChange={e=>setEmail(e.target.value)}/><Button variant="outline" onClick={()=>auth(async()=>{const {data,error}=await supabase.rpc("start_org_email_demo",{_org:org.id,_email:email});if(error)toast.error(error.message);else setDemoCode(data);},"verify your organisation email")}>Get demo code</Button>{demoCode&&<><p className="text-sm">Demo code: <strong>{demoCode}</strong></p><Input aria-label="Confirmation code" value={code} onChange={e=>setCode(e.target.value)} maxLength={6}/><Button onClick={async()=>{const {data,error}=await supabase.rpc("confirm_org_email_demo",{_org:org.id,_code:code});if(error||!data)toast.error("Code incorrect or expired");else {toast.success("Demo email verified — access approved");await qc.invalidateQueries();}}}>Confirm code</Button></>}</div>}</div></section>;
+ const usesDomain=rule.data?.rule==="domain"||rule.data?.rule==="domain_and_answer";
+ const instant=rule.data?.rule==="domain"&&rule.data.domainOk;
+ async function request(){setBusy(true);const {data,error}=await supabase.rpc("request_org_access",{_org:org.id,_answer:answer});setBusy(false);if(error){toast.error(error.message);return;}
+  toast.success(data==="approved"?`Welcome to ${org.name}`:"Request sent. The organisers will review it.");
+  void notifyOrgAdmins({data:{orgId:org.id}}).catch(()=>{});
+  await qc.invalidateQueries();}
+ const status=req.data?.status;
+ return <section className="my-6 border-y border-border py-6"><h2 className="flex items-center gap-2 text-2xl"><Lock className="h-5 w-5"/>Members only</h2><p className="my-3 text-sm text-muted-foreground">Join {org.name} to see full event details.</p>
+  {status==="pending"&&<p role="status" className="mb-4 rounded-lg bg-secondary p-3 text-sm"><strong>Request pending.</strong> The organisers have been notified. You'll get a notification when they decide.</p>}
+  {status==="declined"&&<p role="status" className="mb-4 rounded-lg bg-secondary p-3 text-sm"><strong>Request declined.</strong> You can update your answer and ask again.</p>}
+  {usesDomain&&org.allowed_domains.length>0&&<p className="mb-4 text-sm text-muted-foreground">{rule.data?.domainOk?`Your verified email is on ${org.allowed_domains.join(", ")}${instant?", so you'll be let in straight away.":". Answer the question to be let in straight away."}`:`People whose sign-up email is on ${org.allowed_domains.join(", ")} (confirmed by email) are let in automatically. Otherwise the organisers review your answer.`}</p>}
+  {status!=="pending"&&<div className="max-w-lg space-y-3">{!instant&&<><Label htmlFor={`question-${org.id}`}>{org.question||"Why would you like to join?"}</Label><Input id={`question-${org.id}`} value={answer} maxLength={2000} onChange={e=>setAnswer(e.target.value)}/></>}<Button disabled={(!instant&&!answer.trim())||busy} onClick={()=>auth(()=>void request(),"request organisation access")}>{instant?`Join ${org.name}`:"Request to join"}</Button></div>}
+ </section>;
 }

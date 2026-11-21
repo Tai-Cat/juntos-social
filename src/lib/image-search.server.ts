@@ -23,6 +23,10 @@ const OBJECT_QUERIES: Record<string, string[]> = {
 };
 /** Title keywords that need a more specific scene than their activity. */
 const TITLE_QUERIES: [RegExp, string[]][] = [
+  [/rugby/i, ["rugby ball on grass pitch", "rugby training field"]],
+  [/jamming|music club/i, ["acoustic guitar jam session", "band rehearsal room instruments"]],
+  [/movember|moustache/i, ["vintage barber shop razor", "moustache comb barber"]],
+  [/ski trip|les menuires/i, ["ski slope alps", "skiers on snowy mountain"]],
   [/gala/i, ["gala dinner table setting", "elegant banquet table"]],
   [/food festival/i, ["food festival market stalls", "street food market stalls"]],
   [/recovery|wellness|bath/i, ["sauna interior wood", "bath house pool empty"]],

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { errMsg } from "@/lib/tagalong";
+import { focusNextOnEnter } from "@/hooks/use-keyboard-inset";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-8">
+    <div className="mx-auto min-h-[100dvh] max-w-md px-6 py-8">
       <Link to="/" className="font-display text-2xl">
         Juntos
       </Link>
@@ -133,7 +134,7 @@ export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
         ) : (
           <>
             <h1 className="text-3xl">{mode === "signin" ? "Welcome back" : "Join Juntos"}</h1>
-            <form onSubmit={submit} className="mt-8 space-y-5">
+            <form onSubmit={submit} className="mt-6 space-y-5">
               {formError && (
                 <p role="alert" className="text-sm text-destructive">
                   {formError}
@@ -144,6 +145,11 @@ export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
                   <Label htmlFor="name">First name</Label>
                   <Input
                     id="name"
+                    name="given-name"
+                    autoComplete="given-name"
+                    autoCapitalize="words"
+                    enterKeyHint="next"
+                    onKeyDown={focusNextOnEnter}
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -154,7 +160,15 @@ export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
+                  inputMode="email"
+                  autoComplete={mode === "signup" ? "email" : "username"}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  enterKeyHint="next"
+                  onKeyDown={focusNextOnEnter}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -164,16 +178,21 @@ export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
                 <Label htmlFor="pw">Password</Label>
                 <Input
                   id="pw"
+                  name="password"
                   type="password"
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  enterKeyHint="go"
                   minLength={6}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <Button type="submit" size="lg" className="w-full" disabled={busy}>
-                {mode === "signin" ? "Sign in" : "Create account"}
-              </Button>
+              <div className="sticky bottom-0 -mx-1 bg-background px-1 pb-2 pt-2">
+                <Button type="submit" size="lg" className="w-full" disabled={busy}>
+                  {busy ? "One moment…" : mode === "signin" ? "Sign in" : "Create account"}
+                </Button>
+              </div>
             </form>
             <Button
               variant="link"

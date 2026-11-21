@@ -29,11 +29,13 @@ import { Route as OrganisationsSlugRouteImport } from './routes/organisations.$s
 import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
 import { Route as SharedTokenRouteImport } from './routes/shared.$token'
 import { Route as TripsTripIdRouteImport } from './routes/trips.$tripId'
+import { Route as AuthenticatedAdminLogoRouteImport } from './routes/_authenticated/admin.logo'
 import { Route as AuthenticatedAdminReviewRouteImport } from './routes/_authenticated/admin.review'
 import { Route as AuthenticatedChatUserIdRouteImport } from './routes/_authenticated/chat.$userId'
 import { Route as AuthenticatedEditPlanPlanIdRouteImport } from './routes/_authenticated/edit-plan.$planId'
 import { Route as AuthenticatedOrganisationAdminOrgIdRouteImport } from './routes/_authenticated/organisation-admin.$orgId'
 import { Route as AuthenticatedOrganisationsNewRouteImport } from './routes/_authenticated/organisations.new'
+import { Route as AuthenticatedPeopleUserIdRouteImport } from './routes/_authenticated/people.$userId'
 import { Route as ApiPublicAiImageKindRefRouteImport } from './routes/api/public/ai-image.$kind.$ref'
 
 const IndexRoute = IndexRouteImport.update({
@@ -135,6 +137,11 @@ const TripsTripIdRoute = TripsTripIdRouteImport.update({
   path: '/trips/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminLogoRoute = AuthenticatedAdminLogoRouteImport.update({
+  id: '/admin/logo',
+  path: '/admin/logo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminReviewRoute =
   AuthenticatedAdminReviewRouteImport.update({
     id: '/admin/review',
@@ -164,6 +171,12 @@ const AuthenticatedOrganisationsNewRoute =
     path: '/organisations/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPeopleUserIdRoute =
+  AuthenticatedPeopleUserIdRouteImport.update({
+    id: '/people/$userId',
+    path: '/people/$userId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicAiImageKindRefRoute = ApiPublicAiImageKindRefRouteImport.update({
   id: '/api/public/ai-image/$kind/$ref',
   path: '/api/public/ai-image/$kind/$ref',
@@ -190,11 +203,13 @@ export interface FileRoutesByFullPath {
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
+  '/admin/logo': typeof AuthenticatedAdminLogoRoute
   '/admin/review': typeof AuthenticatedAdminReviewRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
   '/edit-plan/$planId': typeof AuthenticatedEditPlanPlanIdRoute
   '/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
   '/organisations/new': typeof AuthenticatedOrganisationsNewRoute
+  '/people/$userId': typeof AuthenticatedPeopleUserIdRoute
   '/api/public/ai-image/$kind/$ref': typeof ApiPublicAiImageKindRefRoute
 }
 export interface FileRoutesByTo {
@@ -217,11 +232,13 @@ export interface FileRoutesByTo {
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
+  '/admin/logo': typeof AuthenticatedAdminLogoRoute
   '/admin/review': typeof AuthenticatedAdminReviewRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
   '/edit-plan/$planId': typeof AuthenticatedEditPlanPlanIdRoute
   '/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
   '/organisations/new': typeof AuthenticatedOrganisationsNewRoute
+  '/people/$userId': typeof AuthenticatedPeopleUserIdRoute
   '/api/public/ai-image/$kind/$ref': typeof ApiPublicAiImageKindRefRoute
 }
 export interface FileRoutesById {
@@ -246,11 +263,13 @@ export interface FileRoutesById {
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
+  '/_authenticated/admin/logo': typeof AuthenticatedAdminLogoRoute
   '/_authenticated/admin/review': typeof AuthenticatedAdminReviewRoute
   '/_authenticated/chat/$userId': typeof AuthenticatedChatUserIdRoute
   '/_authenticated/edit-plan/$planId': typeof AuthenticatedEditPlanPlanIdRoute
   '/_authenticated/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
   '/_authenticated/organisations/new': typeof AuthenticatedOrganisationsNewRoute
+  '/_authenticated/people/$userId': typeof AuthenticatedPeopleUserIdRoute
   '/api/public/ai-image/$kind/$ref': typeof ApiPublicAiImageKindRefRoute
 }
 export interface FileRouteTypes {
@@ -275,11 +294,13 @@ export interface FileRouteTypes {
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
+    | '/admin/logo'
     | '/admin/review'
     | '/chat/$userId'
     | '/edit-plan/$planId'
     | '/organisation-admin/$orgId'
     | '/organisations/new'
+    | '/people/$userId'
     | '/api/public/ai-image/$kind/$ref'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -302,11 +323,13 @@ export interface FileRouteTypes {
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
+    | '/admin/logo'
     | '/admin/review'
     | '/chat/$userId'
     | '/edit-plan/$planId'
     | '/organisation-admin/$orgId'
     | '/organisations/new'
+    | '/people/$userId'
     | '/api/public/ai-image/$kind/$ref'
   id:
     | '__root__'
@@ -330,11 +353,13 @@ export interface FileRouteTypes {
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
+    | '/_authenticated/admin/logo'
     | '/_authenticated/admin/review'
     | '/_authenticated/chat/$userId'
     | '/_authenticated/edit-plan/$planId'
     | '/_authenticated/organisation-admin/$orgId'
     | '/_authenticated/organisations/new'
+    | '/_authenticated/people/$userId'
     | '/api/public/ai-image/$kind/$ref'
   fileRoutesById: FileRoutesById
 }
@@ -498,6 +523,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TripsTripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/logo': {
+      id: '/_authenticated/admin/logo'
+      path: '/admin/logo'
+      fullPath: '/admin/logo'
+      preLoaderRoute: typeof AuthenticatedAdminLogoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/review': {
       id: '/_authenticated/admin/review'
       path: '/admin/review'
@@ -533,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrganisationsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/people/$userId': {
+      id: '/_authenticated/people/$userId'
+      path: '/people/$userId'
+      fullPath: '/people/$userId'
+      preLoaderRoute: typeof AuthenticatedPeopleUserIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/ai-image/$kind/$ref': {
       id: '/api/public/ai-image/$kind/$ref'
       path: '/api/public/ai-image/$kind/$ref'
@@ -549,11 +588,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPostRoute: typeof AuthenticatedPostRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedVerifyRoute: typeof AuthenticatedVerifyRoute
+  AuthenticatedAdminLogoRoute: typeof AuthenticatedAdminLogoRoute
   AuthenticatedAdminReviewRoute: typeof AuthenticatedAdminReviewRoute
   AuthenticatedChatUserIdRoute: typeof AuthenticatedChatUserIdRoute
   AuthenticatedEditPlanPlanIdRoute: typeof AuthenticatedEditPlanPlanIdRoute
   AuthenticatedOrganisationAdminOrgIdRoute: typeof AuthenticatedOrganisationAdminOrgIdRoute
   AuthenticatedOrganisationsNewRoute: typeof AuthenticatedOrganisationsNewRoute
+  AuthenticatedPeopleUserIdRoute: typeof AuthenticatedPeopleUserIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -562,12 +603,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPostRoute: AuthenticatedPostRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedVerifyRoute: AuthenticatedVerifyRoute,
+  AuthenticatedAdminLogoRoute: AuthenticatedAdminLogoRoute,
   AuthenticatedAdminReviewRoute: AuthenticatedAdminReviewRoute,
   AuthenticatedChatUserIdRoute: AuthenticatedChatUserIdRoute,
   AuthenticatedEditPlanPlanIdRoute: AuthenticatedEditPlanPlanIdRoute,
   AuthenticatedOrganisationAdminOrgIdRoute:
     AuthenticatedOrganisationAdminOrgIdRoute,
   AuthenticatedOrganisationsNewRoute: AuthenticatedOrganisationsNewRoute,
+  AuthenticatedPeopleUserIdRoute: AuthenticatedPeopleUserIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

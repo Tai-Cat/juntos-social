@@ -60,3 +60,15 @@
 - [x] Edit plan screen with visibility
 - [x] Remove ID/selfie age-check requirement: self-declared DOB + 18+ checkbox; Verify optional badge only
 - [x] INSEAD clubs as sub-groups: one INSEAD card in Browse, category sections on INSEAD page, breadcrumbs, admin create/rename/move/archive, inherited membership
+
+## Phone-testing fixes (Nov 2026)
+- [x] Keyboard-safe sign-up/sign-in (visual viewport, autocomplete, Next/Go)
+- [x] One interest list at sign-up, no cap, levels dropdown on Profile (incl. Professional)
+- [x] Pink logo options A/B/C at /admin/logo; A live (logo, favicon, splash, share image)
+- [x] Org join requests: notifications + bell/Profile badge, Requests tab, requester status
+- [x] Installable app + push on "Turn on notifications" for admins
+- [ ] Join-request emails to admins — waiting on an email sender domain
+- [x] Entry rules (manual / verified domain / both), Recently joined, clubs inherit
+- [ ] Verifying a second email by code — waiting on an email sender domain (sign-up email already counts)
+- [x] Going / Interested people on plans, person page with Add friend
+- [x] MIM'28 events + Rugby Club + Music Club

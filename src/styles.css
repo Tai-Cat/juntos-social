@@ -139,6 +139,12 @@
   --outdoors-tint: oklch(0.94 0.035 160);
   --social-tint: oklch(0.94 0.045 28);
   --wellness-tint: oklch(0.95 0.04 220);
+  /* Logo palettes: A pink+orange (live), B pink+yellow, C hot pink+coral */
+  --logo-pink: #E8508A;
+  --logo-orange: #F2803A;
+  --logo-yellow: #F5B82E;
+  --logo-hotpink: #FF2E88;
+  --logo-coral: #FF7A5C;
   --card-shadow: 0 4px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
 }
 @theme inline {
@@ -147,6 +153,11 @@
   --color-grass: var(--grass);
   --color-sky: var(--sky);
   --color-lilac: var(--lilac);
+  --color-logo-pink: var(--logo-pink);
+  --color-logo-orange: var(--logo-orange);
+  --color-logo-yellow: var(--logo-yellow);
+  --color-logo-hotpink: var(--logo-hotpink);
+  --color-logo-coral: var(--logo-coral);
 }
 .genre-active {
   --category-accent: var(--grass);
