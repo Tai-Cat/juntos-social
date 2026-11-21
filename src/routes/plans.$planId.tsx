@@ -317,7 +317,7 @@ function PlanDetail() {
           {plan.category}
           {plan.kind === "partner_venue" && " · Partner venue"}
         </span>
-        {plan.is_example && <ExampleTag />}
+        {plan.is_example && <ExampleTag variant="detail" />}
       </div>
       <h1 className="mt-2 text-3xl leading-tight">{plan.title}</h1>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -394,10 +394,6 @@ function PlanDetail() {
       {plan.kind === "partner_venue" && Number(plan.base_price) > 0 && (
         <Card className="mt-6 space-y-4">
           <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} />
-          <Button variant="outline" className="w-full" disabled>
-            Reserve with €3 refundable deposit
-          </Button>
-          <p className="text-center text-[11px] text-muted-foreground">Deposits coming soon</p>
         </Card>
       )}
 
