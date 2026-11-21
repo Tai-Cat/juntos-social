@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import { Crown, X } from "lucide-react";
+import { PLUS_PAYMENT_LINK } from "@/lib/plus";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { WHY_JUNTOS, dismissWhyLine, whyLineDismissed } from "@/lib/why-juntos";
@@ -19,7 +20,21 @@ export function HomeHero() {
     <div className="mb-4">
       <p className="font-display text-2xl leading-tight sm:text-3xl">Good plans, great company</p>
       <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">{WHY_JUNTOS}</p>
-      <Link to="/pricing" className="mt-1 inline-block text-xs font-bold text-tangerine underline-offset-2 hover:underline">See pricing</Link>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-card px-3 py-2">
+        <p className="text-xs">
+          <span className="font-bold">Free to join.</span>{" "}
+          <span className="text-muted-foreground">Juntos Plus</span> <span className="font-bold">€5 / month</span>
+        </p>
+        <a
+          href={PLUS_PAYMENT_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground hover:opacity-90"
+        >
+          <Crown className="h-3.5 w-3.5" aria-hidden /> Get Plus
+        </a>
+        <Link to="/pricing" className="text-xs font-bold text-tangerine underline-offset-2 hover:underline">Compare plans</Link>
+      </div>
     </div>
   );
 }

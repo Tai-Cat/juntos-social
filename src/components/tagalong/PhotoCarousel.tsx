@@ -37,7 +37,7 @@ export function PhotoCarousel({ photos:source, label,planId,genre="outdoors",cre
           ))}
         </div>
       </div>
-      {credits && (()=>{const url=photos[index]??"";const c=creditRows.find(r=>r.photo===url);return <p className="absolute bottom-0 right-0 max-w-full truncate rounded-tl-md bg-card/90 px-2 py-0.5 text-[10px] text-muted-foreground">{example&&"Example · "}{c?<>Photo by <a className="underline" href={c.photographer_url} target="_blank" rel="noreferrer">{c.photographer}</a> on <a className="underline" href={c.source_url} target="_blank" rel="noreferrer">{c.provider==="unsplash"?"Unsplash":"Pexels"}</a></>:isAiImage(url)?"AI generated":url.startsWith("data:")?"Photo coming soon":uploads?"Photo uploaded by the host":"Photo"}</p>;})()}
+      {credits && (()=>{const url=photos[index]??"";const c=creditRows.find(r=>r.photo===url);return <p className="absolute bottom-0 right-0 max-w-full truncate rounded-tl-md bg-card/90 px-2 py-0.5 text-[10px] text-muted-foreground">{c?<>Photo by <a className="underline" href={c.photographer_url} target="_blank" rel="noreferrer">{c.photographer}</a> on <a className="underline" href={c.source_url} target="_blank" rel="noreferrer">{c.provider==="unsplash"?"Unsplash":"Pexels"}</a></>:isAiImage(url)?"AI generated":url.startsWith("data:")?"Photo":uploads?"Photo uploaded by the host":"Photo"}</p>;})()}
       {photos.length > 1 && (
         <>
           <Button

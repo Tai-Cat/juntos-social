@@ -25,7 +25,7 @@ export function FollowOrganisation({org}:{org:Org}){
 }
 export const orgCover=(org:Org)=>org.cover_url||aiImage("org",org.slug);
 const KIND_LABEL:Record<string,string>={business:"Business",institution:"Institution",community:"Community"};
-function DirectoryCard({org}:{org:Org}){return <article className="flex flex-wrap items-center gap-3 border-b border-border py-4"><OrganisationLogo org={org}/><div className="min-w-0 flex-1"><Link className="font-bold" to="/organisations/$slug" params={{slug:org.slug}}>{org.name}</Link> <OfficialBadge org={org}/><p className="mt-1 text-xs text-muted-foreground">{KIND_LABEL[org.kind]}{org.official_status==="pending"?" · Pending":""} · {org.visibility==="open"?"Open":org.visibility==="private"?"Invite only":"Members only"}{org.is_example?" · Example":""}</p></div><FollowOrganisation org={org}/></article>;}
+function DirectoryCard({org}:{org:Org}){return <article className="flex flex-wrap items-center gap-3 border-b border-border py-4"><OrganisationLogo org={org}/><div className="min-w-0 flex-1"><Link className="font-bold" to="/organisations/$slug" params={{slug:org.slug}}>{org.name}</Link> <OfficialBadge org={org}/><p className="mt-1 text-xs text-muted-foreground">{KIND_LABEL[org.kind]}{org.official_status==="pending"?" · Pending":""} · {org.visibility==="open"?"Open":org.visibility==="private"?"Invite only":"Members only"}</p></div><FollowOrganisation org={org}/></article>;}
 /** Top-level organisations only (sub-groups live on their parent's page); official first, then organisations, then communities. Examples fill gaps. */
 export function OrganisationDirectory({title="Browse by organisation"}:{title?:string}){
  const orgs=useOrganisations(),hidden=useExamplesHidden();

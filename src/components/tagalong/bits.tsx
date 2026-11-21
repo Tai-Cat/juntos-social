@@ -40,10 +40,15 @@ export function Chip({
   );
 }
 
-export function ExampleTag() {
+/**
+ * Sample (seeded) content is not tagged on cards, lists or calendars.
+ * Only the plan's own page shows a quiet "Sample plan" note (variant="detail").
+ */
+export function ExampleTag({ variant }: { variant?: "detail" }) {
+  if (variant !== "detail") return null;
   return (
-    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-      Example
+    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground" title="A sample plan showing how Juntos works">
+      Sample plan
     </span>
   );
 }
