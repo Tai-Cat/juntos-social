@@ -1,3 +1,4 @@
+import { AuthSheetProvider } from "@/components/tagalong/AuthSheet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -106,8 +107,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-// Follow the device's light/dark setting.
-const themeScript = `(function(){try{var m=window.matchMedia('(prefers-color-scheme: dark)');var a=function(){document.documentElement.classList.toggle('dark',m.matches)};a();m.addEventListener('change',a)}catch(e){}})()`;
+// Light mode is intentional, independent of device preference.
+const themeScript = `(function(){try{document.documentElement.classList.remove('dark');document.documentElement.dataset.doodles=localStorage.getItem('tagalong-doodles')==='off'?'off':'on'}catch(e){}})()`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
@@ -139,7 +140,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthSheetProvider><Outlet /></AuthSheetProvider>
       <Toaster position="top-center" />
     </QueryClientProvider>
   );

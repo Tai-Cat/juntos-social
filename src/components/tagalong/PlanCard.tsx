@@ -1,3 +1,8 @@
+import { FriendsGoing } from "./PlanInvites";
+import { PhotoCarousel } from "./PhotoCarousel";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { distanceKm } from "@/lib/spatial";
 import { genreClass, imageFor } from "@/lib/catalog";
 import { Link } from "@tanstack/react-router";
 import { Accessibility, MapPin } from "lucide-react";
@@ -43,20 +48,38 @@ export function DiscountBar({ going, basePrice }: { going: number; basePrice: nu
   );
 }
 
-export function PlanCard({ plan }: { plan: PlanWithHost }) {
-  const host = hostOf(plan);
+export function PlanCard({
+  plan,
+  position,
+}: {
+  plan: PlanWithHost;
+  position?: { lat: number; lng: number } | null;
+}) {
+  const hostQ = useQuery({
+    queryKey: ["public-host", plan.host_id],
+    enabled: !!plan.host_id,
+    queryFn: async () => {
+      if (!plan.host_id) return null;
+      return (await supabase.rpc("public_host", { _id: plan.host_id })).data?.[0] ?? null;
+    },
+  });
+  const host = hostQ.data
+    ? {
+        name: hostQ.data.name,
+        verified: hostQ.data.verified,
+        reliability: hostQ.data.reliability_score,
+      }
+    : hostOf(plan);
   return (
-    <Link
-      to="/plans/$planId"
-      params={{ planId: plan.id }}
-      className={`plan-card block ${genreClass(plan.genre)}`}
-    >
-      <div className="relative aspect-[16/9] overflow-hidden">
-        <img
-          src={plan.image_url || imageFor(plan.activity, plan.genre)}
-          alt={plan.activity}
-          className="h-full w-full object-cover"
-          loading="lazy"
+    <article className={`plan-card block ${genreClass(plan.genre)}`}>
+      <div className="relative">
+        <PhotoCarousel
+          photos={
+            plan.photos.length
+              ? plan.photos
+              : [plan.image_url || imageFor(plan.activity, plan.genre)]
+          }
+          label={plan.activity}
         />
         <div className="absolute left-3 top-3">
           <span className={`category-chip ${genreClass(plan.genre)}`}>{plan.activity}</span>
@@ -69,16 +92,35 @@ export function PlanCard({ plan }: { plan: PlanWithHost }) {
       </div>
       <div className="p-5">
         <p className="text-xs font-bold text-tangerine">{formatWhen(plan.starts_at)}</p>
-        <h3 className="mt-2 text-2xl font-semibold leading-tight">{plan.title}</h3>
+        <h3 className="mt-2 text-2xl font-semibold leading-tight">
+          <Link to="/plans/$planId" params={{ planId: plan.id }}>
+            {plan.title}
+          </Link>
+        </h3>
         <p className="mt-2 truncate text-sm text-muted-foreground">
           {plan.description || `A little ${plan.activity}, good company included.`}
         </p>
         <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <MapPin className="h-3.5 w-3.5 shrink-0" />
           {plan.area_label}
+          {position && plan.area_lat !== null && plan.area_lng !== null && (
+            <span>
+              · ~{distanceKm(position, { lat: plan.area_lat, lng: plan.area_lng }).toFixed(1)} km
+            </span>
+          )}
           {plan.step_free && <Accessibility className="ml-auto h-4 w-4" aria-label="Step-free" />}
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+          <div className="flex -space-x-2" aria-label="Going avatars">
+            {Array.from({ length: Math.min(4, plan.going_count) }, (_, i) => (
+              <span
+                key={i}
+                className="grid h-7 w-7 place-items-center rounded-full border-2 border-card bg-sunflower text-[10px] font-bold"
+              >
+                {i === 0 ? host.name.charAt(0) : "+"}
+              </span>
+            ))}
+          </div>
           <span className="rounded-full bg-card px-2.5 py-1 font-semibold">
             {plan.going_count}/{plan.capacity} going
           </span>
@@ -94,6 +136,10 @@ export function PlanCard({ plan }: { plan: PlanWithHost }) {
           <VerifiedBadge verified={host.verified} />
           <span className="rounded-full bg-card px-2 py-1">{host.reliability}% reliable</span>
         </div>
+        <FriendsGoing planId={plan.id} />
+        {plan.early_booking && (
+          <p className="mt-2 text-xs font-bold text-tangerine">Plus early booking · Coming soon</p>
+        )}
         {plan.audience !== "everyone" && (
           <p className="mt-2 text-xs">{AUDIENCE_LABEL[plan.audience]}</p>
         )}
@@ -102,7 +148,19 @@ export function PlanCard({ plan }: { plan: PlanWithHost }) {
             <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} />
           </div>
         )}
+        <div className="mt-4 flex items-center justify-between text-xs">
+          <span className="font-bold text-grass">
+            {Math.max(0, plan.capacity - plan.going_count)} spots left
+          </span>
+          <Link
+            to="/plans/$planId"
+            params={{ planId: plan.id }}
+            className="font-bold text-tangerine"
+          >
+            View plan →
+          </Link>
+        </div>
       </div>
-    </Link>
+    </article>
   );
 }

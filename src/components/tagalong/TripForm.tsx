@@ -1,3 +1,4 @@
+import { useAuthAction } from "./AuthSheet";
 import { CityInput } from "./CityInput";
 import { InterestPicker } from "./InterestPicker";
 import { cityName } from "@/lib/catalog";
@@ -39,6 +40,7 @@ const TRIP_INTERESTS = [
 
 export function AddTripButton() {
   const { user } = useSession();
+  const auth = useAuthAction();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -76,7 +78,7 @@ export function AddTripButton() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => v ? auth(() => setOpen(true), "add a trip") : setOpen(false)}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           Add a trip

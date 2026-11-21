@@ -1,19 +1,38 @@
 import { useState } from "react";
-import { Bell, Lock, X } from "lucide-react";
+import { Bell, Lock, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Choice } from "./Choice";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { PlusCard } from "./PlusCard";
-import { ACTIVITIES, GENRES } from "@/lib/catalog";
+import { GENRES } from "@/lib/catalog";
 import { AUDIENCE_LABEL } from "@/lib/tagalong";
 import type { ExploreFilters } from "@/lib/explore-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-auth";
+import { useActivities } from "@/hooks/use-activities";
+import { useAuthAction } from "./AuthSheet";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+type Key = Exclude<keyof ExploreFilters, "city" | "timezone">;
+const CHIPS: { key: Key; label: string }[] = [
+  { key: "date", label: "Date" },
+  { key: "time", label: "Time" },
+  { key: "price", label: "Price" },
+  { key: "audience", label: "Audience" },
+  { key: "genre", label: "Genre" },
+  { key: "activity", label: "Activity" },
+  { key: "level", label: "Level" },
+  { key: "allAbilities", label: "All abilities" },
+  { key: "stepFree", label: "Step-free" },
+  { key: "daytime", label: "Daytime" },
+];
+const PRICES = [
+  { value: "free", label: "Free" },
+  { value: "under10", label: "Under €10" },
+  { value: "10to30", label: "€10–30" },
+  { value: "30to60", label: "€30–60" },
+  { value: "60plus", label: "€60+" },
+];
 export function ExploreControls({
   filters: f,
   onChange,
@@ -23,13 +42,48 @@ export function ExploreControls({
   onChange: (v: ExploreFilters) => void;
   plus: boolean;
 }) {
-  const [gate, setGate] = useState(false),
-    [save, setSave] = useState(false),
+  const [sheet, setSheet] = useState<Key | "save" | null>(null),
+    [draft, setDraft] = useState<string | boolean>(""),
+    [search, setSearch] = useState(""),
     [name, setName] = useState("");
   const { user } = useSession();
+  const auth = useAuthAction();
   const qc = useQueryClient();
-  const change = (key: keyof ExploreFilters, value: string | boolean) =>
-    onChange({ ...f, [key]: value });
+  const activities = useActivities();
+  const options =
+    sheet === "price"
+      ? PRICES
+      : sheet === "audience"
+        ? Object.entries(AUDIENCE_LABEL).map(([value, label]) => ({ value, label }))
+        : sheet === "genre"
+          ? GENRES.map((g) => ({ value: g.id, label: g.label }))
+          : sheet === "activity"
+            ? activities
+                .filter((a) => a.includes(search.toLowerCase()))
+                .map((a) => ({ value: a, label: a }))
+            : sheet === "time"
+              ? ["morning", "afternoon", "evening", "late"].map((value) => ({
+                  value,
+                  label: value,
+                }))
+              : sheet === "level"
+                ? ["beginner", "intermediate", "advanced"].map((value) => ({ value, label: value }))
+                : [
+                    { value: "true", label: CHIPS.find((c) => c.key === sheet)?.label ?? "On" },
+                    { value: "false", label: "Off" },
+                  ];
+  const labelFor = (key: Key) => {
+    const value = f[key];
+    return key === "genre"
+      ? GENRES.find((g) => g.id === value)?.label
+      : key === "audience"
+        ? AUDIENCE_LABEL[String(value)]
+        : key === "price"
+          ? PRICES.find((p) => p.value === value)?.label
+          : typeof value === "boolean"
+            ? ""
+            : value;
+  };
   async function saveAlert() {
     if (!user || !name.trim()) return;
     const { error } = await supabase
@@ -43,175 +97,152 @@ export function ExploreControls({
       toast.error(error.message);
       return;
     }
-    setSave(false);
+    setSheet(null);
     toast.success("Alert saved");
     qc.invalidateQueries({ queryKey: ["alerts"] });
   }
-  const active = Object.entries(f).filter(
-    ([k, v]) => !["city", "timezone"].includes(k) && v !== "" && v !== false,
-  );
-  const labels: Record<string, string> = {
-    allAbilities: "All abilities welcome",
-    stepFree: "Step-free",
-    daytime: "Daytime",
-    under10: "Under €10",
-    "10to30": "€10–30",
-    "30to60": "€30–60",
-    "60plus": "€60+",
-    ...AUDIENCE_LABEL,
-    ...Object.fromEntries(GENRES.map((g) => [g.id, g.label])),
-  };
   return (
-    <section className="my-5 space-y-3">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-        <div className="min-w-0">
-          <Label htmlFor="filter-date" className="mb-1 block text-xs">
-            Date
-          </Label>
-          <Input
-            id="filter-date"
-            type="date"
-            value={f.date}
-            onChange={(e) => change("date", e.target.value)}
-          />
-        </div>
-        <div>
-          <Label className="mb-1 block text-xs">Time of day</Label>
-          <Choice
-            label="Any time"
-            value={f.time}
-            onChange={(v) => change("time", v)}
-            options={["morning", "afternoon", "evening", "late"]}
-          />
-        </div>
-        <div>
-          <Label className="mb-1 block text-xs">Price</Label>
-          <Choice
-            label="Any price"
-            value={f.price}
-            onChange={(v) => change("price", v)}
-            options={[
-              { value: "free", label: "Free" },
-              { value: "under10", label: "Under €10" },
-              { value: "10to30", label: "€10–30" },
-              { value: "30to60", label: "€30–60" },
-              { value: "60plus", label: "€60+" },
-            ]}
-          />
-        </div>
-        <div>
-          <Label className="mb-1 block text-xs">Audience</Label>
-          <Choice
-            label="Any audience"
-            value={f.audience}
-            onChange={(v) => change("audience", v)}
-            options={Object.entries(AUDIENCE_LABEL).map(([value, label]) => ({ value, label }))}
-          />
-        </div>
-        <div>
-          <Label className="mb-1 block text-xs">Genre</Label>
-          <Choice
-            label="All genres"
-            value={f.genre}
-            onChange={(v) => onChange({ ...f, genre: v, activity: "" })}
-            options={GENRES.map((g) => ({ value: g.id, label: g.label }))}
-          />
-        </div>
-        <div>
-          <Label className="mb-1 block text-xs">Activity</Label>
-          <Choice
-            label="Any activity"
-            value={f.activity}
-            onChange={(v) => change("activity", v)}
-            options={
-              f.genre ? (GENRES.find((g) => g.id === f.genre)?.items.split("|") ?? []) : ACTIVITIES
-            }
-          />
-        </div>
-        <div>
-          <Label className="mb-1 flex items-center gap-1 text-xs">
-            Level {!plus && <Lock className="h-3 w-3" />}
-          </Label>
-          {plus ? (
-            <Choice
-              label="Any level"
-              value={f.level}
-              onChange={(v) => change("level", v)}
-              options={["beginner", "intermediate", "advanced"]}
-            />
-          ) : (
+    <section className="my-5">
+      <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-2" aria-label="Plan filters">
+          {CHIPS.map(({ key, label }) => (
             <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => setGate(true)}
+              key={key}
+              variant={f[key] ? "secondary" : "outline"}
+              className={`shrink-0 rounded-full ${f[key] ? "bg-sunflower border-sunflower" : ""}`}
+              onClick={() => {
+                setDraft(f[key]);
+                setSearch("");
+                setSheet(key);
+              }}
             >
-              <Lock />
-              Plus levels
-            </Button>
-          )}
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        {(["allAbilities", "stepFree", "daytime"] as const).map((key) => (
-          <label key={key} className="flex items-center gap-2 text-xs">
-            <Switch
-              aria-label={labels[key]}
-              checked={f[key]}
-              onCheckedChange={(v) => change(key, v)}
-            />
-            {labels[key]}
-          </label>
-        ))}
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto"
-          onClick={() => {
-            setName([f.activity || "Plans", f.time, f.city].filter(Boolean).join(" · "));
-            setSave(true);
-          }}
-        >
-          <Bell />
-          Save alert
-        </Button>
-      </div>
-      {active.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {active.map(([k, v]) => (
-            <Button
-              key={k}
-              size="sm"
-              variant="secondary"
-              className="capitalize"
-              onClick={() => change(k as keyof ExploreFilters, typeof v === "boolean" ? false : "")}
-            >
-              {labels[String(v)] ?? labels[k] ?? String(v)}
-              <X className="h-3 w-3" />
+              {key === "level" && !plus && <Lock className="h-3 w-3" />}
+              {label}
+              {f[key] && typeof f[key] !== "boolean" && (
+                <span className="max-w-32 truncate capitalize">· {labelFor(key)}</span>
+              )}
+              {typeof f[key] === "boolean" && f[key] && <Check />}
             </Button>
           ))}
         </div>
-      )}
-      <Dialog open={gate} onOpenChange={setGate}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Find your level</DialogTitle>
-          </DialogHeader>
-          <PlusCard />
-        </DialogContent>
-      </Dialog>
-      <Dialog open={save} onOpenChange={setSave}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Save a plan alert</DialogTitle>
-          </DialogHeader>
-          <Label htmlFor="alert-name">Alert name</Label>
-          <Input id="alert-name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Button onClick={saveAlert} disabled={!name.trim()}>
-            <Bell />
-            Save alert
-          </Button>
-        </DialogContent>
-      </Dialog>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Save alert"
+          title="Save alert"
+          className="shrink-0 self-start"
+          onClick={() =>
+            auth(() => {
+              setName([f.activity || "Plans", f.time, f.city].filter(Boolean).join(" · "));
+              setSheet("save");
+            }, "save an alert")
+          }
+        >
+          <Bell />
+        </Button>
+      </div>
+      <Drawer
+        open={sheet !== null}
+        onOpenChange={(v) => {
+          if (!v) setSheet(null);
+        }}
+        shouldScaleBackground={false}
+      >
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-xl p-5">
+            <DrawerHeader>
+              <DrawerTitle>
+                {sheet === "save" ? "Save a plan alert" : CHIPS.find((c) => c.key === sheet)?.label}
+              </DrawerTitle>
+            </DrawerHeader>
+            {sheet === "save" ? (
+              <div className="space-y-4">
+                <Input
+                  aria-label="Alert name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  {plus ? "Unlimited alerts with Plus" : "Free includes 2 saved alerts"}
+                </p>
+                <Button className="w-full" onClick={saveAlert} disabled={!name.trim()}>
+                  <Bell />
+                  Save alert
+                </Button>
+              </div>
+            ) : sheet === "level" && !plus ? (
+              <PlusCard />
+            ) : (
+              <>
+                <div className="max-h-[48dvh] overflow-y-auto">
+                  {sheet === "date" ? (
+                    <Input
+                      aria-label="Filter date"
+                      type="date"
+                      className="h-12"
+                      value={String(draft)}
+                      onChange={(e) => setDraft(e.target.value)}
+                    />
+                  ) : (
+                    <>
+                      {sheet === "activity" && (
+                        <Input
+                          aria-label="Search activities"
+                          placeholder="Search activities"
+                          className="mb-3 h-12"
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                        />
+                      )}
+                      <div className="space-y-1">
+                        {options.map((o) => (
+                          <Button
+                            key={o.value}
+                            variant={String(draft) === o.value ? "secondary" : "ghost"}
+                            className="h-12 w-full justify-between capitalize"
+                            onClick={() =>
+                              setDraft(
+                                ["allAbilities", "stepFree", "daytime"].includes(sheet ?? "")
+                                  ? o.value === "true"
+                                  : o.value,
+                              )
+                            }
+                          >
+                            {o.label}
+                            {String(draft) === o.value && <Check />}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDraft(typeof draft === "boolean" ? false : "")}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    variant="accent"
+                    onClick={() => {
+                      if (!sheet) return;
+                      onChange({
+                        ...f,
+                        [sheet]: draft,
+                        ...(sheet === "genre" ? { activity: "" } : {}),
+                      });
+                      setSheet(null);
+                    }}
+                  >
+                    Apply
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </section>
   );
 }

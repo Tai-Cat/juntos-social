@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +10,7 @@ import { AddTripButton } from "@/components/tagalong/TripForm";
 import { PlanCard } from "@/components/tagalong/PlanCard";
 import { PLAN_SELECT, type PlanWithHost } from "@/lib/tagalong";
 import { Empty } from "@/components/tagalong/bits";
-export const Route = createFileRoute("/_authenticated/travel")({
+export const Route = createFileRoute("/travel")({
   head: () => ({
     meta: [
       { title: "Travel together — Tagalong" },
@@ -29,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/travel")({
 });
 function Travel() {
   const { user } = useMyProfile();
+  const [citySearch,setCitySearch]=useState("");
   const trips = useQuery({
     queryKey: ["trips", "mine", user?.id],
     enabled: !!user,
@@ -71,6 +74,7 @@ function Travel() {
   return (
     <AppShell>
       <h1 className="text-4xl">Somewhere new, together</h1>
+      <Input className="mt-5 h-12 rounded-full bg-card" aria-label="Search travel cities" placeholder="Search a city" value={citySearch} onChange={e=>setCitySearch(e.target.value)}/>
       <div className="my-5 max-w-xs">
         <AddTripButton />
       </div>
@@ -86,13 +90,13 @@ function Travel() {
       )}
       <h2 className="mb-4 mt-8 text-2xl">Travellers on the move</h2>
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {examples.data?.map((t) => (
+        {examples.data?.filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())).map((t) => (
           <TripCard key={t.id} trip={t} />
         ))}
       </div>
       <h2 className="mb-4 mt-8 text-2xl">Plans worth the trip</h2>
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {plans.data?.map((p) => (
+        {plans.data?.filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())).map((p) => (
           <PlanCard key={p.id} plan={p} />
         ))}
       </div>

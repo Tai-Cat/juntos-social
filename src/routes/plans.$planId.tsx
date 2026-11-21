@@ -1,3 +1,7 @@
+import { PlanInvites } from "@/components/tagalong/PlanInvites";
+import { PhotoCarousel } from "@/components/tagalong/PhotoCarousel";
+import { Share2, Bookmark } from "lucide-react";
+import { useAuthAction } from "@/components/tagalong/AuthSheet";
 import { SimilarPeople } from "@/components/tagalong/SimilarPeople";
 import { imageFor } from "@/lib/catalog";
 import { useEffect, useState } from "react";
@@ -36,7 +40,7 @@ import {
   type PlanWithHost,
 } from "@/lib/tagalong";
 
-export const Route = createFileRoute("/_authenticated/plans/$planId")({
+export const Route = createFileRoute("/plans/$planId")({
   head: () => ({
     meta: [
       { title: "Plan — Tagalong" },
@@ -71,6 +75,7 @@ function fmtCountdown(ms: number) {
 
 function PlanDetail() {
   const { planId } = Route.useParams();
+  const auth = useAuthAction();
   const { user, profile } = useMyProfile();
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -106,8 +111,11 @@ function PlanDetail() {
   });
 
   const plan = planQ.data;
+  const hostQ = useQuery({queryKey:["public-host",plan?.host_id],enabled:!!plan?.host_id,queryFn:async()=>{if(!plan?.host_id)return null;return (await supabase.rpc("public_host",{_id:plan.host_id})).data?.[0]??null;}});
   const isHost = !!plan && plan.host_id === user?.id;
-  const approved = myReq.data?.status === "approved";
+  const approved =
+    myReq.data?.status === "approved" ||
+    (!!user && !!plan?.is_private && plan.private_participants.includes(user.id));
   const isMember = isHost || approved;
   const start = plan ? new Date(plan.starts_at).getTime() : 0;
   const unlockAt = start - 2 * 3600 * 1000;
@@ -160,7 +168,7 @@ function PlanDetail() {
         <Empty>Plan not found.</Empty>
       </AppShell>
     );
-  const host = hostOf(plan);
+  const host = hostQ.data ? {name:hostQ.data.name,verified:hostQ.data.verified,reliability:hostQ.data.reliability_score} : hostOf(plan);
   const restricted = ["women_only", "men_only", "nonbinary_only"].includes(plan.audience);
 
   const refresh = () => {
@@ -169,12 +177,11 @@ function PlanDetail() {
     qc.invalidateQueries({ queryKey: ["plans"] });
   };
 
-  async function join() {
-    if (!user) return;
+  async function join(accountId: string) {
     setBusy(true);
     const { data, error } = await supabase
       .from("join_requests")
-      .insert({ plan_id: planId, user_id: user.id, bring_buddy: buddy })
+      .insert({ plan_id: planId, user_id: accountId, bring_buddy: buddy })
       .select("status")
       .single();
     setBusy(false);
@@ -242,11 +249,49 @@ function PlanDetail() {
         <SafetyMenu userId={plan.host_id} planId={plan.id} label="this plan" />
       </div>
 
-      <img
-        src={plan.image_url || imageFor(plan.activity, plan.genre)}
-        alt={plan.activity}
-        className="mt-5 aspect-[16/9] max-h-96 w-full rounded-lg object-cover"
-      />
+      <div className="mt-5 overflow-hidden rounded-lg">
+        <PhotoCarousel
+          photos={
+            plan.photos.length
+              ? plan.photos
+              : [plan.image_url || imageFor(plan.activity, plan.genre)]
+          }
+          label={plan.activity}
+        />
+      </div>
+      <div className="mt-4 flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() =>
+            auth(async (account) => {
+              const { error } = await supabase
+                .from("saved_plans")
+                .upsert({ user_id: account.id, plan_id: plan.id });
+              if (error) toast.error(error.message);
+              else toast.success("Plan saved");
+            }, "save this plan")
+          }
+        >
+          <Bookmark />
+          Save
+        </Button>
+        <Button
+          variant="outline"
+          onClick={async () => {
+            if (navigator.share) {
+              try {
+                await navigator.share({ title: plan.title, url: window.location.href });
+              } catch {}
+            } else {
+              await navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied");
+            }
+          }}
+        >
+          <Share2 />
+          Share
+        </Button>
+      </div>
       <div className="mt-6 flex items-center gap-2">
         <span className="eyebrow">
           {plan.category}
@@ -257,6 +302,39 @@ function PlanDetail() {
       <h1 className="mt-2 text-3xl leading-tight">{plan.title}</h1>
       {plan.description && <p className="mt-3 text-muted-foreground">{plan.description}</p>}
 
+      <section className="mt-6 border-y border-border py-5">
+        <h2 className="text-2xl">What to expect</h2>
+        <p className="mt-2 text-sm">
+          {plan.description || `A relaxed ${plan.activity} session in good company.`}
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="font-bold text-sm">What to bring</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {plan.what_to_bring || "Ask the host before the plan."}
+            </p>
+          </div>
+          <div>
+            <p className="font-bold text-sm">Duration and level</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {plan.duration_minutes} minutes ·{" "}
+              {plan.required_level === "any" ? "All abilities welcome" : plan.required_level}
+            </p>
+          </div>
+          <div>
+            <p className="font-bold text-sm">Accessibility</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {plan.step_free ? "Step-free access" : "Contact the host about access needs"}
+            </p>
+          </div>
+          <div>
+            <p className="font-bold text-sm">Host intro</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {plan.host_intro || `${host.name} is bringing people together for ${plan.activity}.`}
+            </p>
+          </div>
+        </div>
+      </section>
       <dl className="mt-6 divide-y divide-border border-y border-border text-sm">
         <Row icon={<Clock className="h-4 w-4" />}>
           {formatWhen(plan.starts_at)}
@@ -290,6 +368,7 @@ function PlanDetail() {
         </Card>
       )}
 
+      <PlanInvites planId={plan.id} member={isMember} />
       {/* Venue */}
       {isMember && (
         <Card className="mt-6">
@@ -360,7 +439,11 @@ function PlanDetail() {
                 size="lg"
                 variant="accent"
                 className="w-full"
-                onClick={join}
+                onClick={() =>
+                  auth((account) => {
+                    void join(account.id);
+                  }, "join this plan")
+                }
                 disabled={
                   busy ||
                   (plan.audience === "lgbtq_friendly" && !optIn) ||

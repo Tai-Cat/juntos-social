@@ -56,7 +56,8 @@ export const GENRES = [
     items: "meditation|sauna and cold plunge|breathwork|wellness walks",
   },
 ] as const;
-export const ACTIVITIES = GENRES.flatMap((g) => g.items.split("|"));
+export const EXTRA_ACTIVITIES = ["sourdough baking", "ceramics", "rock pools", "bird watching", "board game cafes", "chess in the park", "language exchange", "run clubs", "thrifting", "urban sketching", "open mic nights", "pub quiz", "book club", "silent disco", "wild swimming", "foraging", "film photography", "printmaking", "linocut", "embroidery", "flower arranging", "candle making", "fermentation", "pasta making", "dumpling making", "coffee cupping", "kombucha brewing", "roller skating", "pétanque", "disc golf", "orienteering", "geocaching", "trail running", "bicycle repair", "repair cafes", "community gardening", "beach cleanups", "improv", "storytelling", "swing dancing", "salsa", "astronomy", "puzzle swaps", "zine making"];
+export const ACTIVITIES = [...new Set([...GENRES.flatMap((g) => g.items.split("|")), ...EXTRA_ACTIVITIES])].sort((a,b) => a.localeCompare(b));
 export const LEVELS = ["any", "beginner", "intermediate", "advanced"] as const;
 export const PLUS_MONTHLY_EUR = 5;
 export function canUseLevel(plus: boolean, level: string) {

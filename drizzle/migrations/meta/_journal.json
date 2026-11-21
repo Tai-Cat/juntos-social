@@ -29,6 +29,62 @@
       "when": 1795261350688,
       "tag": "0003_tagalong_v2_interests_alerts_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795267331682,
+      "tag": "0004_tagalong_v3_public_browsing",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795267422665,
+      "tag": "0005_tagalong_v3_activity_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795267506698,
+      "tag": "0006_tagalong_v3_plan_details",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795267557969,
+      "tag": "0007_tagalong_v3_social",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795267710951,
+      "tag": "0008_tagalong_v3_private_proposals",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795267822612,
+      "tag": "0009_tagalong_v3_private_membership",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795267896022,
+      "tag": "0010_tagalong_v3_shareable_invites",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795267957999,
+      "tag": "0011_tagalong_v3_example_social",
+      "breakpoints": true
     }
   ]
 }

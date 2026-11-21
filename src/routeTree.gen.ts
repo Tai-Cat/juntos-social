@@ -12,17 +12,20 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as FeedRouteImport } from './routes/feed'
+import { Route as TravelRouteImport } from './routes/travel'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPostRouteImport } from './routes/_authenticated/post'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedTravelRouteImport } from './routes/_authenticated/travel'
 import { Route as AuthenticatedVerifyRouteImport } from './routes/_authenticated/verify'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as FriendsInviteRouteImport } from './routes/friends.invite'
+import { Route as InvitesTokenRouteImport } from './routes/invites.$token'
+import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
+import { Route as SharedTokenRouteImport } from './routes/shared.$token'
+import { Route as TripsTripIdRouteImport } from './routes/trips.$tripId'
 import { Route as AuthenticatedChatUserIdRouteImport } from './routes/_authenticated/chat.$userId'
-import { Route as AuthenticatedPlansPlanIdRouteImport } from './routes/_authenticated/plans.$planId'
-import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -38,10 +41,15 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
+const FeedRoute = FeedRouteImport.update({
   id: '/feed',
   path: '/feed',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TravelRoute = TravelRouteImport.update({
+  id: '/travel',
+  path: '/travel',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
   id: '/inbox',
@@ -63,11 +71,6 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTravelRoute = AuthenticatedTravelRouteImport.update({
-  id: '/travel',
-  path: '/travel',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedVerifyRoute = AuthenticatedVerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
@@ -78,70 +81,92 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const FriendsInviteRoute = FriendsInviteRouteImport.update({
+  id: '/friends/invite',
+  path: '/friends/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvitesTokenRoute = InvitesTokenRouteImport.update({
+  id: '/invites/$token',
+  path: '/invites/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansPlanIdRoute = PlansPlanIdRouteImport.update({
+  id: '/plans/$planId',
+  path: '/plans/$planId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SharedTokenRoute = SharedTokenRouteImport.update({
+  id: '/shared/$token',
+  path: '/shared/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TripsTripIdRoute = TripsTripIdRouteImport.update({
+  id: '/trips/$tripId',
+  path: '/trips/$tripId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedChatUserIdRoute = AuthenticatedChatUserIdRouteImport.update({
   id: '/chat/$userId',
   path: '/chat/$userId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedPlansPlanIdRoute =
-  AuthenticatedPlansPlanIdRouteImport.update({
-    id: '/plans/$planId',
-    path: '/plans/$planId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedTripsTripIdRoute =
-  AuthenticatedTripsTripIdRouteImport.update({
-    id: '/trips/$tripId',
-    path: '/trips/$tripId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
-  '/feed': typeof AuthenticatedFeedRoute
+  '/feed': typeof FeedRoute
+  '/travel': typeof TravelRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/post': typeof AuthenticatedPostRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/travel': typeof AuthenticatedTravelRoute
   '/verify': typeof AuthenticatedVerifyRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/friends/invite': typeof FriendsInviteRoute
+  '/invites/$token': typeof InvitesTokenRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
+  '/shared/$token': typeof SharedTokenRoute
+  '/trips/$tripId': typeof TripsTripIdRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
-  '/plans/$planId': typeof AuthenticatedPlansPlanIdRoute
-  '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
-  '/feed': typeof AuthenticatedFeedRoute
+  '/feed': typeof FeedRoute
+  '/travel': typeof TravelRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/post': typeof AuthenticatedPostRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/travel': typeof AuthenticatedTravelRoute
   '/verify': typeof AuthenticatedVerifyRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/friends/invite': typeof FriendsInviteRoute
+  '/invites/$token': typeof InvitesTokenRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
+  '/shared/$token': typeof SharedTokenRoute
+  '/trips/$tripId': typeof TripsTripIdRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
-  '/plans/$planId': typeof AuthenticatedPlansPlanIdRoute
-  '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
-  '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/feed': typeof FeedRoute
+  '/travel': typeof TravelRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/post': typeof AuthenticatedPostRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/travel': typeof AuthenticatedTravelRoute
   '/_authenticated/verify': typeof AuthenticatedVerifyRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/friends/invite': typeof FriendsInviteRoute
+  '/invites/$token': typeof InvitesTokenRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
+  '/shared/$token': typeof SharedTokenRoute
+  '/trips/$tripId': typeof TripsTripIdRoute
   '/_authenticated/chat/$userId': typeof AuthenticatedChatUserIdRoute
-  '/_authenticated/plans/$planId': typeof AuthenticatedPlansPlanIdRoute
-  '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -149,53 +174,69 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/feed'
+    | '/travel'
     | '/inbox'
     | '/onboarding'
     | '/post'
     | '/profile'
-    | '/travel'
     | '/verify'
     | '/auth/callback'
-    | '/chat/$userId'
+    | '/friends/invite'
+    | '/invites/$token'
     | '/plans/$planId'
+    | '/shared/$token'
     | '/trips/$tripId'
+    | '/chat/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/feed'
+    | '/travel'
     | '/inbox'
     | '/onboarding'
     | '/post'
     | '/profile'
-    | '/travel'
     | '/verify'
     | '/auth/callback'
-    | '/chat/$userId'
+    | '/friends/invite'
+    | '/invites/$token'
     | '/plans/$planId'
+    | '/shared/$token'
     | '/trips/$tripId'
+    | '/chat/$userId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/feed'
+    | '/feed'
+    | '/travel'
     | '/_authenticated/inbox'
     | '/_authenticated/onboarding'
     | '/_authenticated/post'
     | '/_authenticated/profile'
-    | '/_authenticated/travel'
     | '/_authenticated/verify'
     | '/auth/callback'
+    | '/friends/invite'
+    | '/invites/$token'
+    | '/plans/$planId'
+    | '/shared/$token'
+    | '/trips/$tripId'
     | '/_authenticated/chat/$userId'
-    | '/_authenticated/plans/$planId'
-    | '/_authenticated/trips/$tripId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  FeedRoute: typeof FeedRoute
+  TravelRoute: typeof TravelRoute
+  FriendsInviteRoute: typeof FriendsInviteRoute
+  InvitesTokenRoute: typeof InvitesTokenRoute
+  PlansPlanIdRoute: typeof PlansPlanIdRoute
+  SharedTokenRoute: typeof SharedTokenRoute
+  TripsTripIdRoute: typeof TripsTripIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -221,12 +262,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/feed': {
-      id: '/_authenticated/feed'
+    '/feed': {
+      id: '/feed'
       path: '/feed'
       fullPath: '/feed'
-      preLoaderRoute: typeof AuthenticatedFeedRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/travel': {
+      id: '/travel'
+      path: '/travel'
+      fullPath: '/travel'
+      preLoaderRoute: typeof TravelRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/inbox': {
       id: '/_authenticated/inbox'
@@ -256,13 +304,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/travel': {
-      id: '/_authenticated/travel'
-      path: '/travel'
-      fullPath: '/travel'
-      preLoaderRoute: typeof AuthenticatedTravelRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/verify': {
       id: '/_authenticated/verify'
       path: '/verify'
@@ -277,6 +318,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/friends/invite': {
+      id: '/friends/invite'
+      path: '/friends/invite'
+      fullPath: '/friends/invite'
+      preLoaderRoute: typeof FriendsInviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invites/$token': {
+      id: '/invites/$token'
+      path: '/invites/$token'
+      fullPath: '/invites/$token'
+      preLoaderRoute: typeof InvitesTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans/$planId': {
+      id: '/plans/$planId'
+      path: '/plans/$planId'
+      fullPath: '/plans/$planId'
+      preLoaderRoute: typeof PlansPlanIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shared/$token': {
+      id: '/shared/$token'
+      path: '/shared/$token'
+      fullPath: '/shared/$token'
+      preLoaderRoute: typeof SharedTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trips/$tripId': {
+      id: '/trips/$tripId'
+      path: '/trips/$tripId'
+      fullPath: '/trips/$tripId'
+      preLoaderRoute: typeof TripsTripIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/chat/$userId': {
       id: '/_authenticated/chat/$userId'
       path: '/chat/$userId'
@@ -284,47 +360,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatUserIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/plans/$planId': {
-      id: '/_authenticated/plans/$planId'
-      path: '/plans/$planId'
-      fullPath: '/plans/$planId'
-      preLoaderRoute: typeof AuthenticatedPlansPlanIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/trips/$tripId': {
-      id: '/_authenticated/trips/$tripId'
-      path: '/trips/$tripId'
-      fullPath: '/trips/$tripId'
-      preLoaderRoute: typeof AuthenticatedTripsTripIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPostRoute: typeof AuthenticatedPostRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedTravelRoute: typeof AuthenticatedTravelRoute
   AuthenticatedVerifyRoute: typeof AuthenticatedVerifyRoute
   AuthenticatedChatUserIdRoute: typeof AuthenticatedChatUserIdRoute
-  AuthenticatedPlansPlanIdRoute: typeof AuthenticatedPlansPlanIdRoute
-  AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPostRoute: AuthenticatedPostRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedTravelRoute: AuthenticatedTravelRoute,
   AuthenticatedVerifyRoute: AuthenticatedVerifyRoute,
   AuthenticatedChatUserIdRoute: AuthenticatedChatUserIdRoute,
-  AuthenticatedPlansPlanIdRoute: AuthenticatedPlansPlanIdRoute,
-  AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -344,6 +398,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  FeedRoute: FeedRoute,
+  TravelRoute: TravelRoute,
+  FriendsInviteRoute: FriendsInviteRoute,
+  InvitesTokenRoute: InvitesTokenRoute,
+  PlansPlanIdRoute: PlansPlanIdRoute,
+  SharedTokenRoute: SharedTokenRoute,
+  TripsTripIdRoute: TripsTripIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

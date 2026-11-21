@@ -8,7 +8,7 @@ export type JoinRequest = Database["public"]["Tables"]["join_requests"]["Row"];
 export type HostInfo = Pick<Profile, "id" | "name" | "verified" | "reliability_score"> | null;
 export type PlanWithHost = Plan & { host: HostInfo };
 
-export const PLAN_SELECT = "*, host:profiles!plans_host_id_fkey(id, name, verified, reliability_score)";
+export const PLAN_SELECT = "*";
 
 export const AUDIENCE_LABEL: Record<string, string> = {
   everyone: "Everyone",

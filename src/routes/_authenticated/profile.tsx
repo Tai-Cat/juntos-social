@@ -1,3 +1,8 @@
+import { FriendsPanel } from "@/components/tagalong/Friends";
+import { Membership } from "@/components/tagalong/Membership";
+import { ProfileShare } from "@/components/tagalong/ProfileShare";
+import { useState } from "react";
+import { useDoodles } from "@/hooks/use-doodles";
 import { usePlus } from "@/hooks/use-plus";
 import { Switch } from "@/components/ui/switch";
 import { Choice } from "@/components/tagalong/Choice";
@@ -33,6 +38,17 @@ function ProfilePage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { plus, setPlus } = usePlus();
+  const doodles = useDoodles();
+  const [tab, setTab] = useState("profile");
+  const settings = useQuery({
+    queryKey: ["settings", user?.id],
+    enabled: !!user,
+    queryFn: async () =>
+      user
+        ? (await supabase.from("user_settings").select("*").eq("user_id", user.id).maybeSingle())
+            .data
+        : null,
+  });
   const levels = useQuery({
     queryKey: ["interest-levels", user?.id],
     enabled: !!user,
@@ -50,7 +66,10 @@ function ProfilePage() {
     if (!user) return;
     const { error } = await supabase
       .from("interest_levels")
-      .upsert({ user_id: user.id, interest, level: level || "any" }, { onConflict: "user_id,interest" });
+      .upsert(
+        { user_id: user.id, interest, level: level || "any" },
+        { onConflict: "user_id,interest" },
+      );
     if (error) {
       toast.error(error.message);
       return;
@@ -138,108 +157,152 @@ function ProfilePage() {
         <span>{profile.reliability_score}% reliable</span>
         <span className="text-muted-foreground">{profile.home_city}</span>
       </div>
-      <section className="mt-7">
-        <h2 className="mb-3 text-2xl">Your interests and levels</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {profile.interests.map((i) => (
-            <div
-              key={i}
-              className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-3"
-            >
-              <img
-                src={imageFor(i)}
-                alt=""
-                className="h-14 w-14 shrink-0 rounded-md object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="mb-1 truncate text-sm font-bold capitalize">{i}</p>
-                <Choice
-                  label="Any level"
-                  value={levels.data?.find((l) => l.interest === i)?.level ?? "any"}
-                  onChange={(v) => setLevel(i, v)}
-                  options={["any", "beginner", "intermediate", "advanced"]}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      {profile.learning_interests.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-2xl">I want to learn</h2>
-          <p className="mt-2 text-sm">{profile.learning_interests.join(" · ")}</p>
-        </section>
-      )}
-      <section className="genre-ideas mt-7 rounded-lg border border-border p-5">
-        <h2 className="text-2xl">Settings</h2>
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div className="min-w-0">
-            <p className="font-bold">Tagalong Plus · {PLUS_MONTHLY_EUR} EUR a month</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Simulate Plus (demo) · no payment taken
-            </p>
-          </div>
-          <Switch aria-label="Simulate Plus" checked={plus} onCheckedChange={setPlus} />
-        </div>
-      </section>
-
-      <div className="mt-10 space-y-10">
-        <Section title="Hosting">
-          {(hosting.data ?? []).length === 0 ? (
-            <Empty>You haven't posted a plan yet.</Empty>
-          ) : (
-            <ul className="divide-y divide-border border-y border-border">
-              {(hosting.data ?? []).map((p) => (
-                <li key={p.id}>
-                  <Link
-                    to="/plans/$planId"
-                    params={{ planId: p.id }}
-                    className="flex justify-between py-3 text-sm"
-                  >
-                    <span>{p.title}</span>
-                    <span className="text-muted-foreground">{formatWhen(p.starts_at)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
-        <Section title="Joining">
-          {(joined.data ?? []).length === 0 ? (
-            <Empty>No plans joined yet.</Empty>
-          ) : (
-            <ul className="divide-y divide-border border-y border-border">
-              {(joined.data ?? []).map((j) => {
-                const p = j.plans as { id: string; title: string; starts_at: string } | null;
-                if (!p) return null;
-                return (
-                  <li key={p.id}>
-                    <Link
-                      to="/plans/$planId"
-                      params={{ planId: p.id }}
-                      className="flex justify-between py-3 text-sm"
-                    >
-                      <span>{p.title}</span>
-                      <span className="text-muted-foreground">{statusLabel[j.status]}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Section>
-        <Section title="Trips">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {(trips.data ?? []).map((t) => (
-              <TripCard key={t.id} trip={t} />
-            ))}
-            <AddTripButton />
-          </div>
-        </Section>
-        <Button variant="ghost" className="w-full" onClick={signOut}>
-          Sign out
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Button
+          variant={tab === "profile" ? "secondary" : "outline"}
+          onClick={() => setTab("profile")}
+        >
+          Profile
         </Button>
+        <Button
+          variant={tab === "friends" ? "secondary" : "outline"}
+          onClick={() => setTab("friends")}
+        >
+          Friends
+        </Button>
+        <ProfileShare />
       </div>
+      {tab === "friends" ? (
+        <FriendsPanel />
+      ) : (
+        <>
+          <section className="mt-7">
+            <h2 className="mb-3 text-2xl">Your interests and levels</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {profile.interests.map((i) => (
+                <div
+                  key={i}
+                  className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-3"
+                >
+                  <img
+                    src={imageFor(i)}
+                    alt=""
+                    className="h-14 w-14 shrink-0 rounded-md object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="mb-1 truncate text-sm font-bold capitalize">{i}</p>
+                    <Choice
+                      label="Any level"
+                      value={levels.data?.find((l) => l.interest === i)?.level ?? "any"}
+                      onChange={(v) => setLevel(i, v)}
+                      options={["any", "beginner", "intermediate", "advanced"]}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+          {profile.learning_interests.length > 0 && (
+            <section className="mt-6">
+              <h2 className="text-2xl">I want to learn</h2>
+              <p className="mt-2 text-sm">{profile.learning_interests.join(" · ")}</p>
+            </section>
+          )}
+          <section className="genre-ideas mt-7 rounded-lg border border-border p-5">
+            <h2 className="text-2xl">Settings</h2>
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <span className="font-bold">Doodle background</span>
+              <Switch
+                aria-label="Doodle background"
+                checked={doodles.enabled}
+                onCheckedChange={doodles.toggle}
+              />
+            </div>
+            <div className="mt-4">
+              <p className="mb-2 font-bold">Hang-again reminders</p>
+              <Choice
+                label="Reminder frequency"
+                value={settings.data?.hang_frequency ?? "monthly"}
+                options={[
+                  { value: "never", label: "Never" },
+                  { value: "monthly", label: "Monthly" },
+                  { value: "every_2_months", label: "Every 2 months" },
+                ]}
+                onChange={async (v) => {
+                  if (!user) return;
+                  const { error } = await supabase
+                    .from("user_settings")
+                    .upsert({ user_id: user.id, hang_frequency: v });
+                  if (error) toast.error(error.message);
+                  else {
+                    qc.invalidateQueries({ queryKey: ["settings"] });
+                    qc.invalidateQueries({ queryKey: ["hang-candidates"] });
+                  }
+                }}
+              />
+            </div>
+          </section>
+
+          <Membership />
+          <div className="mt-10 space-y-10">
+            <Section title="Hosting">
+              {(hosting.data ?? []).length === 0 ? (
+                <Empty>You haven't posted a plan yet.</Empty>
+              ) : (
+                <ul className="divide-y divide-border border-y border-border">
+                  {(hosting.data ?? []).map((p) => (
+                    <li key={p.id}>
+                      <Link
+                        to="/plans/$planId"
+                        params={{ planId: p.id }}
+                        className="flex justify-between py-3 text-sm"
+                      >
+                        <span>{p.title}</span>
+                        <span className="text-muted-foreground">{formatWhen(p.starts_at)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+            <Section title="Joining">
+              {(joined.data ?? []).length === 0 ? (
+                <Empty>No plans joined yet.</Empty>
+              ) : (
+                <ul className="divide-y divide-border border-y border-border">
+                  {(joined.data ?? []).map((j) => {
+                    const p = j.plans as { id: string; title: string; starts_at: string } | null;
+                    if (!p) return null;
+                    return (
+                      <li key={p.id}>
+                        <Link
+                          to="/plans/$planId"
+                          params={{ planId: p.id }}
+                          className="flex justify-between py-3 text-sm"
+                        >
+                          <span>{p.title}</span>
+                          <span className="text-muted-foreground">{statusLabel[j.status]}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Section>
+            <Section title="Trips">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {(trips.data ?? []).map((t) => (
+                  <TripCard key={t.id} trip={t} />
+                ))}
+                <AddTripButton />
+              </div>
+            </Section>
+            <Button variant="ghost" className="w-full" onClick={signOut}>
+              Sign out
+            </Button>
+          </div>
+        </>
+      )}
     </AppShell>
   );
 }

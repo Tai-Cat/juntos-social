@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
+@source "../src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -53,11 +54,11 @@
 /* Sand #EFE9DF, card #F8F4EC, charcoal #2A2824, muted #6E675C, hairline #D8CFC0, tangerine #E2642A */
 :root {
   --radius: 16px;
-  --background: oklch(0.935 0.014 80);
+  --background: #fff8ee;
   --foreground: oklch(0.27 0.006 75);
-  --card: oklch(0.965 0.011 85);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.27 0.006 75);
-  --popover: oklch(0.965 0.011 85);
+  --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.27 0.006 75);
   --primary: oklch(0.27 0.006 75);
   --primary-foreground: oklch(0.965 0.011 85);
@@ -90,40 +91,6 @@
   --sidebar-ring: oklch(0.64 0.17 42);
 }
 
-/* Deep warm charcoal #1C1A17, cards #26231F */
-.dark {
-  --background: oklch(0.21 0.006 75);
-  --foreground: oklch(0.93 0.014 80);
-  --card: oklch(0.25 0.007 75);
-  --card-foreground: oklch(0.93 0.014 80);
-  --popover: oklch(0.25 0.007 75);
-  --popover-foreground: oklch(0.93 0.014 80);
-  --primary: oklch(0.93 0.014 80);
-  --primary-foreground: oklch(0.21 0.006 75);
-  --secondary: oklch(0.3 0.008 75);
-  --secondary-foreground: oklch(0.93 0.014 80);
-  --muted: oklch(0.3 0.008 75);
-  --muted-foreground: oklch(0.7 0.017 80);
-  --accent: oklch(0.3 0.008 75);
-  --accent-foreground: oklch(0.93 0.014 80);
-  --tangerine: oklch(0.66 0.17 42);
-  --tangerine-foreground: oklch(0.985 0.005 85);
-  --tangerine-soft: oklch(0.66 0.17 42 / 18%);
-  --destructive: oklch(0.62 0.18 30);
-  --destructive-foreground: oklch(0.985 0.005 85);
-  --border: oklch(0.34 0.01 75);
-  --input: oklch(0.34 0.01 75);
-  --ring: oklch(0.66 0.17 42);
-  --sidebar: oklch(0.25 0.007 75);
-  --sidebar-foreground: oklch(0.93 0.014 80);
-  --sidebar-primary: oklch(0.93 0.014 80);
-  --sidebar-primary-foreground: oklch(0.21 0.006 75);
-  --sidebar-accent: oklch(0.3 0.008 75);
-  --sidebar-accent-foreground: oklch(0.93 0.014 80);
-  --sidebar-border: oklch(0.34 0.01 75);
-  --sidebar-ring: oklch(0.66 0.17 42);
-}
-
 @layer base {
   * {
     border-color: var(--color-border);
@@ -131,12 +98,9 @@
   html {
     color-scheme: light;
   }
-  .dark {
-    color-scheme: dark;
-  }
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
@@ -176,16 +140,6 @@
   --social-tint: oklch(0.94 0.045 28);
   --wellness-tint: oklch(0.95 0.04 220);
   --card-shadow: 0 4px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
-}
-.dark {
-  --active-tint: oklch(0.29 0.04 145);
-  --food-tint: oklch(0.29 0.04 40);
-  --arts-tint: oklch(0.29 0.04 305);
-  --tech-tint: oklch(0.29 0.04 235);
-  --ideas-tint: oklch(0.31 0.05 95);
-  --outdoors-tint: oklch(0.29 0.035 160);
-  --social-tint: oklch(0.29 0.045 28);
-  --wellness-tint: oklch(0.29 0.04 220);
 }
 @theme inline {
   --color-tomato: var(--tomato);
@@ -278,4 +232,39 @@
   .plan-card:hover {
     transform: none;
   }
+}
+
+:root {
+  --doodle-image: url("/activity-doodles.svg");
+  --overlay: oklch(0.27 0.006 75 / 35%);
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: var(--doodle-image);
+  background-size: 640px 640px;
+  opacity: 0.07;
+  pointer-events: none;
+  z-index: -1;
+}
+body {
+  isolation: isolate;
+}
+html[data-doodles="off"] body::before {
+  display: none;
+}
+.plan-card {
+  background: var(--card);
+  border-top: 4px solid var(--category-accent);
+}
+@theme inline {
+  --color-overlay: var(--overlay);
+}
+
+.map-pin {
+  border: 3px solid var(--card);
+  border-radius: 50%;
+  background: var(--category-accent);
+  box-shadow: var(--card-shadow);
 }

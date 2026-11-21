@@ -1,3 +1,4 @@
+import { safeReturn } from "@/lib/auth-return";
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -70,7 +71,7 @@ function Verify() {
         <div className="mt-10 space-y-4 text-center">
           <BadgeCheck className="mx-auto h-12 w-12 text-tangerine" strokeWidth={1.25} />
           <h2 className="text-2xl">You're verified</h2>
-          <Button size="lg" className="w-full" onClick={() => navigate({ to: "/feed" })}>
+          <Button size="lg" className="w-full" onClick={() => navigate({ to: safeReturn(sessionStorage.getItem("tagalong-return")) })}>
             Find a plan
           </Button>
         </div>
@@ -131,7 +132,7 @@ function Verify() {
             variant="ghost"
             className="w-full"
             onClick={async () => {
-              if (await finish(false)) navigate({ to: "/feed" });
+              if (await finish(false)) navigate({ to: safeReturn(sessionStorage.getItem("tagalong-return")) });
             }}
           >
             Skip for now

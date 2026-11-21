@@ -1,5 +1,6 @@
+import { CITY_CENTERS } from "@/lib/spatial";
 import { usePlus } from "@/hooks/use-plus";
-import { ACTIVITIES, genreOf, imageFor, cityName } from "@/lib/catalog";
+import { ACTIVITIES, genreOf, imageFor, cityName, cityImage, GENRES } from "@/lib/catalog";
 import { Choice } from "@/components/tagalong/Choice";
 import { PlusCard } from "@/components/tagalong/PlusCard";
 import { useState } from "react";
@@ -71,6 +72,11 @@ function PostPlan() {
   const [title, setTitle] = useState(s.title ?? "");
   const [category, setCategory] = useState(s.category ?? "");
   const [description, setDescription] = useState(s.description ?? "");
+  const [bring, setBring] = useState("");
+  const [duration, setDuration] = useState(120);
+  const [intro, setIntro] = useState("");
+  const [privatePlan, setPrivatePlan] = useState(false);
+  const [early, setEarly] = useState(false);
   const [area, setArea] = useState("");
   const [address, setAddress] = useState("");
   const [when, setWhen] = useState("");
@@ -123,9 +129,23 @@ function PostPlan() {
           host_id: user.id,
           title,
           category: activity,
-          activity,
+          activity: activity.toLowerCase().trim(),
           genre: genreOf(activity),
           image_url: imageFor(activity),
+          photos: [
+            imageFor(activity),
+            imageFor(
+              GENRES.find((g) => g.id === genreOf(activity))?.items.split("|")[0] ?? activity,
+            ),
+            cityImage(city),
+          ],
+          area_lat: CITY_CENTERS[city]?.[0] ?? null,
+          area_lng: CITY_CENTERS[city]?.[1] ?? null,
+          what_to_bring: bring,
+          duration_minutes: duration,
+          host_intro: intro,
+          is_private: privatePlan,
+          early_booking: plus && early,
           required_level: plus && level ? level : "any",
           kind,
           area_label: area,
@@ -134,8 +154,8 @@ function PostPlan() {
           base_price: price,
           audience,
           step_free: stepFree,
-          recurring_weekly: weekly,
-          auto_approve: autoApprove,
+          recurring_weekly: plus && weekly,
+          auto_approve: plus && autoApprove,
           description: description || null,
           city,
           country: country || city,
@@ -179,12 +199,19 @@ function PostPlan() {
       <form onSubmit={submit} className="mt-6 space-y-5">
         <div className="space-y-2">
           <Label>Activity</Label>
-          <Choice
-            label="Choose an activity"
+          <Input
+            aria-label="Activity"
+            list="post-activities"
             value={activity}
-            onChange={setActivity}
-            options={ACTIVITIES}
+            onChange={(e) => setActivity(e.target.value)}
+            required
+            maxLength={80}
           />
+          <datalist id="post-activities">
+            {ACTIVITIES.map((a) => (
+              <option key={a} value={a} />
+            ))}
+          </datalist>
         </div>
         <div className="space-y-2">
           <Label>Required level</Label>
@@ -204,6 +231,22 @@ function PostPlan() {
         </Field>
         <Field label="Details (optional)" id="d">
           <Textarea id="d" value={description} onChange={(e) => setDescription(e.target.value)} />
+        </Field>
+        <Field label="What to bring" id="bring">
+          <Input id="bring" value={bring} onChange={(e) => setBring(e.target.value)} />
+        </Field>
+        <Field label="Duration (minutes)" id="duration">
+          <Input
+            id="duration"
+            type="number"
+            min={15}
+            max={1440}
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
+          />
+        </Field>
+        <Field label="Host intro" id="intro">
+          <Textarea id="intro" value={intro} onChange={(e) => setIntro(e.target.value)} />
         </Field>
         <Field label="Area shown publicly" id="a" hint="Neighbourhood only, e.g. Bastille, 11e">
           <Input id="a" required value={area} onChange={(e) => setArea(e.target.value)} />
@@ -235,7 +278,7 @@ function PostPlan() {
               id="c"
               type="number"
               min={2}
-              max={30}
+              max={plus ? 30 : 8}
               value={capacity}
               onChange={(e) => setCapacity(Number(e.target.value))}
             />
@@ -284,13 +327,32 @@ function PostPlan() {
           )}
         </div>
         <div className="divide-y divide-border border-y border-border">
+          <Toggle label="Private plan" checked={privatePlan} onChange={setPrivatePlan} />
+          <Toggle
+            label="Plus early booking badge (coming soon)"
+            checked={early}
+            onChange={(v) => {
+              if (plus) setEarly(v);
+              else toast("Early booking badge is a Plus host tool");
+            }}
+          />
           <Toggle label="Step-free access" checked={stepFree} onChange={setStepFree} />
-          <Toggle label="Repeat weekly" checked={weekly} onChange={setWeekly} />
+          <Toggle
+            label="Repeat weekly"
+            checked={weekly}
+            onChange={(v) => {
+              if (plus) setWeekly(v);
+              else toast("Recurring plans are a Plus host tool");
+            }}
+          />
           <Toggle
             label="Instant join for reliable people"
             hint="People with 2+ no-shows always need your approval"
             checked={autoApprove}
-            onChange={setAutoApprove}
+            onChange={(v) => {
+              if (plus) setAutoApprove(v);
+              else toast("Reliable-only joining is a Plus host tool");
+            }}
           />
         </div>
         <label className="flex items-start gap-3 text-sm">

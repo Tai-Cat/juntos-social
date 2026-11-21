@@ -1,3 +1,4 @@
+import { useAuthAction } from "@/components/tagalong/AuthSheet";
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,7 +25,7 @@ import {
 } from "@/lib/tagalong";
 import { whatsOn } from "@/lib/whats-on.functions";
 
-export const Route = createFileRoute("/_authenticated/trips/$tripId")({
+export const Route = createFileRoute("/trips/$tripId")({
   head: () => ({
     meta: [
       { title: "Your trip — Tagalong" },
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 
 function TripPage() {
   const { tripId } = Route.useParams();
+  const auth = useAuthAction();
   const { user } = useMyProfile();
   const blocks = useBlocks();
   const navigate = useNavigate();
@@ -187,7 +189,7 @@ function TripPage() {
                       variant={waved ? "outline" : "default"}
                       className="mt-3"
                       disabled={waved}
-                      onClick={() => sayHi(o.id, o.user_id)}
+                      onClick={() => auth(() => { void sayHi(o.id, o.user_id); }, "say hi")}
                     >
                       {waved ? "Hi sent" : "Say hi"}
                     </Button>

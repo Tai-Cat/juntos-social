@@ -1,3 +1,4 @@
+import { safeReturn } from "@/lib/auth-return";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -22,6 +23,19 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  return (
+    <div className="mx-auto min-h-screen max-w-md px-6 py-8">
+      <Link to="/" className="font-display text-2xl">
+        Tagalong
+      </Link>
+      <div className="mt-8">
+        <AuthForm />
+      </div>
+    </div>
+  );
+}
+
+export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
@@ -31,9 +45,14 @@ function AuthPage() {
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState("");
 
+  function done() {
+    if (onSuccess) onSuccess();
+    else navigate({ to: safeReturn(sessionStorage.getItem("tagalong-return")) });
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/feed" });
+      if (data.session && !onSuccess) done();
     });
   }, [navigate]);
 
@@ -69,7 +88,7 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/feed" });
+        done();
       }
     } catch (err) {
       const message = errMsg(err);
@@ -84,13 +103,8 @@ function AuthPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col px-6">
-      <header className="py-6">
-        <Link to="/" className="font-display text-2xl">
-          Tagalong
-        </Link>
-      </header>
-      <div className="flex-1 pt-10">
+    <div>
+      <div>
         {sent ? (
           <div className="space-y-3">
             <h1 className="text-3xl">Check your email</h1>

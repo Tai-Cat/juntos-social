@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          genre: string
+          name: string
+        }
+        Insert: {
+          genre?: string
+          name: string
+        }
+        Update: {
+          genre?: string
+          name?: string
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -82,6 +97,68 @@ export type Database = {
           },
         ]
       }
+      friend_codes: {
+        Row: {
+          code: string
+          user_id: string
+        }
+        Insert: {
+          code?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      friendships: {
+        Row: {
+          created_at: string
+          id: string
+          recipient: string
+          requester: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipient: string
+          requester: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipient?: string
+          requester?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_recipient_fkey"
+            columns: ["recipient"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_requester_fkey"
+            columns: ["requester"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hang_again: {
         Row: {
           created_at: string
@@ -109,6 +186,73 @@ export type Database = {
           {
             foreignKeyName: "hang_again_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hang_proposals: {
+        Row: {
+          activity: string
+          created_at: string
+          ends_at: string
+          id: string
+          plan_id: string | null
+          recipient: string
+          sender: string
+          starts_at: string
+          status: string
+          suggestion: string
+          time_of_day: string
+          window_label: string
+        }
+        Insert: {
+          activity?: string
+          created_at?: string
+          ends_at: string
+          id?: string
+          plan_id?: string | null
+          recipient: string
+          sender: string
+          starts_at: string
+          status?: string
+          suggestion?: string
+          time_of_day?: string
+          window_label?: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          plan_id?: string | null
+          recipient?: string
+          sender?: string
+          starts_at?: string
+          status?: string
+          suggestion?: string
+          time_of_day?: string
+          window_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hang_proposals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hang_proposals_recipient_fkey"
+            columns: ["recipient"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hang_proposals_sender_fkey"
+            columns: ["sender"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -261,6 +405,88 @@ export type Database = {
           },
         ]
       }
+      plan_invite_links: {
+        Row: {
+          inviter: string
+          plan_id: string
+          token: string
+        }
+        Insert: {
+          inviter: string
+          plan_id: string
+          token?: string
+        }
+        Update: {
+          inviter?: string
+          plan_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_invite_links_inviter_fkey"
+            columns: ["inviter"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_invite_links_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invitee: string
+          inviter: string
+          plan_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee: string
+          inviter: string
+          plan_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee?: string
+          inviter?: string
+          plan_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_invites_invitee_fkey"
+            columns: ["invitee"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_invites_inviter_fkey"
+            columns: ["inviter"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_invites_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_messages: {
         Row: {
           body: string
@@ -304,6 +530,8 @@ export type Database = {
         Row: {
           activity: string
           area_label: string
+          area_lat: number | null
+          area_lng: number | null
           audience: string
           auto_approve: boolean
           base_going: number
@@ -314,28 +542,37 @@ export type Database = {
           country: string
           created_at: string
           description: string | null
+          duration_minutes: number
+          early_booking: boolean
           example_host_name: string | null
           example_host_reliability: number | null
           example_host_verified: boolean | null
           genre: string
           going_count: number
           host_id: string | null
+          host_intro: string
           id: string
           image_url: string | null
           is_example: boolean
+          is_private: boolean
           is_public_place: boolean
           is_travel: boolean
           kind: string
           parent_plan_id: string | null
+          photos: string[]
+          private_participants: string[]
           recurring_weekly: boolean
           required_level: string
           starts_at: string
           step_free: boolean
           title: string
+          what_to_bring: string
         }
         Insert: {
           activity?: string
           area_label: string
+          area_lat?: number | null
+          area_lng?: number | null
           audience?: string
           auto_approve?: boolean
           base_going?: number
@@ -346,28 +583,37 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string | null
+          duration_minutes?: number
+          early_booking?: boolean
           example_host_name?: string | null
           example_host_reliability?: number | null
           example_host_verified?: boolean | null
           genre?: string
           going_count?: number
           host_id?: string | null
+          host_intro?: string
           id?: string
           image_url?: string | null
           is_example?: boolean
+          is_private?: boolean
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
           parent_plan_id?: string | null
+          photos?: string[]
+          private_participants?: string[]
           recurring_weekly?: boolean
           required_level?: string
           starts_at: string
           step_free?: boolean
           title: string
+          what_to_bring?: string
         }
         Update: {
           activity?: string
           area_label?: string
+          area_lat?: number | null
+          area_lng?: number | null
           audience?: string
           auto_approve?: boolean
           base_going?: number
@@ -378,24 +624,31 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string | null
+          duration_minutes?: number
+          early_booking?: boolean
           example_host_name?: string | null
           example_host_reliability?: number | null
           example_host_verified?: boolean | null
           genre?: string
           going_count?: number
           host_id?: string | null
+          host_intro?: string
           id?: string
           image_url?: string | null
           is_example?: boolean
+          is_private?: boolean
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
           parent_plan_id?: string | null
+          photos?: string[]
+          private_participants?: string[]
           recurring_weekly?: boolean
           required_level?: string
           starts_at?: string
           step_free?: boolean
           title?: string
+          what_to_bring?: string
         }
         Relationships: [
           {
@@ -433,6 +686,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profile_private_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_shares: {
+        Row: {
+          audience: string
+          enabled: boolean
+          token: string
+          user_id: string
+        }
+        Insert: {
+          audience?: string
+          enabled?: boolean
+          token?: string
+          user_id: string
+        }
+        Update: {
+          audience?: string
+          enabled?: boolean
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_shares_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
@@ -556,6 +838,74 @@ export type Database = {
           },
         ]
       }
+      saved_plans: {
+        Row: {
+          plan_id: string
+          user_id: string
+        }
+        Insert: {
+          plan_id: string
+          user_id: string
+        }
+        Update: {
+          plan_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_plans_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_examples: {
+        Row: {
+          body: string
+          id: string
+          kind: string
+          name: string
+          photo: string | null
+          plan_id: string | null
+          title: string
+        }
+        Insert: {
+          body?: string
+          id: string
+          kind: string
+          name: string
+          photo?: string | null
+          plan_id?: string | null
+          title: string
+        }
+        Update: {
+          body?: string
+          id?: string
+          kind?: string
+          name?: string
+          photo?: string | null
+          plan_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_examples_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           city: string
@@ -609,14 +959,20 @@ export type Database = {
       user_settings: {
         Row: {
           demo_plus: boolean
+          doodle_background: boolean
+          hang_frequency: string
           user_id: string
         }
         Insert: {
           demo_plus?: boolean
+          doodle_background?: boolean
+          hang_frequency?: string
           user_id: string
         }
         Update: {
           demo_plus?: boolean
+          doodle_background?: boolean
+          hang_frequency?: string
           user_id?: string
         }
         Relationships: [
@@ -674,7 +1030,45 @@ export type Database = {
         Args: { f: Json; p: Database["public"]["Tables"]["plans"]["Row"] }
         Returns: boolean
       }
+      are_friends: { Args: { a: string; b: string }; Returns: boolean }
+      find_people: {
+        Args: { _search: string }
+        Returns: {
+          id: string
+          interests: string[]
+          name: string
+          verified: boolean
+        }[]
+      }
+      friends_going: {
+        Args: { _plan?: string }
+        Returns: {
+          name: string
+          person_id: string
+          plan_id: string
+        }[]
+      }
       get_plan_address: { Args: { _plan: string }; Returns: string }
+      hang_candidates: {
+        Args: never
+        Returns: {
+          last_met: string
+          name: string
+          person_id: string
+          title: string
+        }[]
+      }
+      invite_teaser: {
+        Args: { _token: string }
+        Returns: {
+          area_label: string
+          image_url: string
+          inviter_name: string
+          plan_id: string
+          starts_at: string
+          title: string
+        }[]
+      }
       is_plan_host: { Args: { _plan: string; _user: string }; Returns: boolean }
       is_plan_member: {
         Args: { _plan: string; _user: string }
@@ -682,7 +1076,45 @@ export type Database = {
       }
       mark_no_show: { Args: { _request: string }; Returns: undefined }
       people_blocked: { Args: { a: string; b: string }; Returns: boolean }
+      public_host: {
+        Args: { _id: string }
+        Returns: {
+          name: string
+          reliability_score: number
+          verified: boolean
+        }[]
+      }
+      redeem_friend_code: { Args: { _code: string }; Returns: undefined }
       repeat_plan: { Args: { _plan: string }; Returns: string }
+      respond_friend: {
+        Args: { _accept: boolean; _id: string }
+        Returns: undefined
+      }
+      respond_invite: {
+        Args: { _id: string; _status: string }
+        Returns: string
+      }
+      respond_invite_link: {
+        Args: { _status: string; _token: string }
+        Returns: string
+      }
+      respond_proposal: {
+        Args: { _action: string; _id: string; _suggestion?: string }
+        Returns: string
+      }
+      shared_plan_count: { Args: { a: string; b: string }; Returns: number }
+      shared_profile_plans: {
+        Args: { _token: string }
+        Returns: {
+          area_label: string
+          city: string
+          id: string
+          image_url: string
+          owner_name: string
+          starts_at: string
+          title: string
+        }[]
+      }
       similar_people: {
         Args: {
           _activity?: string
