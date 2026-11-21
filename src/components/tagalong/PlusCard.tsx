@@ -1,7 +1,6 @@
-import { Lock, Sparkles } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 import { PLUS_MONTHLY_EUR } from "@/lib/catalog";
+import { PlusCheckoutButton } from "./PlusCheckout";
 export function PlusCard() {
   return (
     <div className="genre-ideas rounded-lg border border-border p-5">
@@ -11,13 +10,7 @@ export function PlusCard() {
       </div>
       <p className="mt-1 font-semibold">{PLUS_MONTHLY_EUR} EUR a month</p>
       <p className="my-3 text-sm">Find your level. Beginner company or advanced players.</p>
-      <Button asChild variant="outline" size="sm">
-        <Link to="/profile">
-          <Lock />
-          Try Plus in settings
-        </Link>
-      </Button>
-      <p className="mt-2 text-xs text-muted-foreground">Demo only · no payment taken</p>
+      <PlusCheckoutButton />
     </div>
   );
 }

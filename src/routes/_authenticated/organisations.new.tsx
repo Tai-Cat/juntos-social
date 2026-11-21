@@ -9,6 +9,7 @@ import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import {Label} from "@/components/ui/label";
 import {Choice} from "@/components/tagalong/Choice";
+import {PlusCheckoutButton} from "@/components/tagalong/PlusCheckout";
 import {supabase} from "@/integrations/supabase/client";
 const search=z.object({kind:z.enum(["community","business","institution"]).optional()});
 export const Route=createFileRoute("/_authenticated/organisations/new")({validateSearch:search,head:()=>({meta:[{title:"Create a group or organisation — Juntos"},{name:"description",content:"Start a community, club, business or institution page on Juntos."},{property:"og:title",content:"Create a group or organisation — Juntos"},{property:"og:description",content:"Start a community or organisation on Juntos."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),component:NewOrg});
@@ -30,6 +31,7 @@ function NewOrg(){
   <h1 className="text-3xl">{isGroup?"Create a group":"Create an organisation"}</h1>
   <Choice label="Type" value={kind} onChange={setKind} options={[{value:"community",label:"Group or community"},{value:"business",label:"Business"},{value:"institution",label:"Institution"}]}/>
   <p className="text-xs text-muted-foreground">{isGroup?"Run clubs, book clubs, cohorts, study groups or friend groups. Free accounts can create up to 3 groups.":kind==="business"?"Venues, studios, shops, restaurants and partner venues. Shows as Pending until approved.":"Schools, universities, companies, clubs and associations. Shows as Pending until approved."}</p>
+  {isGroup&&<div className="rounded-lg border border-border bg-card p-3"><p className="mb-2 text-sm font-bold">Need more than 3 groups?</p><PlusCheckoutButton label="Get Plus for unlimited groups" /></div>}
   <div><Label htmlFor="o-name">Name</Label><Input id="o-name" required maxLength={80} value={name} onChange={e=>setName(e.target.value)}/></div>
   <div><Label htmlFor="o-handle">Handle</Label><Input id="o-handle" placeholder={slugify(name)||"my-group"} value={handle} onChange={e=>setHandle(slugify(e.target.value))}/></div>
   <div><Label htmlFor="o-desc">Description</Label><Textarea id="o-desc" maxLength={3000} value={description} onChange={e=>setDescription(e.target.value)}/></div>

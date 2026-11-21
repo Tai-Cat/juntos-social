@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { usePlus } from "@/hooks/use-plus";
 import { PLUS_FEATURES } from "./Membership";
+import { PlusCheckoutButton } from "./PlusCheckout";
 const FREE_HAS = new Set<string>();
 export function MembershipSheet() {
   const { plus, setPlus } = usePlus();
@@ -27,6 +28,7 @@ export function MembershipSheet() {
             ))}
           </tbody>
         </table>
+        {!plus && <div className="mt-5"><PlusCheckoutButton label="Get Plus" /></div>}
         <div className="mt-6 rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between"><span className="font-bold">Simulate Plus (demo)</span><Switch aria-label="Simulate Plus" checked={plus} onCheckedChange={setPlus} /></div>
           <p className="mt-1 text-xs text-muted-foreground">Payments aren't connected yet, so nothing is charged.</p>
