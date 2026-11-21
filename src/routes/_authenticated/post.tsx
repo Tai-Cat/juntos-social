@@ -75,6 +75,10 @@ function PostPlan() {
   const { user, profile } = useMyProfile();
   const { plus } = usePlus();
   const age=useAge(),organisations=useOrganisations(),memberships=useOrgMemberships();
+  const hostRoles=["owner","admin","host"];
+  const myOrgIds=new Set((memberships.data??[]).filter(m=>hostRoles.includes(m.role)).map(m=>m.organisation_id));
+  const adminOrgIds=new Set((memberships.data??[]).filter(m=>m.role==="owner"||m.role==="admin").map(m=>m.organisation_id));
+  const postAsOptions=(organisations.data??[]).filter(o=>!o.archived&&(myOrgIds.has(o.id)||(!!o.parent_id&&adminOrgIds.has(o.parent_id)))).map(o=>{const parent=o.parent_id?organisations.data?.find(p=>p.id===o.parent_id):undefined;return {value:o.id,label:parent?`${parent.name} › ${o.name}`:o.name};});
   const [ageBracket,setAgeBracket]=useState(""),[ageMin,setAgeMin]=useState(18),[ageMax,setAgeMax]=useState(34),[orgId,setOrgId]=useState("");
   const [photoFiles,setPhotoFiles]=useState<File[]>([]);
   const [tags,setTags]=useState<string[]>([]);
@@ -128,7 +132,7 @@ function PostPlan() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    if(!age.data?.age_verified){toast.error("Complete demo age verification before hosting.");return;}
+    if(!age.data?.date_of_birth){toast.error("Add your date of birth and confirm you are 18 or over before hosting.");return;}
     if (!publicPlace) {
       toast.error("Plans must be at a public place or partner venue");
       return;
@@ -217,11 +221,11 @@ function PostPlan() {
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
-        {!age.data?.age_verified&&<div className="border-y border-border py-4"><p className="text-sm">Complete the adult demo check before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/verify">Verify your age</Link></Button></div>}
+        {age.data&&!age.data.date_of_birth&&<div className="border-y border-border py-4"><p className="text-sm">Add your date of birth (18+) before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/onboarding">Add date of birth</Link></Button></div>}
         <PhotoUploader files={photoFiles} onChange={setPhotoFiles}/>
         <div className="space-y-2"><Label>Tag interests (optional)</Label><InterestSearch label="Tag an interest" exclude={tags} disabled={tags.length>=8} onAdd={t=>setTags(v=>[...v,t])}/>{tags.length>0&&<div className="flex flex-wrap gap-2">{tags.map(t=><Chip key={t} active onClick={()=>setTags(v=>v.filter(x=>x!==t))}>{t} ×</Chip>)}</div>}<p className="text-xs text-muted-foreground">Helps people with matching personal interests find this plan.</p></div>
         <div className="space-y-2"><Label>Age bracket (optional)</Label><Choice label="Any adult bracket" value={ageBracket} onChange={setAgeBracket} options={[...AGE_BRACKETS,{value:"custom",label:"Custom range"}]}/>{ageBracket==="custom"&&<div className="grid grid-cols-2 gap-3"><Input aria-label="Minimum age" type="number" min={18} max={120} value={ageMin} onChange={e=>setAgeMin(Number(e.target.value))}/><Input aria-label="Maximum age" type="number" min={ageMin} max={120} value={ageMax} onChange={e=>setAgeMax(Number(e.target.value))}/></div>}</div>
-        {!!memberships.data?.some(m=>m.role==="admin")&&<div className="space-y-2"><Label>Post on behalf of</Label><Choice label="Yourself" value={orgId} onChange={setOrgId} options={(organisations.data??[]).filter(o=>memberships.data?.some(m=>m.organisation_id===o.id&&m.role==="admin")).map(o=>({value:o.id,label:o.name}))}/></div>}
+        {postAsOptions.length>0&&<div className="space-y-2"><Label>Post as</Label><Choice label="Myself" value={orgId} onChange={setOrgId} options={postAsOptions}/><p className="text-xs text-muted-foreground">Post as yourself, or any organisation or group you host or admin.</p></div>}
         <div className="space-y-2">
           <Label>Activity</Label>
           <Input
@@ -394,7 +398,7 @@ function PostPlan() {
           size="lg"
           variant="accent"
           className="w-full"
-          disabled={busy || !publicPlace || !age.data?.age_verified}
+          disabled={busy || !publicPlace || !age.data?.date_of_birth}
         >
           Post plan
         </Button>

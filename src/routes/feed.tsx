@@ -1,4 +1,6 @@
 import {matchesInterests} from "@/lib/interests";
+import { fadeExamples } from "@/lib/examples";
+import { useExamplesHidden } from "@/hooks/use-app-config";
 import { HangNudges } from "@/components/tagalong/HangNudges";
 import { lazy, Suspense } from "react";
 import { ClientOnly } from "@tanstack/react-router";
@@ -71,9 +73,10 @@ export function Feed() {
       return data as unknown as PlanWithHost[];
     },
   });
+  const examplesHidden = useExamplesHidden();
   const visible = useMemo(
     () =>
-      (plans.data ?? []).filter(
+      fadeExamples(plans.data ?? [], { hideAll: examplesHidden }).filter(
         (p) =>
           !p.is_travel &&
           !(p.host_id && blocks.data?.has(p.host_id)) &&
@@ -84,7 +87,7 @@ export function Feed() {
               .toLowerCase()
               .includes(search.toLowerCase())),
       ),
-    [plans.data, blocks.data, filters, plus, search, area],
+    [plans.data, blocks.data, filters, plus, search, area, examplesHidden],
   );
   return (
     <AppShell>

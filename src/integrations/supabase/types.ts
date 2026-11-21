@@ -29,6 +29,21 @@ export type Database = {
         }
         Relationships: []
       }
+      app_config: {
+        Row: {
+          hide_examples: boolean
+          id: boolean
+        }
+        Insert: {
+          hide_examples?: boolean
+          id?: boolean
+        }
+        Update: {
+          hide_examples?: boolean
+          id?: boolean
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -197,6 +212,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      generated_images: {
+        Row: {
+          created_at: string
+          data: string | null
+          key: string
+          mime: string
+          prompt: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string | null
+          key: string
+          mime?: string
+          prompt: string
+        }
+        Update: {
+          created_at?: string
+          data?: string | null
+          key?: string
+          mime?: string
+          prompt?: string
+        }
+        Relationships: []
       }
       hang_again: {
         Row: {
@@ -421,6 +460,47 @@ export type Database = {
           },
         ]
       }
+      official_requests: {
+        Row: {
+          created_at: string
+          id: string
+          note: string
+          organisation_id: string
+          requested_by: string
+          status: string
+          website: string | null
+          work_email: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string
+          organisation_id: string
+          requested_by: string
+          status?: string
+          website?: string | null
+          work_email?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string
+          organisation_id?: string
+          requested_by?: string
+          status?: string
+          website?: string | null
+          work_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "official_requests_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisation_email_checks: {
         Row: {
           attempts: number
@@ -592,43 +672,90 @@ export type Database = {
         Row: {
           about: string
           allowed_domains: string[]
+          archived: boolean
+          category: string
+          city: string
+          contact_email: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
           description: string
+          group_discounts: boolean
           id: string
           is_example: boolean
           is_official: boolean
+          kind: string
           logo_url: string | null
           name: string
+          official_status: string
+          parent_id: string | null
           question: string
+          section: string
           slug: string
           visibility: string
+          website: string | null
         }
         Insert: {
           about?: string
           allowed_domains?: string[]
+          archived?: boolean
+          category?: string
+          city?: string
+          contact_email?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
           description?: string
+          group_discounts?: boolean
           id?: string
           is_example?: boolean
           is_official?: boolean
+          kind?: string
           logo_url?: string | null
           name: string
+          official_status?: string
+          parent_id?: string | null
           question?: string
+          section?: string
           slug: string
           visibility?: string
+          website?: string | null
         }
         Update: {
           about?: string
           allowed_domains?: string[]
+          archived?: boolean
+          category?: string
+          city?: string
+          contact_email?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
           description?: string
+          group_discounts?: boolean
           id?: string
           is_example?: boolean
           is_official?: boolean
+          kind?: string
           logo_url?: string | null
           name?: string
+          official_status?: string
+          parent_id?: string | null
           question?: string
+          section?: string
           slug?: string
           visibility?: string
+          website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organisations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       photo_credits: {
         Row: {
@@ -901,6 +1028,32 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "plan_photo_registry_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_views: {
+        Row: {
+          plan_id: string
+          viewed_on: string
+          viewer: string
+        }
+        Insert: {
+          plan_id: string
+          viewed_on?: string
+          viewer: string
+        }
+        Update: {
+          plan_id?: string
+          viewed_on?: string
+          viewer?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_views_plan_id_fkey"
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
@@ -1396,8 +1549,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
+          account_type: string
           demo_plus: boolean
           doodle_background: boolean
           gender_plans_only: boolean
@@ -1412,6 +1584,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_type?: string
           demo_plus?: boolean
           doodle_background?: boolean
           gender_plans_only?: boolean
@@ -1426,6 +1599,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_type?: string
           demo_plus?: boolean
           doodle_background?: boolean
           gender_plans_only?: boolean
@@ -1522,6 +1696,36 @@ export type Database = {
         Args: { _code: string; _org: string }
         Returns: boolean
       }
+      create_organisation: {
+        Args: {
+          _category: string
+          _city: string
+          _cover?: string
+          _description: string
+          _email?: string
+          _kind: string
+          _name: string
+          _passphrase?: string
+          _question: string
+          _slug: string
+          _visibility: string
+          _website?: string
+        }
+        Returns: string
+      }
+      create_subgroup: {
+        Args: {
+          _description: string
+          _name: string
+          _parent: string
+          _question?: string
+          _section: string
+          _slug: string
+        }
+        Returns: string
+      }
+      delete_all_examples: { Args: never; Returns: number }
+      delete_org: { Args: { _org: string }; Returns: undefined }
       demo_confirm_age: { Args: { _dob: string }; Returns: undefined }
       edit_org: {
         Args: {
@@ -1565,6 +1769,13 @@ export type Database = {
         Args: { _plan: string; _user: string }
         Returns: boolean
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       invite_teaser: {
         Args: { _token: string }
         Returns: {
@@ -1586,6 +1797,18 @@ export type Database = {
       open_plan_link: { Args: { _token: string }; Returns: string }
       org_access: { Args: { _org: string; _user: string }; Returns: boolean }
       org_admin: { Args: { _org: string; _user: string }; Returns: boolean }
+      org_analytics: {
+        Args: { _org: string }
+        Returns: {
+          going: number
+          plan_id: string
+          saves: number
+          starts_at: string
+          title: string
+          views: number
+        }[]
+      }
+      org_host: { Args: { _org: string; _user: string }; Returns: boolean }
       org_member: { Args: { _org: string; _user: string }; Returns: boolean }
       org_plan_teasers: {
         Args: { _org?: string; _plan?: string }
@@ -1634,6 +1857,10 @@ export type Database = {
         Returns: undefined
       }
       repeat_plan: { Args: { _plan: string }; Returns: string }
+      request_official: {
+        Args: { _email: string; _note: string; _org: string; _website: string }
+        Returns: undefined
+      }
       request_org_access: {
         Args: { _answer: string; _org: string }
         Returns: string
@@ -1655,6 +1882,10 @@ export type Database = {
         Args: { _action: string; _id: string; _suggestion?: string }
         Returns: string
       }
+      review_official: {
+        Args: { _approve: boolean; _request: string }
+        Returns: undefined
+      }
       review_org_request: {
         Args: { _approve: boolean; _request: string }
         Returns: undefined
@@ -1667,6 +1898,11 @@ export type Database = {
           _min?: number
           _other: string
         }
+        Returns: undefined
+      }
+      set_hide_examples: { Args: { _hide: boolean }; Returns: undefined }
+      set_org_member_role: {
+        Args: { _org: string; _role: string; _user: string }
         Returns: undefined
       }
       shared_plan_count: { Args: { a: string; b: string }; Returns: number }
@@ -1713,9 +1949,32 @@ export type Database = {
         Args: { _email: string; _org: string }
         Returns: string
       }
+      update_org_profile: {
+        Args: {
+          _category: string
+          _city: string
+          _cover: string
+          _email: string
+          _group_discounts: boolean
+          _logo: string
+          _name: string
+          _org: string
+          _website: string
+        }
+        Returns: undefined
+      }
+      update_subgroup: {
+        Args: {
+          _archived: boolean
+          _name: string
+          _org: string
+          _section: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1842,6 +2101,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

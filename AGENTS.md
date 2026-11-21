@@ -51,3 +51,7 @@ use the editor.
 - Organisation roles and hashed passphrases are separate protected data, and restricted plans use narrow teaser RPCs. Why: membership must not expose full details or allow client-assigned admin privileges.
 - Calendar recurrence and ICS use a shared calendar module; suggested/saved events never mark someone busy. Why: all views and free-time calculations must agree.
 - Uploaded plan galleries use private storage references and signed URLs authorized against the caller's RLS-visible plan. Why: restricted event media must not make its storage bucket public.
+- Last-resort AI images are served by the public `/api/public/ai-image/$kind/$ref` route, generated once and cached in `generated_images`; prompts are built only from existing records. Why: public buckets are blocked and the route must not generate arbitrary images.
+- Example fade-out is a pure client rule in `src/lib/examples.ts` (tested) plus the admin `app_config.hide_examples` switch. Why: one rule for every list.
+- Sub-groups use `organisations.parent_id`; `org_member`/`org_admin` inherit from the parent (membership only when the club has no own question). Why: parent members join clubs without a second check.
+- Age gating is a self-declared adult DOB; the Verify flow only grants the Verified badge. Why: no ID check is required to join or host.

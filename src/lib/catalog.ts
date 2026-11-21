@@ -1,4 +1,4 @@
-import { placeholderImage } from "./placeholder";
+import { aiImage, placeholderImage } from "./placeholder";
 export const GENRES = [
   {
     id: "active",
@@ -82,7 +82,7 @@ export function genreOf(activity: string) {
   );
 }
 export function imageFor(activity: string, genre: string = genreOf(activity)) {
-  return placeholderImage(GENRES.some((g) => g.id === genre) ? genre : genreOf(activity), activity);
+  return activity.trim() ? aiImage("interest", activity) : placeholderImage(GENRES.some((g) => g.id === genre) ? genre : genreOf(activity), activity);
 }
 export const CITIES = [
   "Paris, France",
@@ -151,8 +151,8 @@ export const CITIES = [
   "Bogotá, Colombia",
 ];
 export const cityName = (value: string) => value.split(",")[0]?.trim() || value;
-export function cityImage(_city: string) {
-  return placeholderImage("place");
+export function cityImage(city: string) {
+  return city.trim() ? aiImage("city", city) : placeholderImage("place");
 }
 export function countryFlag(country: string) {
   const code: Record<string, string> = {

@@ -12,10 +12,14 @@ export function placeholderImage(genre: string, _label?: string) {
 }
 /** Kept for callers; now the same plain tinted placeholder. */
 export function planFallback(p: { id: string; title: string; starts_at?: string | null; genre?: string | null; area_label?: string | null; activity?: string | null }) {
-  return placeholderImage(p.genre ?? "place");
+  return aiImage("plan", p.id);
 }
+export type AiKind = "plan" | "interest" | "city" | "org";
+/** Last-resort generated picture, made once on first request and cached by the server. */
+export const aiImage = (kind: AiKind, ref: string) => `/api/public/ai-image/${kind}/${encodeURIComponent(ref.trim().toLowerCase().slice(0, 80))}`;
+export const isAiImage = (url: string | null | undefined) => !!url && (url.startsWith("/api/public/ai-image/") || url.startsWith("/generated/"));
 /** Bundled generated assets look AI-made, so only uploads and licensed stock photos count as real. */
 export const isRealPhoto = (url: string | null | undefined) =>
-  !!url && (url.startsWith("storage:") || url.startsWith("/generated/") || /^https:\/\/(images\.unsplash\.com|images\.pexels\.com)\//.test(url) || /\/storage\/v1\/object\//.test(url));
+  !!url && (url.startsWith("storage:") || url.startsWith("/generated/") || url.startsWith("/api/public/ai-image/") || /^https:\/\/(images\.unsplash\.com|images\.pexels\.com)\//.test(url) || /\/storage\/v1\/object\//.test(url));
 export const photoOr = (url: string | null | undefined, p: string | Parameters<typeof planFallback>[0]) =>
   url && isRealPhoto(url) ? url : typeof p === "string" ? placeholderImage(p) : planFallback(p);

@@ -122,6 +122,7 @@ function PlanDetail() {
   });
 
   const plan = planQ.data;
+  useEffect(()=>{if(user&&plan&&plan.host_id!==user.id)void supabase.from("plan_views").upsert({plan_id:plan.id,viewer:user.id},{ignoreDuplicates:true});},[user?.id,plan?.id]);
   const hostQ = useQuery({queryKey:["public-host",plan?.host_id],enabled:!!plan?.host_id,queryFn:async()=>{if(!plan?.host_id)return null;return (await supabase.rpc("public_host",{_id:plan.host_id})).data?.[0]??null;}});
   const isHost = !!plan && plan.host_id === user?.id;
   const isPast = !!plan && new Date(plan.ends_at ?? plan.starts_at).getTime() < Date.now();
@@ -191,8 +192,8 @@ function PlanDetail() {
   };
 
   async function join(accountId: string) {
-    const {data:age}=await supabase.from("profile_private").select("date_of_birth,age_verified").eq("user_id",accountId).maybeSingle();
-    if(!age?.age_verified){rememberIntent({kind:"join",planId,buddy});navigate({to:age?.date_of_birth?"/verify":"/onboarding"});return;}
+    const {data:age}=await supabase.from("profile_private").select("date_of_birth").eq("user_id",accountId).maybeSingle();
+    if(!age?.date_of_birth){rememberIntent({kind:"join",planId,buddy});navigate({to:"/onboarding"});return;}
     setBusy(true);
     const { data, error } = await supabase
       .from("join_requests")
@@ -325,6 +326,7 @@ function PlanDetail() {
         {plan.venue_tbc&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Venue to be confirmed</span>}
         {plan.has_virtual_option&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Virtual option</span>}
       </div>
+      {isHost&&<div className="mt-4 flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/edit-plan/$planId" params={{planId:plan.id}}>Edit plan</Link></Button></div>}
       {isHost&&<PlanVisibilityPanel plan={plan}/>}
       <MemberNote planId={plan.id}/>
       {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-3 inline-flex rounded-full bg-sky-soft px-3 py-1 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
@@ -452,13 +454,9 @@ function PlanDetail() {
                   I'm joining an LGBTQ+ friendly plan and will keep it welcoming for everyone.
                 </label>
               )}
-              {restricted && !profile?.verified && (
+              {restricted && (
                 <p className="text-sm text-muted-foreground">
-                  This plan is {AUDIENCE_LABEL[plan.audience]?.toLowerCase()}.{" "}
-                  <Link to="/verify" className="underline">
-                    Verify it's you
-                  </Link>{" "}
-                  to request to join.
+                  This plan is {AUDIENCE_LABEL[plan.audience]?.toLowerCase()}, based on how people describe themselves in their private profile.
                 </p>
               )}
               {(profile?.no_show_count ?? 0) >= 2 && (

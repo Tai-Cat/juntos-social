@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { fadeExamples } from "@/lib/examples";
+import { useExamplesHidden } from "@/hooks/use-app-config";
 import { Input } from "@/components/ui/input";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -41,6 +43,7 @@ function Travel() {
   const [interest,setInterest]=useState("");
   const [whereOpen,setWhereOpen]=useState(false);
   const who=interest.trim();
+  const examplesHidden=useExamplesHidden();
   const fits=(p:PlanWithHost)=>(p.capacity-p.going_count)>=travellers&&(!groupOnly||p.capacity>=4);
   const onDate=(d:string)=>!when||d.slice(0,7)===when;
   const trips = useQuery({
@@ -120,13 +123,13 @@ function Travel() {
       )}
       <h2 className="mb-4 mt-8 text-2xl">Travellers on the move</h2>
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {examples.data?.filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())&&onDate(t.start_date)&&(!who||t.interests.join(" ").toLowerCase().includes(who.toLowerCase()))).map((t) => (
+        {fadeExamples([...(trips.data??[]).filter(t=>!t.is_example),...(examples.data??[])],{hideAll:examplesHidden}).filter(t=>t.is_example).filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())&&onDate(t.start_date)&&(!who||t.interests.join(" ").toLowerCase().includes(who.toLowerCase()))).map((t) => (
           <TripCard key={t.id} trip={t} />
         ))}
       </div>
       <h2 className="mb-4 mt-8 text-2xl">Plans worth the trip</h2>
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {plans.data?.filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())&&onDate(t.starts_at)&&fits(t)&&(!who||`${t.activity} ${t.title}`.toLowerCase().includes(who.toLowerCase()))).map((p) => (
+        {fadeExamples(plans.data??[],{hideAll:examplesHidden}).filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())&&onDate(t.starts_at)&&fits(t)&&(!who||`${t.activity} ${t.title}`.toLowerCase().includes(who.toLowerCase()))).map((p) => (
           <PlanCard key={p.id} plan={p} />
         ))}
       </div>

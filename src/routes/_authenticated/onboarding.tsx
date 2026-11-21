@@ -41,7 +41,7 @@ function Onboarding() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [privateReady, setPrivateReady] = useState(false);
-  const [dob,setDob]=useState("");
+  const [dob,setDob]=useState("");const [adultOk,setAdultOk]=useState(false);const [accountType,setAccountType]=useState<"personal"|"business"|"institution">("personal");
   const [name, setName] = useState(""),
     [pronouns, setPronouns] = useState(""),
     [city, setCity] = useState("Paris, France"),
@@ -74,7 +74,7 @@ function Onboarding() {
         if (data) {
           setGender(data.gender_other ? "other" : data.gender);
           setOther(data.gender_other ?? "");
-          setDob(data.date_of_birth??"");
+          setDob(data.date_of_birth??"");if(data.date_of_birth)setAdultOk(true);
         }
         setPrivateReady(true);
       });
@@ -84,7 +84,7 @@ function Onboarding() {
   }, [user]);
   async function save() {
     if (!user) return;
-    const age=adultAge(dob);if(age===null || age<18 || age>120){setError("Juntos is for adults aged 18 and over.");return;}
+    const age=adultAge(dob);if(age===null || age<18 || age>120){setError("Juntos is for adults aged 18 and over.");return;}if(!adultOk){setError("Please confirm you are 18 or over.");return;}
     setBusy(true);
     setError("");
     try {
@@ -97,6 +97,7 @@ function Onboarding() {
           home_city: cityName(city),
           interests,
           learning_interests: learning,
+          onboarded: true,
         })
         .select("id")
         .single();
@@ -109,7 +110,11 @@ function Onboarding() {
       if (e2) throw e2;
       await qc.invalidateQueries({ queryKey: ["profile"] });
       await qc.invalidateQueries({queryKey:["private-age"]});
-      navigate({ to: readIntent()?"/verify":profile?.onboarded ? "/profile" : "/verify" });
+      await supabase.from("user_settings").upsert({ user_id: user.id, account_type: accountType });
+      const intent = readIntent();
+      if (accountType !== "personal") navigate({ to: "/organisations/new", search: { kind: accountType === "business" ? "business" : "institution" } });
+      else if (intent?.url) navigate({ to: intent.url as "/feed" });
+      else navigate({ to: profile?.onboarded ? "/profile" : "/feed" });
     } catch (e) {
       setError(errMsg(e));
     } finally {
@@ -154,6 +159,8 @@ function Onboarding() {
           <Label htmlFor="dob">Date of birth</Label>
           <Input id="dob" type="date" value={dob} onChange={e=>setDob(e.target.value)} required />
           <p className="flex gap-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5"/>Private. Juntos is 18+. Only age brackets are shown.</p>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={adultOk} onChange={e=>setAdultOk(e.target.checked)} className="h-4 w-4 accent-primary"/>I confirm I am 18 or over</label>
+          <div className="space-y-2 pt-2"><Label>Account type</Label><div className="grid grid-cols-3 gap-2">{([["personal","Personal"],["business","Business"],["institution","Institution"]] as const).map(([v,l])=><Button key={v} type="button" size="sm" variant={accountType===v?"default":"outline"} onClick={()=>setAccountType(v)}>{l}</Button>)}</div><p className="text-xs text-muted-foreground">Business: venues, studios, shops, restaurants. Institution: schools, universities, companies, clubs. You'll set up the organisation profile next.</p></div>
           <legend className="text-sm font-bold">How do you describe your gender?</legend>
           <p className="flex gap-2 text-xs text-muted-foreground">
             <Lock className="h-3.5 w-3.5 shrink-0" />

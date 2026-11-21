@@ -13,6 +13,7 @@ import { useAge } from "@/hooks/use-age";
 import { AGE_BRACKETS } from "@/lib/age";
 import type { Database } from "@/integrations/supabase/types";
 import { Settings } from "lucide-react";
+import { useExamplesHidden, useIsAppAdmin } from "@/hooks/use-app-config";
 type SettingsRow = Database["public"]["Tables"]["user_settings"]["Update"];
 const GENDERS = [["woman", "Women"], ["man", "Men"], ["non-binary", "Non-binary people"]] as const;
 const LANGS = ["English", "French", "Portuguese", "Spanish", "Italian", "German", "Mandarin", "Arabic"];
@@ -102,8 +103,32 @@ export function SettingsSheet() {
           <Choice label="Profile visibility" value={s?.profile_visibility ?? "friends"} options={[{ value: "friends", label: "Friends only" }, { value: "link", label: "Anyone with my share link" }, { value: "nobody", label: "Only me" }]} onChange={(v) => save({ profile_visibility: v })} />
           <p className="mt-1 text-xs text-muted-foreground">Exact addresses and private plans are never shared.</p>
         </div>
+        <h3 className="mt-6 eyebrow">Account</h3>
+        <div className="border-b border-border py-4">
+          <p className="mb-2 font-bold">Account type</p>
+          <Choice label="Account type" value={s?.account_type ?? "personal"} options={[{ value: "personal", label: "Personal" }, { value: "business", label: "Business" }, { value: "institution", label: "Institution" }]} onChange={(v) => save({ account_type: v as "personal" })} />
+          {s?.account_type && s.account_type !== "personal" && <Button asChild variant="outline" size="sm" className="mt-2"><Link to="/organisations/new" search={{ kind: s.account_type === "business" ? "business" : "institution" }}>Set up organisation profile</Link></Button>}
+        </div>
+        <AdminControls />
         <Button asChild variant="link" className="mt-4 px-0"><Link to="/about">How Juntos works</Link></Button>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function AdminControls() {
+  const isAdmin = useIsAppAdmin(), hidden = useExamplesHidden(), qc = useQueryClient();
+  if (!isAdmin) return null;
+  return (
+    <>
+      <h3 className="mt-6 eyebrow">App admin</h3>
+      <Row label="Show example data" hint="Examples only fill gaps until each city has 6 real events.">
+        <Switch aria-label="Show example data" checked={!hidden} onCheckedChange={async (v) => { const { error } = await supabase.rpc("set_hide_examples", { _hide: !v }); if (error) toast.error(error.message); else { await qc.invalidateQueries(); toast.success(v ? "Examples shown where needed" : "All examples hidden"); } }} />
+      </Row>
+      <div className="border-b border-border py-4 space-y-2">
+        <Button asChild variant="outline" size="sm"><Link to="/admin/review">Official status review queue</Link></Button>
+        <Button variant="destructive" size="sm" className="block" onClick={async () => { if (!window.confirm("Permanently delete every example plan, traveller, organisation and social example? This cannot be undone.")) return; const { data, error } = await supabase.rpc("delete_all_examples"); if (error) toast.error(error.message); else { await qc.invalidateQueries(); toast.success(`Deleted ${data} example items`); } }}>Delete all examples permanently</Button>
+      </div>
+    </>
   );
 }

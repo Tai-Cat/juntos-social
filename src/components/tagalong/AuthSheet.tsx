@@ -30,9 +30,8 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
         const {data:profile}=await supabase.from("profiles").select("onboarded").eq("id",user.id).single();
         if(!profile?.onboarded){await navigate({to:"/onboarding"});return;}
         if(saved.intent.kind==="join" || saved.intent.kind==="rsvp" && saved.intent.status==="going"){
-          const {data:age}=await supabase.from("profile_private").select("date_of_birth,age_verified").eq("user_id",user.id).maybeSingle();
+          const {data:age}=await supabase.from("profile_private").select("date_of_birth").eq("user_id",user.id).maybeSingle();
           if(!age?.date_of_birth){await navigate({to:"/onboarding"});return;}
-          if(!age.age_verified){await navigate({to:"/verify"});return;}
         }
         await completeIntent(saved.intent,user.id);
         clearIntent();setOpen(false);setPending(null);

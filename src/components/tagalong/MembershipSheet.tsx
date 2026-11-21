@@ -21,6 +21,7 @@ export function MembershipSheet() {
           <tbody>
             <tr className="border-b border-border"><td className="py-2">Browse, join, chat, make friends</td><td className="text-center"><Check className="mx-auto h-4 w-4 text-grass" /></td><td className="text-center"><Check className="mx-auto h-4 w-4 text-grass" /></td></tr>
             <tr className="border-b border-border"><td className="py-2">Saved alerts</td><td className="text-center text-xs">2</td><td className="text-center text-xs">Unlimited</td></tr>
+            <tr className="border-b border-border"><td className="py-2">Create groups and communities</td><td className="text-center text-xs">3</td><td className="text-center text-xs">Unlimited</td></tr>
             {PLUS_FEATURES.filter((f) => f.name !== "Unlimited saved alerts").map((f) => (
               <tr key={f.name} className="border-b border-border"><td className="py-2">{f.name}{!f.ready && <span className="ml-1 text-xs text-muted-foreground">· soon</span>}</td><td className="text-center">{FREE_HAS.has(f.name) ? <Check className="mx-auto h-4 w-4 text-grass" /> : <Minus className="mx-auto h-4 w-4 text-muted-foreground" />}</td><td className="text-center"><Check className={`mx-auto h-4 w-4 ${f.ready ? "text-grass" : "text-muted-foreground"}`} /></td></tr>
             ))}

@@ -1,0 +1,70 @@
+
+CREATE OR REPLACE FUNCTION public.guard_v4_join() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $f$ DECLARE p public.plans; dob date; years integer; BEGIN SELECT * INTO p FROM public.plans WHERE id=NEW.plan_id; SELECT date_of_birth INTO dob FROM public.profile_private WHERE user_id=NEW.user_id; IF dob IS NULL OR dob>current_date-interval '18 years' THEN RAISE EXCEPTION 'Add your date of birth and confirm you are 18 or over before joining.'; END IF; years:=extract(year FROM age(p.starts_at::date,dob)); IF years<coalesce(p.age_min,18) OR years>coalesce(p.age_max,120) THEN RAISE EXCEPTION 'This plan is for a different age bracket. Try another welcoming plan.'; END IF; IF NOT public.org_access(p.organisation_id,NEW.user_id) THEN RAISE EXCEPTION 'Join this organisation before requesting its events.'; END IF; IF NEW.bring_buddy AND (p.age_min IS NOT NULL OR p.age_max IS NOT NULL OR p.organisation_id IS NOT NULL) THEN RAISE EXCEPTION 'For restricted plans, each person needs their own request.'; END IF; RETURN NEW; END $f$;
+
+DO $$ BEGIN CREATE TYPE public.app_role AS ENUM ('admin','moderator','user'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+CREATE TABLE IF NOT EXISTS public.user_roles (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users(id) on delete cascade not null, role public.app_role not null, unique(user_id,role));
+GRANT SELECT ON public.user_roles TO authenticated; GRANT ALL ON public.user_roles TO service_role;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id=auth.uid());
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT EXISTS(SELECT 1 FROM public.user_roles WHERE user_id=_user_id AND role=_role) $$;
+INSERT INTO public.user_roles(user_id,role) VALUES('b59a86c3-9ec4-4cc2-a600-aa65830472b7','admin') ON CONFLICT DO NOTHING;
+
+CREATE OR REPLACE FUNCTION public.org_admin(_org uuid, _user uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS $f$ SELECT EXISTS(SELECT 1 FROM public.organisation_members WHERE organisation_id=_org AND user_id=_user AND role IN ('owner','admin')) $f$;
+CREATE OR REPLACE FUNCTION public.org_host(_org uuid, _user uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS $f$ SELECT EXISTS(SELECT 1 FROM public.organisation_members WHERE organisation_id=_org AND user_id=_user AND role IN ('owner','admin','host')) $f$;
+CREATE OR REPLACE FUNCTION public.guard_v4_plan() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $f$ BEGIN IF NEW.age_min IS NOT NULL AND (NEW.age_min<18 OR NEW.age_min>120) OR NEW.age_max IS NOT NULL AND (NEW.age_max<coalesce(NEW.age_min,18) OR NEW.age_max>120) THEN RAISE EXCEPTION 'Choose a valid adult age range.'; END IF; IF NEW.host_id IS NULL THEN RETURN NEW; END IF; IF TG_OP='INSERT' AND NOT NEW.is_example AND NOT EXISTS(SELECT 1 FROM public.profile_private WHERE user_id=NEW.host_id AND date_of_birth<=current_date-interval '18 years') THEN RAISE EXCEPTION 'Add your date of birth and confirm you are 18 or over before hosting.'; END IF; IF NEW.organisation_id IS NOT NULL AND NOT NEW.is_example AND NOT public.org_host(NEW.organisation_id,NEW.host_id) THEN RAISE EXCEPTION 'Only organisation hosts and admins can post on its behalf.'; END IF; RETURN NEW; END $f$;
+
+CREATE TABLE public.generated_images (key text primary key, data text, mime text not null default 'image/jpeg', prompt text not null, created_at timestamptz not null default now());
+GRANT ALL ON public.generated_images TO service_role;
+ALTER TABLE public.generated_images ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE public.app_config (id boolean primary key default true check (id), hide_examples boolean not null default false);
+INSERT INTO public.app_config DEFAULT VALUES;
+GRANT SELECT ON public.app_config TO anon, authenticated; GRANT ALL ON public.app_config TO service_role;
+ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "config readable" ON public.app_config FOR SELECT TO anon, authenticated USING (true);
+CREATE OR REPLACE FUNCTION public.set_hide_examples(_hide boolean) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ BEGIN IF NOT public.has_role(auth.uid(),'admin') THEN RAISE EXCEPTION 'App admins only'; END IF; UPDATE public.app_config SET hide_examples=_hide; END $f$;
+CREATE OR REPLACE FUNCTION public.delete_all_examples() RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ DECLARE n integer:=0; c integer; BEGIN IF NOT public.has_role(auth.uid(),'admin') THEN RAISE EXCEPTION 'App admins only'; END IF; DELETE FROM public.social_examples; GET DIAGNOSTICS c=ROW_COUNT; n:=n+c; DELETE FROM public.plans WHERE is_example; GET DIAGNOSTICS c=ROW_COUNT; n:=n+c; DELETE FROM public.trips WHERE is_example; GET DIAGNOSTICS c=ROW_COUNT; n:=n+c; DELETE FROM public.organisations WHERE is_example; GET DIAGNOSTICS c=ROW_COUNT; n:=n+c; UPDATE public.app_config SET hide_examples=true; RETURN n; END $f$;
+
+ALTER TABLE public.organisations ADD COLUMN kind text not null default 'institution' check (kind in ('business','institution','community')),
+ ADD COLUMN official_status text not null default 'none' check (official_status in ('none','pending','approved','rejected')),
+ ADD COLUMN cover_url text, ADD COLUMN category text not null default '', ADD COLUMN city text not null default '',
+ ADD COLUMN website text, ADD COLUMN contact_email text, ADD COLUMN created_by uuid, ADD COLUMN group_discounts boolean not null default false,
+ ADD COLUMN created_at timestamptz not null default now();
+UPDATE public.organisations SET official_status='approved' WHERE is_official;
+ALTER TABLE public.organisation_members DROP CONSTRAINT organisation_members_role_check;
+ALTER TABLE public.organisation_members ADD CONSTRAINT organisation_members_role_check CHECK (role in ('member','host','admin','owner'));
+UPDATE public.organisation_members m SET role='owner' FROM public.organisations o WHERE o.id=m.organisation_id AND o.slug='insead' AND m.user_id='b59a86c3-9ec4-4cc2-a600-aa65830472b7';
+CREATE POLICY "members see fellow members" ON public.organisation_members FOR SELECT TO authenticated USING (public.org_member(organisation_id,auth.uid()));
+ALTER TABLE public.user_settings ADD COLUMN account_type text not null default 'personal' check (account_type in ('personal','business','institution'));
+
+CREATE TABLE public.official_requests (id uuid primary key default gen_random_uuid(), organisation_id uuid not null references public.organisations(id) on delete cascade, requested_by uuid not null, work_email text, website text, note text not null default '', status text not null default 'pending' check (status in ('pending','approved','rejected')), created_at timestamptz not null default now());
+GRANT SELECT ON public.official_requests TO authenticated; GRANT ALL ON public.official_requests TO service_role;
+ALTER TABLE public.official_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "requester org admins and app admins" ON public.official_requests FOR SELECT TO authenticated USING (requested_by=auth.uid() OR public.org_admin(organisation_id,auth.uid()) OR public.has_role(auth.uid(),'admin'));
+
+CREATE OR REPLACE FUNCTION public.create_organisation(_kind text,_name text,_slug text,_description text,_category text,_city text,_visibility text,_question text,_website text DEFAULT NULL,_email text DEFAULT NULL,_cover text DEFAULT NULL,_passphrase text DEFAULT NULL) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ DECLARE oid uuid; n integer; BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Sign in first'; END IF;
+ IF _kind NOT IN ('business','institution','community') OR length(trim(_name)) NOT BETWEEN 2 AND 80 OR _slug !~ '^[a-z0-9-]{3,40}$' OR length(coalesce(_description,''))>3000 OR _visibility NOT IN ('open','members','private') OR length(coalesce(_question,''))>500 THEN RAISE EXCEPTION 'Check the name, handle and details'; END IF;
+ IF EXISTS(SELECT 1 FROM public.organisations WHERE slug=_slug) THEN RAISE EXCEPTION 'That handle is taken'; END IF;
+ PERFORM pg_advisory_xact_lock(hashtext('orgs'||auth.uid()::text));
+ IF _kind='community' AND NOT EXISTS(SELECT 1 FROM public.user_settings WHERE user_id=auth.uid() AND demo_plus) THEN SELECT count(*) INTO n FROM public.organisations WHERE created_by=auth.uid() AND kind='community'; IF n>=3 THEN RAISE EXCEPTION 'Free accounts can create up to 3 groups. Juntos Plus allows unlimited groups.'; END IF; END IF;
+ INSERT INTO public.organisations(name,slug,description,category,city,visibility,question,website,contact_email,cover_url,kind,created_by,is_example,official_status,allowed_domains,about) VALUES(trim(_name),_slug,coalesce(_description,''),coalesce(_category,''),coalesce(_city,''),_visibility,coalesce(_question,''),_website,_email,_cover,_kind,auth.uid(),false,CASE WHEN _kind='community' THEN 'none' ELSE 'pending' END,'{}','') RETURNING id INTO oid;
+ INSERT INTO public.organisation_members(organisation_id,user_id,role) VALUES(oid,auth.uid(),'owner');
+ IF coalesce(_passphrase,'')<>'' THEN INSERT INTO public.organisation_secrets VALUES(oid,encode(sha256(convert_to(trim(_passphrase),'UTF8')),'hex')); END IF;
+ RETURN oid; END $f$;
+
+CREATE OR REPLACE FUNCTION public.update_org_profile(_org uuid,_name text,_category text,_city text,_website text,_email text,_cover text,_logo text,_group_discounts boolean) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ BEGIN IF NOT public.org_admin(_org,auth.uid()) THEN RAISE EXCEPTION 'Organisation admins only'; END IF; IF length(trim(_name)) NOT BETWEEN 2 AND 80 THEN RAISE EXCEPTION 'Invalid name'; END IF; UPDATE public.organisations SET name=trim(_name),category=coalesce(_category,''),city=coalesce(_city,''),website=nullif(_website,''),contact_email=nullif(_email,''),cover_url=nullif(_cover,''),logo_url=nullif(_logo,''),group_discounts=(_group_discounts AND kind='business') WHERE id=_org; END $f$;
+
+CREATE OR REPLACE FUNCTION public.set_org_member_role(_org uuid,_user uuid,_role text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ BEGIN IF NOT public.org_admin(_org,auth.uid()) OR _role NOT IN ('member','host','admin') THEN RAISE EXCEPTION 'Organisation admins only'; END IF; IF EXISTS(SELECT 1 FROM public.organisation_members WHERE organisation_id=_org AND user_id=_user AND role='owner') THEN RAISE EXCEPTION 'The owner role cannot be changed'; END IF; UPDATE public.organisation_members SET role=_role WHERE organisation_id=_org AND user_id=_user; END $f$;
+
+CREATE OR REPLACE FUNCTION public.delete_org(_org uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ BEGIN IF NOT EXISTS(SELECT 1 FROM public.organisation_members WHERE organisation_id=_org AND user_id=auth.uid() AND role='owner') THEN RAISE EXCEPTION 'Only the owner can delete this'; END IF; UPDATE public.plans SET organisation_id=NULL, visibility='link' WHERE organisation_id=_org; DELETE FROM public.organisations WHERE id=_org; END $f$;
+
+CREATE OR REPLACE FUNCTION public.request_official(_org uuid,_email text,_website text,_note text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ BEGIN IF NOT public.org_admin(_org,auth.uid()) THEN RAISE EXCEPTION 'Organisation admins only'; END IF; IF coalesce(_email,'')='' AND coalesce(_website,'')='' THEN RAISE EXCEPTION 'Add a work email or website'; END IF; IF coalesce(_email,'')<>'' AND _email !~ '^[^@\s]+@[^@\s]+\.[a-z]{2,}$' THEN RAISE EXCEPTION 'Enter a valid work email'; END IF; IF length(coalesce(_note,''))>1000 THEN RAISE EXCEPTION 'Note is too long'; END IF; DELETE FROM public.official_requests WHERE organisation_id=_org AND status='pending'; INSERT INTO public.official_requests(organisation_id,requested_by,work_email,website,note) VALUES(_org,auth.uid(),nullif(_email,''),nullif(_website,''),coalesce(_note,'')); UPDATE public.organisations SET official_status='pending' WHERE id=_org; END $f$;
+
+CREATE OR REPLACE FUNCTION public.review_official(_request uuid,_approve boolean) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $f$ DECLARE r public.official_requests; BEGIN IF NOT public.has_role(auth.uid(),'admin') THEN RAISE EXCEPTION 'App admins only'; END IF; SELECT * INTO r FROM public.official_requests WHERE id=_request FOR UPDATE; IF r.id IS NULL THEN RAISE EXCEPTION 'Request not found'; END IF; UPDATE public.official_requests SET status=CASE WHEN _approve THEN 'approved' ELSE 'rejected' END WHERE id=r.id; UPDATE public.organisations SET official_status=CASE WHEN _approve THEN 'approved' ELSE 'rejected' END, is_official=_approve WHERE id=r.organisation_id; END $f$;
+
+CREATE TABLE public.plan_views (plan_id uuid not null references public.plans(id) on delete cascade, viewer uuid not null, viewed_on date not null default current_date, primary key(plan_id,viewer,viewed_on));
+GRANT INSERT ON public.plan_views TO authenticated; GRANT ALL ON public.plan_views TO service_role;
+ALTER TABLE public.plan_views ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "log own view" ON public.plan_views FOR INSERT TO authenticated WITH CHECK (viewer=auth.uid());
+CREATE OR REPLACE FUNCTION public.org_analytics(_org uuid) RETURNS TABLE(plan_id uuid,title text,starts_at timestamptz,views bigint,going integer,saves bigint) LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $f$ BEGIN IF NOT public.org_host(_org,auth.uid()) THEN RAISE EXCEPTION 'Organisation team only'; END IF; RETURN QUERY SELECT p.id,p.title,p.starts_at,(SELECT count(*) FROM public.plan_views v WHERE v.plan_id=p.id),p.going_count,(SELECT count(*) FROM public.saved_plans s WHERE s.plan_id=p.id) FROM public.plans p WHERE p.organisation_id=_org ORDER BY p.starts_at DESC; END $f$;

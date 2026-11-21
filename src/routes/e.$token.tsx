@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/tagalong/AppShell";
 import { useAuthAction } from "@/components/tagalong/AuthSheet";
 import { Button } from "@/components/ui/button";
-import { placeholderImage, isRealPhoto } from "@/lib/placeholder";
+import { planFallback, isRealPhoto } from "@/lib/placeholder";
 import { formatWhen } from "@/lib/tagalong";
 
 export const Route = createFileRoute("/e/$token")({
@@ -36,7 +36,7 @@ function LinkPlan() {
         <p className="py-10">This link has been reset or turned off. Ask the host for a new one.</p>
       ) : (
         <article className="mx-auto max-w-xl py-6">
-          <img src={isRealPhoto(p.image_url) && p.image_url ? p.image_url : placeholderImage(p.genre)} alt={p.title} className="aspect-[16/10] w-full rounded-lg object-cover" />
+          <img src={isRealPhoto(p.image_url) && p.image_url ? p.image_url : planFallback(p)} alt={p.title} className="aspect-[16/10] w-full rounded-lg object-cover" />
           <p className="mt-4 inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-bold"><Lock className="h-3 w-3" />Private</p>
           <h1 className="mt-2 text-3xl">{p.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{formatWhen(p.starts_at)} · {p.area_label}</p>

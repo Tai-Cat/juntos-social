@@ -70,11 +70,11 @@ function Verify() {
 
   return (
     <div className="mx-auto max-w-md px-6 py-10">
-      <p className="eyebrow">Step 2 of 2</p>
+      <p className="eyebrow">Optional</p>
       <h1 className="mt-2 text-3xl">Verify it's you</h1>
       <p className="mt-3 rounded-md border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-        Demo verification. Photos stay on your device and are not checked. You'll be marked verified
-        after 3 seconds. This also confirms your saved birth date in demo mode, not a real ID check.
+        Optional. Verifying adds a Verified badge to your profile; you can join, RSVP, post and host without it.
+        Demo verification: photos stay on your device and are not checked.
       </p>
 
       {state === "done" ? (

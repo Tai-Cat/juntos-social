@@ -31,11 +31,7 @@
 
 ## Accounts and groups (next)
 - [x] Official INSEAD: badge, pinned, About, you as admin (events already belong to INSEAD)
-- [ ] Account types Personal/Business/Institution, org profile, team roles, analytics, group discounts
-- [ ] Request Official status + admin review queue
-- [ ] Personal groups/communities (privacy, questions, co-hosts, delete), free limit 3, Plus unlimited
-- [ ] Post as dropdown; Create group/organisation in Profile
-- [ ] Test: create group, business account, approve member via question
+- [x] Done in Finish list below
 
 ## Photo-only policy (now)
 - [x] Remove generated flyers + illustrated placeholders everywhere; plain tinted placeholder only
@@ -58,8 +54,9 @@
 - [ ] Admin: Settings switch to hide all examples; delete-all-examples action
 
 ## Finish list (Nov 21)
-- [ ] AI image fallback for plans, interests, trips, cities, groups (cached, credited)
-- [ ] Example fade-out per city (6 real), admin hide switch, admin delete-all
-- [ ] Accounts & groups (types, Request Official + review queue, groups, Post as, Create entries, 3-group limit row)
-- [ ] Edit plan screen with visibility
-- [ ] Remove ID/selfie age-check requirement: self-declared DOB + 18+ checkbox; Verify optional badge only
+- [x] AI image fallback for plans, interests, trips, cities, groups (cached, credited)
+- [x] Example fade-out per city (6 real), admin hide switch, admin delete-all
+- [x] Accounts & groups (types, Request Official + review queue, groups, Post as, Create entries, 3-group limit row)
+- [x] Edit plan screen with visibility
+- [x] Remove ID/selfie age-check requirement: self-declared DOB + 18+ checkbox; Verify optional badge only
+- [x] INSEAD clubs as sub-groups: one INSEAD card in Browse, category sections on INSEAD page, breadcrumbs, admin create/rename/move/archive, inherited membership
