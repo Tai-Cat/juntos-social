@@ -52,6 +52,13 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
     }
     sessionStorage.setItem("tagalong-return", window.location.pathname + window.location.search);
     if(intent)rememberIntent(intent);
+    // On phones the bottom sheet fights the on-screen keyboard (iOS covers the
+    // password field). Use the full sign-up page there; the saved intent and
+    // return path bring people back to what they were doing after signing in.
+    if (window.matchMedia("(pointer: coarse) and (max-width: 820px)").matches) {
+      navigate({ to: "/auth", search: { mode: "signup" } as never });
+      return;
+    }
     setPending(()=>intent?null:action);
     setReason(why);
     setOpen(true);

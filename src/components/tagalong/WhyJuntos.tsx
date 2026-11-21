@@ -23,7 +23,7 @@ export function HomeHero() {
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-card px-3 py-2">
         <p className="text-xs">
           <span className="font-bold">Free to join.</span>{" "}
-          <span className="text-muted-foreground">Juntos Plus</span> <span className="font-bold">€5 / month</span>
+          <span className="text-muted-foreground">Plus</span> <span className="font-bold">€5</span> <span className="text-muted-foreground">· Club</span> <span className="font-bold">€10 / month</span>
         </p>
         <a
           href={PLUS_PAYMENT_LINK}

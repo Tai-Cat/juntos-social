@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import { MANAGE_SUBSCRIPTION_LINK } from "@/lib/plus";
 import { useIsAppAdmin } from "@/hooks/use-app-config";
 import { PlusCheckoutButton } from "./PlusCheckout";
 import { Lock, Check } from "lucide-react";
@@ -44,6 +46,10 @@ export function Membership() {
           ) : !plus && <div className="mt-4"><PlusCheckoutButton label="Get Plus" /></div>}
         </article>
       </div>
+      <p className="mt-3 text-sm">
+        Want more? <Link to="/pricing" className="font-bold text-tangerine underline">Juntos Club is €10 / month</Link>.{" "}
+        Already a member? <a href={MANAGE_SUBSCRIPTION_LINK} target="_blank" rel="noopener noreferrer" className="font-bold underline">Manage or cancel your subscription</a>.
+      </p>
       <ul className="mt-5 divide-y divide-border">
         {PLUS_FEATURES.map((f) => (
           <li key={f.name} className="flex items-center gap-3 py-3 text-sm">
