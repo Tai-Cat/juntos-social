@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check, Crown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-auth";
-import { CLUB_ONCE_LINK, CLUB_PAYMENT_LINK, CLUB_PERKS, MANAGE_SUBSCRIPTION_LINK, PLUS_ONCE_LINK, PLUS_PAYMENT_LINK, withUser } from "@/lib/plus";
+import { PayLink } from "@/components/tagalong/PayLink";
+import { CLUB_ONCE_LINK, CLUB_PAYMENT_LINK, CLUB_PERKS, MANAGE_SUBSCRIPTION_LINK, PLUS_ONCE_LINK, PLUS_PAYMENT_LINK } from "@/lib/plus";
 import { AppShell } from "@/components/tagalong/AppShell";
 import { PLUS_FEATURES } from "@/components/tagalong/Membership";
 
@@ -58,7 +59,7 @@ function Pricing() {
           <p className="eyebrow">Juntos Plus · most popular</p>
           <p className="mt-1 font-display text-3xl">€5 <span className="text-base">/ month</span></p>
           <p className="mt-2 flex-1 text-sm">Level filters, unlimited alerts and groups, host tools.</p>
-          <TierButtons tier="Plus" price={5} monthly={withUser(PLUS_PAYMENT_LINK, user)} once={withUser(PLUS_ONCE_LINK, user)} />
+          <TierButtons tier="Plus" price={5} monthly={PLUS_PAYMENT_LINK} once={PLUS_ONCE_LINK} />
         </article>
         <article className="flex flex-col rounded-lg border-2 border-foreground bg-card p-5">
           <p className="eyebrow">Juntos Club</p>
@@ -69,7 +70,7 @@ function Pricing() {
               <li key={p} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-grass" aria-hidden />{p}</li>
             ))}
           </ul>
-          <TierButtons tier="Club" price={10} monthly={withUser(CLUB_PAYMENT_LINK, user)} once={withUser(CLUB_ONCE_LINK, user)} />
+          <TierButtons tier="Club" price={10} monthly={CLUB_PAYMENT_LINK} once={CLUB_ONCE_LINK} />
         </article>
       </div>
       <p className="mt-3 max-w-4xl text-xs text-muted-foreground">
@@ -99,12 +100,12 @@ function TierButtons({ tier, price, monthly, once }: { tier: string; price: numb
   return (
     <div className="mt-4 space-y-2">
       <Button asChild className="w-full">
-        <a href={monthly} target="_blank" rel="noopener noreferrer"><Crown />{tier} monthly · €{price} · auto-renews</a>
+        <PayLink href={monthly}><Crown />{tier} monthly · €{price} · auto-renews</PayLink>
       </Button>
       <Button asChild variant="outline" className="w-full">
-        <a href={once} target="_blank" rel="noopener noreferrer">{tier} for 1 month · €{price} · no renewal</a>
+        <PayLink href={once}>{tier} for 1 month · €{price} · no renewal</PayLink>
       </Button>
-      <p className="text-xs text-muted-foreground">Your benefits switch on as soon as the payment goes through.</p>
+      <p className="text-xs text-muted-foreground">You'll sign in or create your free account first, so the membership is linked to you. Benefits switch on as soon as the payment goes through.</p>
     </div>
   );
 }
