@@ -162,6 +162,13 @@
       "when": 1795279165623,
       "tag": "0022_org_subgroups",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795280134544,
+      "tag": "0023_tighten_open_read_policies",
+      "breakpoints": true
     }
   ]
 }
