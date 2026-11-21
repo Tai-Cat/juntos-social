@@ -3,14 +3,16 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { usePlus } from "@/hooks/use-plus";
+import { useIsAppAdmin } from "@/hooks/use-app-config";
 import { PLUS_FEATURES } from "./Membership";
 import { PlusCheckoutButton } from "./PlusCheckout";
 const FREE_HAS = new Set<string>();
 export function MembershipSheet() {
   const { plus, setPlus } = usePlus();
+  const isAdmin = useIsAppAdmin();
   return (
     <Sheet>
-      <SheetTrigger asChild><Button variant="outline"><Crown />{plus ? "Plus (demo)" : "Membership"}</Button></SheetTrigger>
+      <SheetTrigger asChild><Button variant="outline"><Crown />{plus ? "Plus" : "Membership"}</Button></SheetTrigger>
       <SheetContent className="w-full overflow-y-auto bg-background sm:max-w-md">
         <SheetHeader><SheetTitle className="font-display text-3xl">Membership</SheetTitle></SheetHeader>
         <div className="mt-5 grid grid-cols-2 gap-3">
@@ -29,10 +31,10 @@ export function MembershipSheet() {
           </tbody>
         </table>
         {!plus && <div className="mt-5"><PlusCheckoutButton label="Get Plus" /></div>}
-        <div className="mt-6 rounded-lg border border-border bg-card p-4">
-          <div className="flex items-center justify-between"><span className="font-bold">Simulate Plus (demo)</span><Switch aria-label="Simulate Plus" checked={plus} onCheckedChange={setPlus} /></div>
-          <p className="mt-1 text-xs text-muted-foreground">Payments aren't connected yet, so nothing is charged.</p>
-        </div>
+        {isAdmin && <div className="mt-6 rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center justify-between"><span className="font-bold">Simulate Plus (admin only)</span><Switch aria-label="Simulate Plus" checked={plus} onCheckedChange={setPlus} /></div>
+          <p className="mt-1 text-xs text-muted-foreground">Testing switch, visible to admins only.</p>
+        </div>}
       </SheetContent>
     </Sheet>
   );

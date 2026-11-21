@@ -81,12 +81,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Juntos — join plans, meet people in real life" },
       {
         name: "description",
-        content: "Turn your plans into plus-ones, and venues' empty slots into full tables.",
+        content: "Making friends as an adult is hard: finding a place, matching schedules and the cost get in the way. On Juntos the plan, the time and a group discount are already set; you just tap Join.",
       },
       { property: "og:title", content: "Juntos" },
       {
         property: "og:description",
-        content: "Turn your plans into plus-ones, and venues' empty slots into full tables.",
+        content: "Making friends as an adult is hard: finding a place, matching schedules and the cost get in the way. On Juntos the plan, the time and a group discount are already set; you just tap Join.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

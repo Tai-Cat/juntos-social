@@ -9,6 +9,7 @@ import { LocationPicker } from "./LocationPicker";
 import { setExplorePrefs, useExplorePrefs } from "@/lib/explore-prefs";
 import { cityName } from "@/lib/catalog";
 import { JuntosLogo } from "./JuntosLogo";
+import { SiteFooter } from "./SiteFooter";
 import { useNotificationFeed } from "./Notifications";
 const NAV = [
   { to: "/feed", label: "Explore", icon: Compass },
@@ -63,6 +64,9 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
           >
             {onExplore && mapOn ? <List className="h-5 w-5" /> : <Map className="h-5 w-5" />}
           </Button>
+          <Button asChild size="sm" variant={loc.pathname === "/pricing" ? "secondary" : "ghost"} className="px-2 text-xs font-bold">
+            <Link to="/pricing">Pricing</Link>
+          </Button>
           <Button asChild size="icon" variant={loc.pathname.startsWith("/calendar") ? "secondary" : "ghost"} aria-label="Calendar" title="Calendar">
             <Link to="/calendar"><CalendarDays className="h-5 w-5" /></Link>
           </Button>
@@ -98,6 +102,7 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
           </div>
         )}
         {children}
+        <SiteFooter />
       </main>
       <nav
         aria-label="Main navigation"

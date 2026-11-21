@@ -14,7 +14,12 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FeedRouteImport } from './routes/feed'
+import { Route as LegalRouteImport } from './routes/legal'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TravelRouteImport } from './routes/travel'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -62,9 +67,34 @@ const CalendarRoute = CalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeedRoute = FeedRouteImport.update({
   id: '/feed',
   path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TravelRoute = TravelRouteImport.update({
@@ -188,7 +218,12 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRoute
+  '/contact': typeof ContactRoute
   '/feed': typeof FeedRoute
+  '/legal': typeof LegalRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -217,7 +252,12 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRoute
+  '/contact': typeof ContactRoute
   '/feed': typeof FeedRoute
+  '/legal': typeof LegalRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -248,7 +288,12 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRoute
+  '/contact': typeof ContactRoute
   '/feed': typeof FeedRoute
+  '/legal': typeof LegalRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -279,7 +324,12 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/calendar'
+    | '/contact'
     | '/feed'
+    | '/legal'
+    | '/pricing'
+    | '/privacy'
+    | '/terms'
     | '/travel'
     | '/inbox'
     | '/onboarding'
@@ -308,7 +358,12 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/calendar'
+    | '/contact'
     | '/feed'
+    | '/legal'
+    | '/pricing'
+    | '/privacy'
+    | '/terms'
     | '/travel'
     | '/inbox'
     | '/onboarding'
@@ -338,7 +393,12 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/calendar'
+    | '/contact'
     | '/feed'
+    | '/legal'
+    | '/pricing'
+    | '/privacy'
+    | '/terms'
     | '/travel'
     | '/_authenticated/inbox'
     | '/_authenticated/onboarding'
@@ -369,7 +429,12 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
   CalendarRoute: typeof CalendarRoute
+  ContactRoute: typeof ContactRoute
   FeedRoute: typeof FeedRoute
+  LegalRoute: typeof LegalRoute
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   TravelRoute: typeof TravelRoute
   ETokenRoute: typeof ETokenRoute
   FriendsInviteRoute: typeof FriendsInviteRoute
@@ -418,11 +483,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/feed': {
       id: '/feed'
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/travel': {
@@ -632,7 +732,12 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
   CalendarRoute: CalendarRoute,
+  ContactRoute: ContactRoute,
   FeedRoute: FeedRoute,
+  LegalRoute: LegalRoute,
+  PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   TravelRoute: TravelRoute,
   ETokenRoute: ETokenRoute,
   FriendsInviteRoute: FriendsInviteRoute,

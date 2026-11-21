@@ -377,7 +377,7 @@ function PlanDetail() {
         </Row>
         <Row icon={<Users className="h-4 w-4" />}>
           {plan.going_count >= plan.capacity && <span className="mr-2 rounded-full bg-foreground px-2.5 py-0.5 text-xs font-bold text-background">Sold out</span>}
-          {plan.going_count} of {plan.capacity} going · {AUDIENCE_LABEL[plan.audience]}
+          {plan.going_count < plan.capacity && `${plan.going_count} of ${plan.capacity} going · `}{AUDIENCE_LABEL[plan.audience]}
         </Row>
         {plan.step_free && <Row icon={<Accessibility className="h-4 w-4" />}>Step-free access</Row>}
       </dl>

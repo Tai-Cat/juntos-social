@@ -17,9 +17,9 @@ export const Route = createFileRoute("/_authenticated/verify")({
   head: () => ({
     meta: [
       { title: "Verify it's you — Juntos" },
-      { name: "description", content: "Demo identity verification." },
+      { name: "description", content: "Optional identity check that adds a Verified badge to your Juntos profile." },
       { property: "og:title", content: "Verify it's you — Juntos" },
-      { property: "og:description", content: "Demo identity verification." },
+      { property: "og:description", content: "Optional identity check that adds a Verified badge to your Juntos profile." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -74,7 +74,7 @@ function Verify() {
       <h1 className="mt-2 text-3xl">Verify it's you</h1>
       <p className="mt-3 rounded-md border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
         Optional. Verifying adds a Verified badge to your profile; you can join, RSVP, post and host without it.
-        Demo verification: photos stay on your device and are not checked.
+        Your photos stay on your device.
       </p>
 
       {state === "done" ? (

@@ -70,6 +70,33 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       direct_messages: {
         Row: {
           body: string
@@ -2059,6 +2086,10 @@ export type Database = {
       }
       start_org_email_demo: {
         Args: { _email: string; _org: string }
+        Returns: string
+      }
+      submit_contact: {
+        Args: { _email: string; _message: string; _name: string }
         Returns: string
       }
       update_org_profile: {

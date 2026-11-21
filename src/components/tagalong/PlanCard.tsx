@@ -117,7 +117,7 @@ export function PlanCard({
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
           <div className="flex -space-x-2" aria-label="Going avatars">
-            {Array.from({ length: Math.min(4, plan.going_count) }, (_, i) => (
+            {Array.from({ length: plan.going_count >= plan.capacity ? 0 : Math.min(4, plan.going_count) }, (_, i) => (
               <span
                 key={i}
                 className="grid h-7 w-7 place-items-center rounded-full border-2 border-card bg-sunflower text-[10px] font-bold"
@@ -127,7 +127,7 @@ export function PlanCard({
             ))}
           </div>
           <span className="rounded-full bg-card px-2.5 py-1 font-semibold">
-            {plan.going_count}/{plan.capacity} going
+            {plan.going_count >= plan.capacity ? "Sold out" : `${plan.going_count}/${plan.capacity} going`}
           </span>
           <span className="font-bold">
             {Number(plan.base_price) > 0 ? `${priceLabel(plan)} / person` : priceLabel(plan)}
@@ -156,7 +156,7 @@ export function PlanCard({
         )}
         <div className="mt-4 flex items-center justify-between text-xs">
           <span className="font-bold text-grass">
-            {plan.going_count >= plan.capacity ? "Sold out · waiting list open" : `${Math.max(0, plan.capacity - plan.going_count)} spots left`}
+            {plan.going_count >= plan.capacity ? "Waiting list open" : `${Math.max(0, plan.capacity - plan.going_count)} spots left`}
           </span>
           <Link
             to="/plans/$planId"

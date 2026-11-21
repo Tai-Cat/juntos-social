@@ -28,7 +28,7 @@ import { Empty } from "@/components/tagalong/bits";
 import { ExploreControls } from "@/components/tagalong/ExploreControls";
 import { SimilarPeople } from "@/components/tagalong/SimilarPeople";
 import { CityInput } from "@/components/tagalong/CityInput";
-import { WhyJuntosLine } from "@/components/tagalong/WhyJuntos";
+import { HomeHero } from "@/components/tagalong/WhyJuntos";
 import { PLAN_SELECT, type PlanWithHost } from "@/lib/tagalong";
 import { emptyFilters, matchesPlan } from "@/lib/explore-filters";
 import { cityName } from "@/lib/catalog";
@@ -93,6 +93,7 @@ export function Feed() {
   return (
     <AppShell>
       <h1 className="sr-only">Good plans, great company — plans in {city}</h1>
+      <HomeHero />
       <div className="relative">
         <Search className="absolute left-4 top-4 h-5 w-5 text-tangerine" />
         <Input
@@ -103,7 +104,6 @@ export function Feed() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-      {ready && !user && <WhyJuntosLine />}
       <ExploreControls filters={filters} onChange={setFilters} plus={plus} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl">Near you</h2>

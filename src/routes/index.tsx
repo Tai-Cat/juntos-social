@@ -8,12 +8,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Meet people in real life by joining plans they're already doing, at home or while travelling.",
+          "Making friends as an adult is hard: finding a place, matching schedules and the cost get in the way. On Juntos the plan, the time and a group discount are already set; you just tap Join.",
       },
       { property: "og:title", content: "Juntos — turn your plans into plus-ones" },
       {
         property: "og:description",
-        content: "Turn your plans into plus-ones, and venues' empty slots into full tables.",
+        content: "Making friends as an adult is hard: finding a place, matching schedules and the cost get in the way. On Juntos the plan, the time and a group discount are already set; you just tap Join.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -1,3 +1,5 @@
+import { useIsAppAdmin } from "@/hooks/use-app-config";
+import { PlusCheckoutButton } from "./PlusCheckout";
 import { Lock, Check } from "lucide-react";
 import { usePlus } from "@/hooks/use-plus";
 import { Switch } from "@/components/ui/switch";
@@ -18,6 +20,7 @@ export const PLUS_FEATURES = [
 ];
 export function Membership() {
   const { plus, setPlus } = usePlus();
+  const isAdmin = useIsAppAdmin();
   return (
     <section className="mt-8">
       <h2 className="mb-4 text-2xl">Membership</h2>
@@ -30,14 +33,15 @@ export function Membership() {
           </p>
         </article>
         <article className="genre-ideas rounded-lg border border-border p-5">
-          <p className="eyebrow">{plus ? "Your demo membership" : "A little more Juntos"}</p>
+          <p className="eyebrow">{plus ? "Your membership" : "A little more Juntos"}</p>
           <h3 className="mt-2 text-3xl">Juntos Plus</h3>
           <p className="mt-2 font-bold">€5 / month</p>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-sm">Simulate Plus (demo)</span>
-            <Switch aria-label="Simulate Plus" checked={plus} onCheckedChange={setPlus} />
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">No payment taken.</p>
+          {isAdmin ? (
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-sm">Simulate Plus (admin only)</span>
+              <Switch aria-label="Simulate Plus" checked={plus} onCheckedChange={setPlus} />
+            </div>
+          ) : !plus && <div className="mt-4"><PlusCheckoutButton label="Get Plus" /></div>}
         </article>
       </div>
       <ul className="mt-5 divide-y divide-border">

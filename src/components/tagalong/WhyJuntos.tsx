@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { WHY_JUNTOS, dismissWhyLine, whyLineDismissed } from "@/lib/why-juntos";
 
@@ -8,6 +9,17 @@ export function WhyJuntosCard() {
     <div className="rounded-lg border border-border bg-card px-5 py-4">
       <p className="eyebrow">Why Juntos</p>
       <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted-foreground">{WHY_JUNTOS}</p>
+    </div>
+  );
+}
+
+/** Problem statement shown to everyone at the top of Home and Explore. */
+export function HomeHero() {
+  return (
+    <div className="mb-4">
+      <p className="font-display text-2xl leading-tight sm:text-3xl">Good plans, great company</p>
+      <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">{WHY_JUNTOS}</p>
+      <Link to="/pricing" className="mt-1 inline-block text-xs font-bold text-tangerine underline-offset-2 hover:underline">See pricing</Link>
     </div>
   );
 }
