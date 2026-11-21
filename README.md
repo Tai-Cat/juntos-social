@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Juntos
+
+Build "Tagalong", a mobile-first web app for meeting people in real life by joining plans they are already doing, locally and while travelling. Pitch line on the landing page: "Turn your plans into plus-ones, and venues' empty slots into full tables." DESIGN (warm minimal, gender-neutral): sand background #EFE9DF, card #F8F4EC, charcoal text #2A2824, muted #6E675C, hairlines #D8CFC0, one accent tangerine #E2642A used sparingly. Headings in a serif (Fraunces from Google Fonts), body in Inter. Lots of white space, thin dividers, rounded 14px cards, no gradients, no emoji, no pink/blue gender coding. Provide a matching dark mode (deep warm charcoal #1C1A17, cards #26231F, same tangerine). BACKEND: use Lovable Cloud (Supabase) with email sign-in. Tables: profiles (name, pronouns, self-described gender: woman / man / non-binary / prefer not to say, verified boolean, reliability_score, no_show_count), plans (host, title, category, kind: partner_venue or chill, area label, exact venue address, starts_at, capacity, base_price, audience: everyone / women_only / men_only / nonbinary_only / lgbtq_friendly, step_free boolean, is_travel boolean, country, city, recurring_weekly boolean), join_requests (plan, user, status pending/approved/declined, bring_buddy boolean), trips (user, country, city, start_date, end_date, interests text[]), plus row-level security so users only edit their own rows and exact venue addresses are only readable by the host and approved joiners. SCREENS: 1. Landing: pitch line, 3-step "how it works", buttons "Find a plan" and "Post a plan". 2. Home feed with two tabs: "Near you" and "Travelling". Filter chips: Today, Daytime, Evening, Off-peak, Free, Partner venues, Step-free, and an Audience filter (Everyone, Women only, Men only, Non-binary only, LGBTQ+ friendly). 3. Plan card: category, title, AREA ONLY (e.g. "Bastille, 11e") never the exact address, time, "3 of 6 going", host first name with Verified badge and reliability %. For partner venues show price and a discount progress bar: 4+ people = 15% off, 6+ = 25% off, with copy like "2 more for 15% off". 4. Plan detail: join with optional "Bring a buddy (+1)" toggle creating a pending join request. Status shows "Waiting for host approval". Once approved, the exact venue unlocks 2 hours before start (show a countdown and a lock icon until then). After the plan, show "Same time next week?" which creates a recurring copy for the same group, and a "Would hang again" tap. 5. Host inbox: list of join requests with requester first name, Verified badge, reliability %, buddy flag; Approve / Decline buttons. 6. Post a plan: quick templates (Dog walk, Laundry run, Market wander, Co-working, Pottery, Dinner, Climbing), then fields for area, exact address (private), time, capacity, kind, price, audience, step-free, repeat weekly. 7. Travelling tab: "Add a trip" (country, city, dates, interests). Show "Travellers overlapping with you" (same city, overlapping dates, shared interests count) and travel plans in that city. Each traveller card: first name, dates, shared interests, Verified badge, "Say hi" button. 8. "What's on in [city]" section on the trip page: calls a Supabase edge function named "whats-on" that uses the Tavily search API (secret TAVILY_API_KEY, endpoint https://api.tavily.com/search, POST with query like "things to do and events in Lisbon 12-18 December", search_depth "advanced", max_results 8, include_answer true). Show results as cards (title, short summary, source link) each with a "Turn into a plan" button that pre-fills the Post a plan form. Do not hardcode the key; ask me to add the secret. 9. Verification: in onboarding the user picks their gender themselves (self-ID, including non-binary), then a 2-step "Verify it's you" flow (upload ID photo, take selfie) that for now is a mocked check which marks verified = true after 3 seconds, with clear copy "Demo verification". Plans with audience women_only / men_only / nonbinary_only can only be joined by verified users whose self-described gender matches; LGBTQ+ friendly is open to everyone who opts in. Gender is private and never shown publicly. 10. Safety: plans only at public places or partner venues (checkbox "This is a public place" required), report and block on every profile and plan, plan group chat auto-closes 24h after the plan. Two no-shows means join requests always need approval and reliability drops. 11. Profile: name, pronouns, interests, verified badge, reliability %, my plans, my trips. SEED DATA: create about 12 example plans in Paris (pottery at a partner studio in the 11e, ramen tasting, bouldering intro, dog walk in Bois de Vincennes, laundry run + coffee on Oberkampf, Marché d'Aligre wander, women-only sunset run, LGBTQ+ friendly board-game night, daytime co-working, step-free museum visit) and 6 travel plans/travellers in Lisbon, Porto, Rome and Barcelona, all clearly labelled "Example" so the demo looks alive. Payments: add a disabled placeholder "Reserve with €3 refundable deposit" on partner-venue plans; we will connect Stripe later.
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://juntos-social.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/f4426cb2-9f47-497b-a649-8e45222bad5b).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
