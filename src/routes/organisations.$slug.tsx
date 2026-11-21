@@ -43,7 +43,7 @@ function OrganisationPage(){
    {access.data?.host&&<Button asChild variant="outline"><Link to="/post">Post an event</Link></Button>}
   </div>
   {parent&&!org.question&&!access.data?.member&&<ClubJoin org={org} parent={parent}/>}
-  {parent&&!org.question&&access.data?.member&&!role&&<ClubJoin org={org} parent={parent} inherited/>}
+  {parent&&!org.question&&access.data?.member&&!role&&!org.entry_rule&&<ClubJoin org={org} parent={parent} inherited/>}
   {(!parent||org.question)&&<OrganisationAccess org={org}/>}
   {children.length>0&&<SubGroupSections children={children} plans={[...(events.data??[]),...(clubTeasers.data??[]).filter(t=>!(events.data??[]).some(e=>e.id===t.id))]}/>}
   <OrgEventTabs plans={plans}/>{teasers.data?.map(p=><LockedEventTeaser key={p.id} plan={p}/>)}
@@ -52,7 +52,7 @@ function OrganisationPage(){
 }
 function ClubJoin({org,parent,inherited=false}:{org:Org;parent:Org;inherited?:boolean}){
  const auth=useAuthAction(),qc=useQueryClient();
- return <section className="my-4 rounded-lg border border-border bg-card p-4 text-sm"><p>{inherited?`You can see ${org.name} through your ${parent.name} membership.`:`${parent.name} members can join ${org.name} without another check.`}</p><Button className="mt-2" size="sm" onClick={()=>auth(async()=>{const {data,error}=await supabase.rpc("request_org_access",{_org:org.id,_answer:""});if(error)toast.error(error.message.includes("Answer")?`Join ${parent.name} first to access this club.`:error.message);else{toast.success(data==="approved"?`You joined ${org.name}`:"Request sent");await qc.invalidateQueries();}},`join ${org.name}`)}>Join club</Button></section>;
+ return <section className="my-4 rounded-lg border border-border bg-card p-4 text-sm"><p>{org.entry_rule?`${org.name} sets its own entry rule. Ask to join and a club admin will review your request.`:inherited?`You can see ${org.name} through your ${parent.name} membership.`:`${parent.name} members can join ${org.name} without another check.`}</p><Button className="mt-2" size="sm" onClick={()=>auth(async()=>{const {data,error}=await supabase.rpc("request_org_access",{_org:org.id,_answer:""});if(error)toast.error(error.message.includes("Answer")?`Join ${parent.name} first to access this club.`:error.message);else{toast.success(data==="approved"?`You joined ${org.name}`:"An admin will review your request");await qc.invalidateQueries();}},`join ${org.name}`)}>Join club</Button></section>;
 }
 function SubGroupSections({children,plans}:{children:Org[];plans:{id:string;organisation_id:string|null;starts_at:string;ends_at?:string|null}[]}){
  const sections=[...new Set([...SECTION_ORDER.filter(s=>children.some(c=>c.section===s)),...children.map(c=>c.section||"Other")])];

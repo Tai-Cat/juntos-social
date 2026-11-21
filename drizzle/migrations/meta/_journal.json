@@ -183,6 +183,13 @@
       "when": 1795289846555,
       "tag": "0025_plans_capacity_up_to_500",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1795290393132,
+      "tag": "0026_club_entry_rule_override",
+      "breakpoints": true
     }
   ]
 }

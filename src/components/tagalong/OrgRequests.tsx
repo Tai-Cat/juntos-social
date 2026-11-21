@@ -80,7 +80,7 @@ function EntryRules({ orgId, isSubgroup, entryRule, domains }: { orgId: string; 
   useEffect(() => setRule(entryRule ?? (isSubgroup ? "inherit" : "manual")), [entryRule, isSubgroup]);
   async function save(v: string) {
     setRule(v);
-    const { error } = await supabase.rpc("set_entry_rule", { _org: orgId, ...(v === "inherit" ? {} : { _rule: v }) } as { _org: string; _rule: string });
+    const { error } = await supabase.rpc("set_entry_rule", { _org: orgId, _rule: (v === "inherit" ? null : v) as string });
     if (error) toast.error(error.message); else { toast.success("Entry rule saved"); await qc.invalidateQueries(); }
   }
   const options = [...(isSubgroup ? [{ value: "inherit", label: "Same as parent", hint: "Use the parent organisation's rule. Parent members join without a second check." }] : []), ...RULES];
@@ -115,4 +115,18 @@ export function PushToggle() {
 
 export function RequestsLink({ orgId }: { orgId: string }) {
   return <Link to="/organisation-admin/$orgId" params={{ orgId }} hash="requests">Requests</Link>;
+}
+
+/** Profile card: how to install Juntos on a phone and turn on notifications. */
+export function PhoneNotificationsCard() {
+  return (
+    <section className="mt-7 rounded-lg border border-border bg-card p-4">
+      <h2 className="flex items-center gap-2 text-xl"><Bell className="h-5 w-5" />Get notifications on your phone</h2>
+      <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+        <li>Add Juntos to your home screen. iPhone: Safari › Share › Add to Home Screen. Android: Chrome menu › Install app.</li>
+        <li>Open Juntos from the new icon, then tap Turn on notifications.</li>
+      </ol>
+      <div className="mt-3"><PushToggle /></div>
+    </section>
+  );
 }

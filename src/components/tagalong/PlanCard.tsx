@@ -83,6 +83,9 @@ export function PlanCard({
           label={plan.activity}
           fallback={planFallback(plan)}
         />
+        {plan.going_count >= plan.capacity && !plan.is_example && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-foreground px-3 py-1 text-xs font-bold text-background">Sold out</span>
+        )}
         <div className="absolute left-3 top-3">
           <span className={`category-chip ${genreClass(plan.genre)}`}>{plan.activity}</span>
         </div>
@@ -153,7 +156,7 @@ export function PlanCard({
         )}
         <div className="mt-4 flex items-center justify-between text-xs">
           <span className="font-bold text-grass">
-            {Math.max(0, plan.capacity - plan.going_count)} spots left
+            {plan.going_count >= plan.capacity ? "Sold out · waiting list open" : `${Math.max(0, plan.capacity - plan.going_count)} spots left`}
           </span>
           <Link
             to="/plans/$planId"

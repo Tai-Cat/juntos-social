@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Choice } from "@/components/tagalong/Choice";
 import { TripCard } from "@/components/tagalong/TripCard";
 import { PLUS_MONTHLY_EUR } from "@/lib/catalog";
+import { PhoneNotificationsCard } from "@/components/tagalong/OrgRequests";
 import { PersonalInterests } from "@/components/tagalong/PersonalInterests";
 import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -191,6 +192,7 @@ function ProfilePage() {
         <FriendsPanel />
       ) : (
         <>
+          <PhoneNotificationsCard />
           <section className="mt-7">
             <h2 className="mb-3 text-2xl">Your interests and levels</h2>
             <PersonalInterests

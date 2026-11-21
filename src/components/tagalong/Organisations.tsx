@@ -45,7 +45,9 @@ export function OrganisationAccess({org}:{org:Org}){
  const usesDomain=rule.data?.rule==="domain"||rule.data?.rule==="domain_and_answer";
  const instant=rule.data?.rule==="domain"&&rule.data.domainOk;
  async function request(){setBusy(true);const {data,error}=await supabase.rpc("request_org_access",{_org:org.id,_answer:answer});setBusy(false);if(error){toast.error(error.message);return;}
-  toast.success(data==="approved"?`Welcome to ${org.name}`:"Request sent. The organisers will review it.");
+  // A typed address on an allowed domain that isn't the confirmed sign-up email can't be verified yet (no email sender), so it goes to manual review.
+  const typedDomain=org.allowed_domains.some(d=>answer.toLowerCase().includes("@"+d.toLowerCase()));
+  if(data==="approved")toast.success(`Welcome to ${org.name}`);else toast.success("An admin will review your request",{description:typedDomain&&!rule.data?.domainOk?`We can only auto-approve your confirmed sign-up email. The ${org.allowed_domains.join(", ")} address you typed will be checked by an admin.`:undefined});
   void notifyOrgAdmins({data:{orgId:org.id}}).catch(()=>{});
   await qc.invalidateQueries();}
  const status=req.data?.status;

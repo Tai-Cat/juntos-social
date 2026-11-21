@@ -87,3 +87,17 @@ export function InterestedButton({ planId }: { planId: string }) {
     </div>
   );
 }
+
+/** Sold-out plans: joining the waiting list saves the plan, so the person shows in the host's Interested list. */
+export function WaitingListButton({ planId }: { planId: string }) {
+  const auth = useAuthAction();
+  return (
+    <div className="space-y-1">
+      <Button variant="outline" className="w-full" onClick={() => auth(async (account) => {
+        const { error } = await supabase.from("saved_plans").upsert({ user_id: account.id, plan_id: planId });
+        if (error) toast.error(error.message); else toast.success("You're on the waiting list. The host can see you.");
+      }, "join the waiting list")}>Join waiting list</Button>
+      <p className="text-center text-xs text-muted-foreground">The host sees everyone on the waiting list and can let you know if a place opens.</p>
+    </div>
+  );
+}

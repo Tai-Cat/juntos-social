@@ -1,6 +1,6 @@
 import { planFallback } from "@/lib/placeholder";
 import { PlanPeople } from "@/components/tagalong/PlanPeople";
-import { PlanVisibilityPanel, MemberNote, InterestedButton } from "@/components/tagalong/PlanVisibility";
+import { PlanVisibilityPanel, MemberNote, InterestedButton, WaitingListButton } from "@/components/tagalong/PlanVisibility";
 import { PlanInvites } from "@/components/tagalong/PlanInvites";
 import { PhotoCarousel } from "@/components/tagalong/PhotoCarousel";
 import { Share2, Bookmark, Download } from "lucide-react";
@@ -376,6 +376,7 @@ function PlanDetail() {
           {plan.area_label}, {plan.city}
         </Row>
         <Row icon={<Users className="h-4 w-4" />}>
+          {plan.going_count >= plan.capacity && <span className="mr-2 rounded-full bg-foreground px-2.5 py-0.5 text-xs font-bold text-background">Sold out</span>}
           {plan.going_count} of {plan.capacity} going · {AUDIENCE_LABEL[plan.audience]}
         </Row>
         {plan.step_free && <Row icon={<Accessibility className="h-4 w-4" />}>Step-free access</Row>}
@@ -481,8 +482,9 @@ function PlanDetail() {
                   plan.going_count >= plan.capacity
                 }
               >
-                {plan.going_count >= plan.capacity ? "Full" : "Request to join"}
+                {plan.going_count >= plan.capacity ? "Sold out" : "Request to join"}
               </Button>
+              {plan.going_count >= plan.capacity && <WaitingListButton planId={plan.id} />}
               {ageMismatch&&<p className="text-sm text-muted-foreground">This plan welcomes ages {ageLabel(plan.age_min,plan.age_max)}. Your bracket is different — try another welcoming plan.</p>}
             </>
           )}

@@ -1,3 +1,7 @@
+// EMAIL ALERTS (off): join-request emails to owners/admins are intentionally not sent because the
+// project has no verified email sender domain yet. To switch on later: set up an email domain,
+// scaffold app-email templates, add a "join-request" template (requester name, answer, Approve link to
+// /organisation-admin/<orgId>) and call sendTemplateEmail for each admin inside notifyOrgAdmins below.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
