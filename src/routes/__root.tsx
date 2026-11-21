@@ -119,7 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 // Light mode is intentional, independent of device preference.
-const themeScript = `(function(){try{document.documentElement.classList.remove('dark');document.documentElement.dataset.doodles=localStorage.getItem('tagalong-doodles')==='off'?'off':'on';if(sessionStorage.getItem('juntos-splash')==='seen')document.documentElement.dataset.splash='seen'}catch(e){}})()`;
+const themeScript = `(function(){try{document.documentElement.classList.remove('dark');document.documentElement.dataset.doodles=localStorage.getItem('tagalong-doodles')==='off'?'off':'on';if(sessionStorage.getItem('juntos-splash')==='seen')document.documentElement.dataset.splash='seen';if(localStorage.getItem('juntos-welcome')==='seen')document.documentElement.dataset.welcome='seen'}catch(e){}})()`;
 const SPLASH_LINES = ["Good plans, great company.", "Turn your plans into plus-ones.", "Find a plan.", "Join the company.", "Meet in real life."];
 
 function RootShell({ children }: { children: ReactNode }) {

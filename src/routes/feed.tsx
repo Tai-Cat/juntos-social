@@ -6,7 +6,7 @@ import { lazy, Suspense } from "react";
 import { ClientOnly } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { List, Map, LayoutGrid, CalendarDays, Dumbbell, Utensils, Palette, Laptop, BookOpen, Trees, Dice5, Flower2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { EventRow, CompactEventList, LockedEventTeaser } from "@/components/tagalong/EventViews";
 import { OrganisationDirectory } from "@/components/tagalong/Organisations";
 import { GENRES,genreClass } from "@/lib/catalog";
@@ -28,7 +28,7 @@ import { Empty } from "@/components/tagalong/bits";
 import { ExploreControls } from "@/components/tagalong/ExploreControls";
 import { SimilarPeople } from "@/components/tagalong/SimilarPeople";
 import { CityInput } from "@/components/tagalong/CityInput";
-import { HomeHero } from "@/components/tagalong/WhyJuntos";
+import { WelcomeScreen } from "@/components/tagalong/WelcomeScreen";
 import { PLAN_SELECT, type PlanWithHost } from "@/lib/tagalong";
 import { emptyFilters, matchesPlan } from "@/lib/explore-filters";
 import { cityName } from "@/lib/catalog";
@@ -46,6 +46,7 @@ export const Route = createFileRoute("/feed")({
   component: Feed,
 });
 export function Feed() {
+  const isHome = useLocation().pathname === "/";
   const { profile } = useMyProfile();
   const blocks = useBlocks();
   const { plus } = usePlus();
@@ -93,7 +94,7 @@ export function Feed() {
   return (
     <AppShell>
       <h1 className="sr-only">Good plans, great company — plans in {city}</h1>
-      <HomeHero />
+      {isHome && <WelcomeScreen />}
       <div className="relative">
         <Search className="absolute left-4 top-4 h-5 w-5 text-tangerine" />
         <Input

@@ -25,17 +25,21 @@ export const Route = createFileRoute("/privacy")({
           <li>Private details: date of birth and self-described gender, visible only to you and used for age brackets and plan audience rules.</li>
           <li>Activity: plans you post or join, friends, groups, messages, alerts and notifications.</li>
           <li>Messages you send through the contact form.</li>
+          <li>Membership: your plan (Plus or Club) and the Stripe customer reference that links your payment to your account. We never see or store card details.</li>
+          <li>If you turn on phone notifications: the push address your browser gives us, so we can send them.</li>
         </ul>
         <h2>Why</h2>
         <p>Only to run Juntos: show you plans, let hosts and guests meet, keep the community safe, and handle Plus membership.</p>
         <h2>Who receives it</h2>
         <ul>
           <li>Lovable hosts the app and Supabase stores the data.</li>
-          <li>Stripe handles Plus payments; it receives your email and payment details directly.</li>
+          <li>Stripe handles Plus and Club payments; it receives your email and payment details directly.</li>
           <li>Photos for plans may come from Unsplash; your data is not sent there.</li>
         </ul>
         <h2>Visitor statistics</h2>
         <p>The site counts visits with Lovable's analytics, which uses no cookies, stores nothing on your device, doesn't keep IP addresses and doesn't identify you. It records pages visited, where visitors came from, country, browser, operating system, device type, time on page, page speed, errors and clicks. Detailed data is kept for 90 days and daily summaries for a year. Lovable collects this data for us. <a className="underline" href="https://lovable.dev/privacy" target="_blank" rel="noopener noreferrer">Lovable's privacy policy</a> explains how it handles it.</p>
+        <h2>On your device</h2>
+        <p>Juntos saves a few settings in your browser's local storage so the app works as you expect, for example that you have seen the welcome screen, dismissed the install pop-up, or were in the middle of joining a plan. These are not used for tracking or advertising, and you can clear them in your browser settings.</p>
         <h2>We never sell your data</h2>
         <p>Your data is not sold or shared for advertising.</p>
         <h2>Deleting your account</h2>
