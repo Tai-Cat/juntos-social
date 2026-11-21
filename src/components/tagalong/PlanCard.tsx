@@ -1,3 +1,4 @@
+import { genreClass, imageFor } from "@/lib/catalog";
 import { Link } from "@tanstack/react-router";
 import { Accessibility, MapPin } from "lucide-react";
 import { AUDIENCE_LABEL, formatWhen, hostOf, type PlanWithHost } from "@/lib/tagalong";
@@ -24,11 +25,19 @@ export function DiscountBar({ going, basePrice }: { going: number; basePrice: nu
         <span className="text-xs text-muted-foreground">{next ?? "25% off unlocked"}</span>
       </div>
       <div className="relative h-1 w-full rounded-full bg-muted">
-        <div className="absolute inset-y-0 left-0 rounded-full bg-tangerine" style={{ width: `${tierProgress(going) * 100}%` }} />
-        <div className="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-muted-foreground/50" style={{ left: `${(4 / 6) * 100}%` }} />
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-tangerine"
+          style={{ width: `${tierProgress(going) * 100}%` }}
+        />
+        <div
+          className="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-muted-foreground/50"
+          style={{ left: `${(4 / 6) * 100}%` }}
+        />
       </div>
       <div className="flex justify-between text-[10px] text-muted-foreground">
-        <span>0</span><span className="ml-auto mr-[28%]">4+ · 15%</span><span>6+ · 25%</span>
+        <span>0</span>
+        <span className="ml-auto mr-[28%]">4+ · 15%</span>
+        <span>6+ · 25%</span>
       </div>
     </div>
   );
@@ -37,32 +46,63 @@ export function DiscountBar({ going, basePrice }: { going: number; basePrice: nu
 export function PlanCard({ plan }: { plan: PlanWithHost }) {
   const host = hostOf(plan);
   return (
-    <Link to="/plans/$planId" params={{ planId: plan.id }} className="block rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/30">
-      <div className="flex items-center justify-between gap-2">
-        <span className="eyebrow">{plan.category}{plan.kind === "partner_venue" && " · Partner venue"}</span>
-        {plan.is_example && <ExampleTag />}
-      </div>
-      <h3 className="mt-2 text-xl leading-snug">{plan.title}</h3>
-      <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-        <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" strokeWidth={1.5} />{plan.area_label}</p>
-        <p>{formatWhen(plan.starts_at)}</p>
-      </div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3 text-sm">
-        <span className="font-medium">{plan.going_count} of {plan.capacity} going</span>
-        <span className="text-muted-foreground">·</span>
-        <span>{host.name}</span>
-        <VerifiedBadge verified={host.verified} />
-        <span className="text-xs text-muted-foreground">{host.reliability}% reliable</span>
-      </div>
-      {(plan.audience !== "everyone" || plan.step_free) && (
-        <div className="mt-2 flex gap-3 text-xs text-muted-foreground">
-          {plan.audience !== "everyone" && <span>{AUDIENCE_LABEL[plan.audience]}</span>}
-          {plan.step_free && <span className="inline-flex items-center gap-1"><Accessibility className="h-3 w-3" />Step-free</span>}
+    <Link
+      to="/plans/$planId"
+      params={{ planId: plan.id }}
+      className={`plan-card block ${genreClass(plan.genre)}`}
+    >
+      <div className="relative aspect-[16/9] overflow-hidden">
+        <img
+          src={plan.image_url || imageFor(plan.activity, plan.genre)}
+          alt={plan.activity}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+        <div className="absolute left-3 top-3">
+          <span className={`category-chip ${genreClass(plan.genre)}`}>{plan.activity}</span>
         </div>
-      )}
-      {plan.kind === "partner_venue" && Number(plan.base_price) > 0 && (
-        <div className="mt-4"><DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} /></div>
-      )}
+        {plan.is_example && (
+          <span className="absolute right-3 top-3 rounded-full bg-card px-2 py-1">
+            <ExampleTag />
+          </span>
+        )}
+      </div>
+      <div className="p-5">
+        <p className="text-xs font-bold text-tangerine">{formatWhen(plan.starts_at)}</p>
+        <h3 className="mt-2 text-2xl font-semibold leading-tight">{plan.title}</h3>
+        <p className="mt-2 truncate text-sm text-muted-foreground">
+          {plan.description || `A little ${plan.activity}, good company included.`}
+        </p>
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <MapPin className="h-3.5 w-3.5 shrink-0" />
+          {plan.area_label}
+          {plan.step_free && <Accessibility className="ml-auto h-4 w-4" aria-label="Step-free" />}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full bg-card px-2.5 py-1 font-semibold">
+            {plan.going_count}/{plan.capacity} going
+          </span>
+          <span className="font-bold">
+            {Number(plan.base_price) === 0 ? "Free" : `~€${Number(plan.base_price)} / person`}
+          </span>
+          <span className="ml-auto capitalize">
+            {plan.required_level === "any" ? "All abilities" : plan.required_level}
+          </span>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3 text-xs">
+          <span className="font-bold">{host.name}</span>
+          <VerifiedBadge verified={host.verified} />
+          <span className="rounded-full bg-card px-2 py-1">{host.reliability}% reliable</span>
+        </div>
+        {plan.audience !== "everyone" && (
+          <p className="mt-2 text-xs">{AUDIENCE_LABEL[plan.audience]}</p>
+        )}
+        {plan.kind === "partner_venue" && Number(plan.base_price) > 0 && (
+          <div className="mt-4">
+            <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} />
+          </div>
+        )}
+      </div>
     </Link>
   );
 }

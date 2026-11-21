@@ -1,41 +1,66 @@
 import { useEffect, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Compass, Inbox, Plus, User } from "lucide-react";
+import { Compass, Plane, Inbox, Plus, User, MapPin } from "lucide-react";
 import { useMyProfile } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-
 const NAV = [
-  { to: "/feed", label: "Plans", icon: Compass },
+  { to: "/feed", label: "Explore", icon: Compass },
+  { to: "/travel", label: "Travel", icon: Plane },
   { to: "/post", label: "Post", icon: Plus },
   { to: "/inbox", label: "Inbox", icon: Inbox },
-  { to: "/profile", label: "You", icon: User },
+  { to: "/profile", label: "Profile", icon: User },
 ] as const;
-
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
-  const { profile } = useMyProfile();
+  const { profile, loading } = useMyProfile();
   const loc = useLocation();
   const navigate = useNavigate();
-
   useEffect(() => {
-    if (profile && !profile.onboarded && !loc.pathname.startsWith("/onboarding") && !loc.pathname.startsWith("/verify")) {
+    if (
+      !loading &&
+      profile &&
+      !profile.onboarded &&
+      !loc.pathname.startsWith("/onboarding") &&
+      !loc.pathname.startsWith("/verify")
+    )
       navigate({ to: "/onboarding" });
-    }
-  }, [profile, loc.pathname, navigate]);
-
+  }, [profile, loading, loc.pathname, navigate]);
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col">
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/95 px-5 py-4 backdrop-blur">
-        <Link to="/feed" className="font-display text-2xl">Tagalong</Link>
-        {title && <span className="eyebrow">{title}</span>}
+    <div className="mx-auto min-h-screen max-w-6xl border-x border-border bg-background">
+      <header className="sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/95 px-5 py-4 backdrop-blur sm:px-8">
+        <Link to="/feed" className="font-display text-3xl font-semibold">
+          Tagalong<span className="text-tangerine">.</span>
+        </Link>
+        <span className="flex min-w-0 items-center gap-1 text-xs font-semibold">
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-tangerine" />
+          {title ?? profile?.home_city ?? "Paris"}
+        </span>
       </header>
-      <main className="flex-1 px-5 pb-28 pt-6">{children}</main>
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto grid max-w-md grid-cols-4">
+      <main className="app-main px-4 pb-28 pt-6 sm:px-8">{children}</main>
+      <nav
+        aria-label="Main navigation"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      >
+        <div className="mx-auto grid max-w-3xl grid-cols-5">
           {NAV.map(({ to, label, icon: Icon }) => {
             const active = loc.pathname.startsWith(to);
             return (
-              <Link key={to} to={to} search={{}} className={cn("flex flex-col items-center gap-1 py-3 text-[11px]", active ? "text-foreground" : "text-muted-foreground")}>
-                <Icon className={cn("h-5 w-5", active && to === "/post" && "text-tangerine")} strokeWidth={1.5} />
+              <Link
+                key={to}
+                to={to}
+                search={{}}
+                className={cn(
+                  "flex min-w-0 flex-col items-center gap-1 py-3 text-[10px] font-bold sm:text-xs",
+                  active ? "text-tangerine" : "text-muted-foreground",
+                )}
+              >
+                <span
+                  className={cn(
+                    "grid h-8 w-10 place-items-center rounded-lg",
+                    active && "bg-tangerine-soft",
+                  )}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 1.8} />
+                </span>
                 {label}
               </Link>
             );

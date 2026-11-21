@@ -35,3 +35,8 @@ use the editor.
 - Join eligibility, auto-approval and going counts are enforced by DB triggers on `join_requests`, not client code. Why: the client can't be trusted for audience restrictions.
 - The "whats-on" Tavily search is a TanStack server function (`src/lib/whats-on.functions.ts`), not a Supabase edge function. Why: this stack uses createServerFn for app-internal server logic.
 - Discount tiers live in `src/lib/discount.ts` with tests. Why: one source for card copy and pricing.
+- Activity catalogue and image lookup are shared client-safe modules; reuse them in onboarding, filters, posting and profiles so categories stay consistent.
+- Demo Plus is persisted in owner-only settings; a database trigger verifies it when a poster sets a required level so client controls cannot bypass the gate.
+- Saved alert matching and notification creation run in database triggers, using the saved timezone so plans posted outside the app also generate alerts.
+- Direct messages use participant-only RLS and bidirectional block checks, with lifecycle-scoped Realtime subscriptions so blocked users cannot read or send messages.
+- Email confirmation returns to a public callback before entering onboarding; authenticated pages must not be used as confirmation callbacks because sessions hydrate after the redirect.

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
 import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,31 +13,56 @@ export function VerifiedBadge({ verified, className }: { verified: boolean; clas
   );
 }
 
-export function Chip({ active, onClick, children }: { active?: boolean; onClick?: () => void; children: ReactNode }) {
+export function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick?: () => void;
+  children: ReactNode;
+}) {
   return (
-    <button
+    <Button
+      variant="outline"
       type="button"
       onClick={onClick}
       aria-pressed={active}
       className={cn(
         "shrink-0 rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-        active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground hover:border-foreground/40",
+        active
+          ? "border-foreground bg-foreground text-background"
+          : "border-border bg-card text-foreground hover:border-foreground/40",
       )}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
 export function ExampleTag() {
-  return <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">Example</span>;
+  return (
+    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+      Example
+    </span>
+  );
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("rounded-lg border border-border bg-card p-5", className)}>{children}</div>;
+  return (
+    <div className={cn("rounded-lg border border-border bg-card p-5", className)}>{children}</div>
+  );
 }
 
-export function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+export function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
@@ -49,5 +75,9 @@ export function Section({ title, action, children }: { title: string; action?: R
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="rounded-lg border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">{children}</p>;
+  return (
+    <p className="rounded-lg border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">
+      {children}
+    </p>
+  );
 }

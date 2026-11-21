@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile } from "@/hooks/use-auth";
@@ -9,76 +8,193 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Chip } from "@/components/tagalong/bits";
+import { CityInput } from "@/components/tagalong/CityInput";
+import { InterestPicker } from "@/components/tagalong/InterestPicker";
 import { GENDER_OPTIONS, errMsg } from "@/lib/tagalong";
-
-export const INTERESTS = ["food", "coffee", "hiking", "running", "climbing", "museums", "music", "games", "dogs", "markets", "pottery", "wine", "beach", "photography", "architecture", "co-working"];
-
+import { ACTIVITIES, cityName } from "@/lib/catalog";
+export const INTERESTS = ACTIVITIES;
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => ({ meta: [{ title: "Set up your profile — Tagalong" }, { name: "description", content: "Tell people a little about you." }] }),
+  head: () => ({
+    meta: [
+      { title: "Make yourself at home — Tagalong" },
+      {
+        name: "description",
+        content: "Choose your interests, your city and what you want to learn.",
+      },
+      { property: "og:title", content: "Make yourself at home — Tagalong" },
+      {
+        property: "og:description",
+        content: "Choose your interests, your city and what you want to learn.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Onboarding,
 });
-
 function Onboarding() {
-  const { profile, user } = useMyProfile();
+  const { profile, user, loading } = useMyProfile();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [name, setName] = useState("");
-  const [pronouns, setPronouns] = useState("");
-  const [city, setCity] = useState("Paris");
-  const [gender, setGender] = useState<string>("prefer_not_to_say");
-  const [interests, setInterests] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
-
+  const [privateReady, setPrivateReady] = useState(false);
+  const [name, setName] = useState(""),
+    [pronouns, setPronouns] = useState(""),
+    [city, setCity] = useState("Paris, France"),
+    [gender, setGender] = useState("prefer_not_to_say"),
+    [other, setOther] = useState(""),
+    [interests, setInterests] = useState<string[]>([]),
+    [learning, setLearning] = useState<string[]>([]),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
   useEffect(() => {
     if (!profile) return;
     setName(profile.name);
     setPronouns(profile.pronouns ?? "");
     setCity(profile.home_city);
     setInterests(profile.interests);
+    setLearning(profile.learning_interests);
   }, [profile]);
-
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    setPrivateReady(false);
+    supabase
+      .from("profile_private")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) setError(errMsg(error));
+        if (data) {
+          setGender(data.gender_other ? "other" : data.gender);
+          setOther(data.gender_other ?? "");
+        }
+        setPrivateReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
   async function save() {
     if (!user) return;
     setBusy(true);
+    setError("");
     try {
-      const { error } = await supabase.from("profiles").update({ name, pronouns: pronouns || null, home_city: city, interests }).eq("id", user.id);
-      if (error) throw error;
-      const { error: e2 } = await supabase.from("profile_private").upsert({ user_id: user.id, gender });
+      const { error: e } = await supabase
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          name: name.trim(),
+          pronouns: pronouns.trim() || null,
+          home_city: cityName(city),
+          interests,
+          learning_interests: learning,
+        })
+        .select("id")
+        .single();
+      if (e) throw e;
+      const { error: e2 } = await supabase
+        .from("profile_private")
+        .upsert({
+          user_id: user.id,
+          gender: gender === "other" ? "prefer_not_to_say" : gender,
+          gender_other: gender === "other" ? other.trim() : null,
+        });
       if (e2) throw e2;
-      qc.invalidateQueries({ queryKey: ["profile"] });
-      navigate({ to: "/verify" });
+      await qc.invalidateQueries({ queryKey: ["profile"] });
+      navigate({ to: profile?.onboarded ? "/profile" : "/verify" });
     } catch (e) {
-      toast.error(errMsg(e));
+      setError(errMsg(e));
     } finally {
       setBusy(false);
     }
   }
-
+  if (loading || !privateReady)
+    return (
+      <main className="mx-auto max-w-3xl px-5 py-10">
+        <h1 className="text-3xl">Your kind of people</h1>
+        <p className="mt-4 text-muted-foreground">Loading your profile…</p>
+      </main>
+    );
   return (
-    <div className="mx-auto max-w-md px-6 py-10">
-      <p className="eyebrow">Step 1 of 2</p>
-      <h1 className="mt-2 text-3xl">About you</h1>
+    <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8">
+      <p className="font-display text-2xl">
+        Tagalong<span className="text-tangerine">.</span>
+      </p>
+      <p className="eyebrow mt-8">{profile?.onboarded ? "Your profile" : "Step 1 of 2"}</p>
+      <h1 className="mt-2 text-4xl">Your kind of people</h1>
       <div className="mt-8 space-y-6">
-        <div className="space-y-2"><Label htmlFor="n">First name</Label><Input id="n" value={name} onChange={(e) => setName(e.target.value)} /></div>
-        <div className="space-y-2"><Label htmlFor="p">Pronouns (optional)</Label><Input id="p" placeholder="e.g. she/her, he/him, they/them" value={pronouns} onChange={(e) => setPronouns(e.target.value)} /></div>
-        <div className="space-y-2"><Label htmlFor="c">Home city</Label><Input id="c" value={city} onChange={(e) => setCity(e.target.value)} /></div>
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-medium">How do you describe your gender?</legend>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Private. Never shown on your profile. Only used to check access to group-specific plans.</p>
-          <div className="flex flex-wrap gap-2">
-            {GENDER_OPTIONS.map((g) => <Chip key={g.value} active={gender === g.value} onClick={() => setGender(g.value)}>{g.label}</Chip>)}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="n">First name</Label>
+            <Input id="n" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-        </fieldset>
+          <div className="space-y-2">
+            <Label htmlFor="p">Pronouns (optional)</Label>
+            <Input
+              id="p"
+              value={pronouns}
+              onChange={(e) => setPronouns(e.target.value)}
+              placeholder="e.g. they/them"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="c">Home city</Label>
+          <CityInput id="c" value={city} onChange={setCity} />
+        </div>
         <fieldset className="space-y-3">
-          <legend className="text-sm font-medium">Interests</legend>
+          <legend className="text-sm font-bold">How do you describe your gender?</legend>
+          <p className="flex gap-2 text-xs text-muted-foreground">
+            <Lock className="h-3.5 w-3.5 shrink-0" />
+            Private. Only used for group-specific plans.
+          </p>
           <div className="flex flex-wrap gap-2">
-            {INTERESTS.map((i) => (
-              <Chip key={i} active={interests.includes(i)} onClick={() => setInterests((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]))}>{i}</Chip>
+            {[...GENDER_OPTIONS, { value: "other", label: "Other" }].map((g) => (
+              <Chip key={g.value} active={gender === g.value} onClick={() => setGender(g.value)}>
+                {g.label}
+              </Chip>
             ))}
           </div>
+          {gender === "other" && (
+            <div className="space-y-2">
+              <Label htmlFor="gender-other">Your gender</Label>
+              <Input id="gender-other" value={other} onChange={(e) => setOther(e.target.value)} />
+            </div>
+          )}
         </fieldset>
-        <Button size="lg" className="w-full" onClick={save} disabled={busy || !name.trim()}>Continue</Button>
+        <section>
+          <h2 className="text-2xl">What are you into?</h2>
+          <p className="my-2 text-xs text-muted-foreground">
+            {interests.length} interests selected
+          </p>
+          <InterestPicker selected={interests} onChange={setInterests} city={city} />
+        </section>
+        <section>
+          <h2 className="text-2xl">I want to learn</h2>
+          <p className="my-2 text-xs text-muted-foreground">
+            {learning.length} new adventures selected
+          </p>
+          <InterestPicker selected={learning} onChange={setLearning} city={city} />
+        </section>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <Button
+          size="lg"
+          variant="accent"
+          className="w-full"
+          onClick={save}
+          disabled={
+            busy || loading || !name.trim() || !city.trim() || (gender === "other" && !other.trim())
+          }
+        >
+          {busy ? "Saving…" : profile?.onboarded ? "Save profile" : "Continue"}
+        </Button>
       </div>
-    </div>
+    </main>
   );
 }

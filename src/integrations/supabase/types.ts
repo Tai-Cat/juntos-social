@@ -40,6 +40,48 @@ export type Database = {
           },
         ]
       }
+      direct_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hang_again: {
         Row: {
           created_at: string
@@ -66,6 +108,32 @@ export type Database = {
           },
           {
             foreignKeyName: "hang_again_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interest_levels: {
+        Row: {
+          interest: string
+          level: string
+          user_id: string
+        }
+        Insert: {
+          interest: string
+          level?: string
+          user_id: string
+        }
+        Update: {
+          interest?: string
+          level?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interest_levels_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -111,6 +179,58 @@ export type Database = {
           },
           {
             foreignKeyName: "join_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          alert_id: string | null
+          created_at: string
+          id: string
+          plan_id: string | null
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          alert_id?: string | null
+          created_at?: string
+          id?: string
+          plan_id?: string | null
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          alert_id?: string | null
+          created_at?: string
+          id?: string
+          plan_id?: string | null
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "saved_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -182,6 +302,7 @@ export type Database = {
       }
       plans: {
         Row: {
+          activity: string
           area_label: string
           audience: string
           auto_approve: boolean
@@ -196,20 +317,24 @@ export type Database = {
           example_host_name: string | null
           example_host_reliability: number | null
           example_host_verified: boolean | null
+          genre: string
           going_count: number
           host_id: string | null
           id: string
+          image_url: string | null
           is_example: boolean
           is_public_place: boolean
           is_travel: boolean
           kind: string
           parent_plan_id: string | null
           recurring_weekly: boolean
+          required_level: string
           starts_at: string
           step_free: boolean
           title: string
         }
         Insert: {
+          activity?: string
           area_label: string
           audience?: string
           auto_approve?: boolean
@@ -224,20 +349,24 @@ export type Database = {
           example_host_name?: string | null
           example_host_reliability?: number | null
           example_host_verified?: boolean | null
+          genre?: string
           going_count?: number
           host_id?: string | null
           id?: string
+          image_url?: string | null
           is_example?: boolean
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
           parent_plan_id?: string | null
           recurring_weekly?: boolean
+          required_level?: string
           starts_at: string
           step_free?: boolean
           title: string
         }
         Update: {
+          activity?: string
           area_label?: string
           audience?: string
           auto_approve?: boolean
@@ -252,15 +381,18 @@ export type Database = {
           example_host_name?: string | null
           example_host_reliability?: number | null
           example_host_verified?: boolean | null
+          genre?: string
           going_count?: number
           host_id?: string | null
           id?: string
+          image_url?: string | null
           is_example?: boolean
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
           parent_plan_id?: string | null
           recurring_weekly?: boolean
+          required_level?: string
           starts_at?: string
           step_free?: boolean
           title?: string
@@ -285,14 +417,17 @@ export type Database = {
       profile_private: {
         Row: {
           gender: string
+          gender_other: string | null
           user_id: string
         }
         Insert: {
           gender?: string
+          gender_other?: string | null
           user_id: string
         }
         Update: {
           gender?: string
+          gender_other?: string | null
           user_id?: string
         }
         Relationships: [
@@ -311,6 +446,7 @@ export type Database = {
           home_city: string
           id: string
           interests: string[]
+          learning_interests: string[]
           name: string
           no_show_count: number
           onboarded: boolean
@@ -323,6 +459,7 @@ export type Database = {
           home_city?: string
           id: string
           interests?: string[]
+          learning_interests?: string[]
           name?: string
           no_show_count?: number
           onboarded?: boolean
@@ -335,6 +472,7 @@ export type Database = {
           home_city?: string
           id?: string
           interests?: string[]
+          learning_interests?: string[]
           name?: string
           no_show_count?: number
           onboarded?: boolean
@@ -382,6 +520,38 @@ export type Database = {
             columns: ["target_plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_alerts: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -436,6 +606,29 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          demo_plus: boolean
+          user_id: string
+        }
+        Insert: {
+          demo_plus?: boolean
+          user_id: string
+        }
+        Update: {
+          demo_plus?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waves: {
         Row: {
           created_at: string
@@ -477,6 +670,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      alert_matches: {
+        Args: { f: Json; p: Database["public"]["Tables"]["plans"]["Row"] }
+        Returns: boolean
+      }
       get_plan_address: { Args: { _plan: string }; Returns: string }
       is_plan_host: { Args: { _plan: string; _user: string }; Returns: boolean }
       is_plan_member: {
@@ -484,7 +681,35 @@ export type Database = {
         Returns: boolean
       }
       mark_no_show: { Args: { _request: string }; Returns: undefined }
+      people_blocked: { Args: { a: string; b: string }; Returns: boolean }
       repeat_plan: { Args: { _plan: string }; Returns: string }
+      similar_people: {
+        Args: {
+          _activity?: string
+          _city: string
+          _interests: string[]
+          _level?: string
+        }
+        Returns: {
+          created_at: string
+          home_city: string
+          id: string
+          interests: string[]
+          learning_interests: string[]
+          name: string
+          no_show_count: number
+          onboarded: boolean
+          pronouns: string | null
+          reliability_score: number
+          verified: boolean
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never

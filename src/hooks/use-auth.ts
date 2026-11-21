@@ -23,12 +23,22 @@ export function useMyProfile() {
     queryKey: ["profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", user!.id).single();
+      if (!user) throw new Error("Sign in to load your profile");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
       if (error) throw error;
       return data;
     },
   });
-  return { user, ready, profile: q.data ?? null, loading: !ready || (!!user && q.isLoading) };
+  return {
+    user,
+    ready,
+    profile: q.data ?? null,
+    loading: !ready || (!!user && (q.isLoading || q.isFetching)),
+  };
 }
 
 export function useBlocks() {

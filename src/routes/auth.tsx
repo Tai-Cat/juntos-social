@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,14 +29,39 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: "/feed" });
+    });
+  }, [navigate]);
+
+  async function resend() {
+    setBusy(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: window.location.origin + "/auth/callback" },
+    });
+    setBusy(false);
+    if (error) setFormError(errMsg(error));
+    else toast.success("Confirmation email sent");
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
+    setFormError("");
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
-          email, password, options: { emailRedirectTo: window.location.origin + "/onboarding", data: { name } },
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: window.location.origin + "/auth/callback",
+            data: { name: name.trim() },
+          },
         });
         if (error) throw error;
         if (data.session) navigate({ to: "/onboarding" });
@@ -47,7 +72,12 @@ function AuthPage() {
         navigate({ to: "/feed" });
       }
     } catch (err) {
-      toast.error(errMsg(err));
+      const message = errMsg(err);
+      setFormError(
+        message === "Invalid login credentials"
+          ? "That email and password didn’t match. If you just signed up, confirm your email first."
+          : message,
+      );
     } finally {
       setBusy(false);
     }
@@ -55,27 +85,93 @@ function AuthPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col px-6">
-      <header className="py-6"><Link to="/" className="font-display text-2xl">Tagalong</Link></header>
+      <header className="py-6">
+        <Link to="/" className="font-display text-2xl">
+          Tagalong
+        </Link>
+      </header>
       <div className="flex-1 pt-10">
         {sent ? (
           <div className="space-y-3">
             <h1 className="text-3xl">Check your email</h1>
-            <p className="text-muted-foreground">We sent a confirmation link to {email}. Open it to finish setting up.</p>
+            <p className="text-muted-foreground">
+              We sent a confirmation link to {email}. Open it to finish setting up.
+            </p>
+            <Button variant="outline" onClick={resend} disabled={busy}>
+              Resend confirmation email
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSent(false);
+                setMode("signin");
+              }}
+            >
+              Back to sign in
+            </Button>
+            {formError && (
+              <p role="alert" className="text-sm text-destructive">
+                {formError}
+              </p>
+            )}
           </div>
         ) : (
           <>
             <h1 className="text-3xl">{mode === "signin" ? "Welcome back" : "Join Tagalong"}</h1>
             <form onSubmit={submit} className="mt-8 space-y-5">
-              {mode === "signup" && (
-                <div className="space-y-2"><Label htmlFor="name">First name</Label><Input id="name" required value={name} onChange={(e) => setName(e.target.value)} /></div>
+              {formError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {formError}
+                </p>
               )}
-              <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              <div className="space-y-2"><Label htmlFor="pw">Password</Label><Input id="pw" type="password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-              <Button type="submit" size="lg" className="w-full" disabled={busy}>{mode === "signin" ? "Sign in" : "Create account"}</Button>
+              {mode === "signup" && (
+                <div className="space-y-2">
+                  <Label htmlFor="name">First name</Label>
+                  <Input
+                    id="name"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pw">Password</Label>
+                <Input
+                  id="pw"
+                  type="password"
+                  minLength={6}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <Button type="submit" size="lg" className="w-full" disabled={busy}>
+                {mode === "signin" ? "Sign in" : "Create account"}
+              </Button>
             </form>
-            <button className="mt-6 text-sm text-muted-foreground underline-offset-4 hover:underline" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>
-              {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
-            </button>
+            <Button
+              variant="link"
+              className="mt-6 text-sm"
+              onClick={() => {
+                setFormError("");
+                setMode(mode === "signin" ? "signup" : "signin");
+              }}
+            >
+              {mode === "signin"
+                ? "New here? Create an account"
+                : "Already have an account? Sign in"}
+            </Button>
           </>
         )}
       </div>
