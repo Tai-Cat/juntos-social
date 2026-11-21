@@ -18,6 +18,7 @@ export function SiteFooter() {
         ))}
       </nav>
       <p className="mt-3">© {new Date().getFullYear()} Juntos · Good plans, great company</p>
+      <p className="mt-1">Photos by photographers on <a href="https://unsplash.com/?utm_source=juntos&utm_medium=referral" target="_blank" rel="noopener noreferrer" className="underline">Unsplash</a> and by Juntos hosts.</p>
     </footer>
   );
 }
