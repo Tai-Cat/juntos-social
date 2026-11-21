@@ -1,3 +1,4 @@
+import { canUseHostTools } from "@/lib/membership";
 import { CITY_CENTERS } from "@/lib/spatial";
 import { usePlus } from "@/hooks/use-plus";
 import { ACTIVITIES, genreOf, imageFor, cityName, cityImage, GENRES } from "@/lib/catalog";
@@ -121,6 +122,7 @@ function PostPlan() {
       toast.error("Pick a time in the future");
       return;
     }
+    if (!canUseHostTools(plus,capacity,weekly,autoApprove)) { toast.error("These host tools require Tagalong Plus"); return; }
     setBusy(true);
     try {
       const { data, error } = await supabase

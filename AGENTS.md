@@ -40,3 +40,10 @@ use the editor.
 - Saved alert matching and notification creation run in database triggers, using the saved timezone so plans posted outside the app also generate alerts.
 - Direct messages use participant-only RLS and bidirectional block checks, with lifecycle-scoped Realtime subscriptions so blocked users cannot read or send messages.
 - Email confirmation returns to a public callback before entering onboarding; authenticated pages must not be used as confirmation callbacks because sessions hydrate after the redirect.
+- Public browsing routes live outside the authentication layout; safe host summaries use a narrow RPC rather than exposing profiles to visitors. Why: browsing must not expose private profile fields.
+- Custom activities are normalized and registered by a plan-write trigger. Why: all posting paths share one de-duplicated catalogue.
+- Friend responses, invite RSVPs, proposal acceptance and profile sharing use participant-scoped RPCs and block checks. Why: clients cannot authorize social access.
+- Private plans are excluded by RLS and alert/friend/share queries; proposals record explicit participants. Why: privacy must hold outside the app UI.
+- Free alert limits and advanced host gates are enforced by database triggers with per-owner locking. Why: concurrent requests cannot bypass membership limits.
+- Maps consume only approximate area coordinates and dynamically import Leaflet after hydration. Why: exact addresses stay private and SSR remains browser-safe.
+- Fictional social examples live separately from real friendships and invites. Why: example actions must never impersonate real users.

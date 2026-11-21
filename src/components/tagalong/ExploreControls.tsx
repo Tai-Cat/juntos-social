@@ -1,3 +1,4 @@
+import { canSaveAlert } from "@/lib/membership";
 import { useState } from "react";
 import { Bell, Lock, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,8 @@ export function ExploreControls({
   };
   async function saveAlert() {
     if (!user || !name.trim()) return;
+    const { count } = await supabase.from("saved_alerts").select("id",{head:true,count:"exact"}).eq("user_id",user.id);
+    if (!canSaveAlert(plus,count??0)) { toast.error("Free includes 2 saved alerts. Plus includes unlimited alerts."); return; }
     const { error } = await supabase
       .from("saved_alerts")
       .insert({

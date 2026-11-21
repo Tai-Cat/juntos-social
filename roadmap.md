@@ -1,9 +1,18 @@
 # Tagalong version 3
-- [ ] 1. Always-light look and optional doodles; test.
-- [ ] 2. Public browsing and sign-in return; test.
-- [ ] 3–5. Compact filter sheets, location and shared custom activities; test.
-- [ ] 6–7. Rich plan details, carousels and approximate-area map; test.
-- [ ] 8–9. Friends and attendee invites with protected RSVP; test.
-- [ ] 10–12. Hang-again proposals, inbox tabs and private profile sharing; test.
-- [ ] 13. Membership gates and labelled examples; test.
-- [ ] Final logged-out and signed-in flow checks.
+- [x] Always-light look, doodle toggle and persistence; tested under a dark device preference.
+- [x] Public Explore, Travel, plan details; sign-in sheet and same-plan return tested.
+- [x] Filter chips, sheets, location selection, alphabetical activity search and shared custom activity registration.
+- [x] Short carousels, practical details, approximate map pins and visible-area filtering.
+- [x] Friend requests and attendee invites; RSVP, host approval and locked address tested with two members.
+- [x] Basic hang-again proposals accepted into private plans; outsider access rejected.
+- [x] Inbox tabs, profile sharing, free 2-alert limit and Plus third alert; tested.
+- [x] Labelled examples and membership feature list.
+
+## Remaining V3 refinements
+- Camera scanning for invite codes (manual entry works).
+- Preserve every draft/filter across email confirmation, new-tab return and onboarding; current plan return works.
+- Finalize exact mutually-agreed time/location for accepted rough-window proposals and bidirectional counterproposal editing.
+- Add public first-name attendee previews rather than count placeholders; private member guest lists work.
+- Replace category/city supporting gallery photos with 3–5 genuine photos per individual venue.
+- Improve approximate coordinates for new/custom cities; known cities currently use city-centre approximation.
+- Real early-booking access, waitlist priority and other locked Plus benefits remain Coming soon.
