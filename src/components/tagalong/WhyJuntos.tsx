@@ -1,5 +1,6 @@
 import { Crown, X } from "lucide-react";
 import { PLUS_PAYMENT_LINK } from "@/lib/plus";
+import { PayLink } from "./PayLink";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { WHY_JUNTOS, dismissWhyLine, whyLineDismissed } from "@/lib/why-juntos";
@@ -25,14 +26,12 @@ export function HomeHero() {
           <span className="font-bold">Free to join.</span>{" "}
           <span className="text-muted-foreground">Plus</span> <span className="font-bold">€5</span> <span className="text-muted-foreground">· Club</span> <span className="font-bold">€10 / month</span>
         </p>
-        <a
+        <PayLink
           href={PLUS_PAYMENT_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
           className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground hover:opacity-90"
         >
           <Crown className="h-3.5 w-3.5" aria-hidden /> Get Plus
-        </a>
+        </PayLink>
         <Link to="/pricing" className="text-xs font-bold text-tangerine underline-offset-2 hover:underline">See all benefits</Link>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { JuntosMark } from "./JuntosLogo";
 import { WHY_JUNTOS } from "@/lib/why-juntos";
 import { PLUS_PAYMENT_LINK } from "@/lib/plus";
+import { PayLink } from "./PayLink";
 
 /** localStorage key; the root head script turns it into html[data-welcome="seen"]. */
 export const WELCOME_KEY = "juntos-welcome";
@@ -72,9 +73,9 @@ export function WelcomeScreen() {
             </div>
           </div>
           <div className="mt-3 flex items-center justify-center gap-4 text-sm">
-            <a href={PLUS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-bold text-tangerine">
+            <PayLink href={PLUS_PAYMENT_LINK} className="inline-flex items-center gap-1.5 font-bold text-tangerine">
               <Crown className="h-4 w-4" aria-hidden /> Get Plus
-            </a>
+            </PayLink>
             <Link to="/pricing" onClick={enter} className="inline-flex items-center gap-1 text-muted-foreground underline-offset-2 hover:underline">
               <Check className="h-4 w-4" aria-hidden /> See all benefits
             </Link>
