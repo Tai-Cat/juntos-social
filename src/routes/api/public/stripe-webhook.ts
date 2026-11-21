@@ -70,8 +70,20 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
           const label = tier === "club" ? "Juntos Club" : "Juntos Plus";
           let user = /^[0-9a-f-]{36}$/.test(ref) ? (await admin.auth.admin.getUserById(ref)).data.user : null;
           if (!user && email) user = (await findUser((u) => (u.email ?? "").toLowerCase() === email)) as typeof user;
+          // Paid without an account (e.g. a checkout link shared outside the app):
+          // create the account for that email and send them an invite to finish signing up.
+          if (!user && email) {
+            const origin = new URL(request.url).origin;
+            const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
+              redirectTo: `${origin}/auth/callback`,
+              data: { name: ((o["customer_details"] as { name?: string } | null)?.name ?? "").slice(0, 80) },
+            });
+            if (invited?.user) user = invited.user;
+            else console.error("invite after payment failed", inviteErr?.message);
+            if (user) await notifyAdmins(`${label} payment from ${email}: no account existed, so one was created and an invite email was sent.`);
+          }
           if (!user) {
-            await notifyAdmins(`${label} payment from ${email || "unknown email"}: no matching Juntos account yet. Turn it on when they sign up.`);
+            await notifyAdmins(`${label} payment from ${email || "unknown email"}: couldn't create an account automatically. Turn it on when they sign up.`);
             return Response.json({ received: true, matched: false });
           }
           await admin.from("user_settings").upsert({ user_id: user.id, demo_plus: true });
