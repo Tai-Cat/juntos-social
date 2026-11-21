@@ -10,6 +10,7 @@ import { setExplorePrefs, useExplorePrefs } from "@/lib/explore-prefs";
 import { cityName } from "@/lib/catalog";
 import { JuntosLogo } from "./JuntosLogo";
 import { SiteFooter } from "./SiteFooter";
+import { InstallBanner, InstalledWelcome } from "./InstallBanner";
 import { useNotificationFeed } from "./Notifications";
 const NAV = [
   { to: "/feed", label: "Explore", icon: Compass },
@@ -101,6 +102,8 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
             <Button asChild variant="link" size="sm" className="text-tangerine"><Link to="/feed">Explore</Link></Button>
           </div>
         )}
+        <InstallBanner />
+        {!loading && !user && <InstalledWelcome />}
         {children}
         <SiteFooter />
       </main>
