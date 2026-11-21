@@ -155,13 +155,16 @@ function Onboarding() {
           <Label htmlFor="c">Home city</Label>
           <CityInput id="c" value={city} onChange={setCity} />
         </div>
-        <fieldset className="space-y-3">
+        <div className="space-y-3">
           <Label htmlFor="dob">Date of birth</Label>
           <Input id="dob" type="date" value={dob} onChange={e=>setDob(e.target.value)} required />
           <p className="flex gap-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5"/>Private. Juntos is 18+. Only age brackets are shown.</p>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={adultOk} onChange={e=>setAdultOk(e.target.checked)} className="h-4 w-4 accent-primary"/>I confirm I am 18 or over</label>
           <div className="space-y-2 pt-2"><Label>Account type</Label><div className="grid grid-cols-3 gap-2">{([["personal","Personal"],["business","Business"],["institution","Institution"]] as const).map(([v,l])=><Button key={v} type="button" size="sm" variant={accountType===v?"default":"outline"} onClick={()=>setAccountType(v)}>{l}</Button>)}</div><p className="text-xs text-muted-foreground">Business: venues, studios, shops, restaurants. Institution: schools, universities, companies, clubs. You'll set up the organisation profile next.</p></div>
-          <legend className="text-sm font-bold">How do you describe your gender?</legend>
+        </div>
+        {/* Own fieldset with the legend first: browsers always draw a legend at the top of its fieldset. */}
+        <fieldset className="space-y-3">
+          <legend className="mb-1 text-sm font-bold">How do you describe your gender?</legend>
           <p className="flex gap-2 text-xs text-muted-foreground">
             <Lock className="h-3.5 w-3.5 shrink-0" />
             Private. Only used for group-specific plans.

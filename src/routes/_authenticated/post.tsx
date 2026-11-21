@@ -1,3 +1,4 @@
+import { MapLink } from "@/components/tagalong/MapLink";
 import { VisibilitySelect, type Visibility } from "@/components/tagalong/PlanVisibility";
 import { canUseHostTools } from "@/lib/membership";
 import { CITY_CENTERS } from "@/lib/spatial";
@@ -291,6 +292,11 @@ function PostPlan() {
           }
         >
           <Input id="ad" required value={address} onChange={(e) => setAddress(e.target.value)} />
+          {address.trim().length > 4 && (
+            <p className="mt-1.5 text-xs">
+              <MapLink query={address.trim()}>Check this address on the map</MapLink>
+            </p>
+          )}
         </Field>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="When" id="w">
