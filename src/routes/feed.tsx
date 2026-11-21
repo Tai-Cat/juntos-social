@@ -19,7 +19,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useBlocks, useMyProfile } from "@/hooks/use-auth";
 import { usePlus } from "@/hooks/use-plus";
-import { FirstVisitCards } from "@/components/tagalong/FirstVisitCards";
 import { setExplorePrefs, useExplorePrefs, type ExploreView } from "@/lib/explore-prefs";
 import { AppShell } from "@/components/tagalong/AppShell";
 import { PlanCard } from "@/components/tagalong/PlanCard";
@@ -89,7 +88,6 @@ export function Feed() {
   );
   return (
     <AppShell>
-      <FirstVisitCards />
       <h1 className="sr-only">Good plans, great company — plans in {city}</h1>
       <div className="relative">
         <Search className="absolute left-4 top-4 h-5 w-5 text-tangerine" />
