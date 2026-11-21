@@ -328,7 +328,7 @@ function PlanDetail() {
         {plan.venue_tbc&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Venue to be confirmed</span>}
         {plan.has_virtual_option&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Virtual option</span>}
       </div>
-      {isHost&&<div className="mt-4 flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/edit-plan/$planId" params={{planId:plan.id}}>Edit plan</Link></Button></div>}
+      {isHost&&<div className="mt-4 flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/edit-plan/$planId" params={{planId:plan.id}}>Edit plan</Link></Button><Button asChild variant="outline" size="sm"><Link to="/post" search={{from:plan.id}}>Duplicate for another date</Link></Button></div>}
       {isHost&&<PlanVisibilityPanel plan={plan}/>}
       <MemberNote planId={plan.id}/>
       {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-3 inline-flex rounded-full bg-sky-soft px-3 py-1 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
