@@ -1,14 +1,18 @@
-# Tagalong V4
-- [x] Unique example galleries, city label, map preview, AI label and persistent sign-in actions implemented.
-- [x] Compact Explore sections, horizontal cards, grouped list and map.
-- [x] Private birth date, 18+ demo verification, host age restrictions and meeting preferences.
-- [x] Organisations, membership questions, admin controls and restricted event teasers implemented.
-- [x] Month/week/agenda calendar, friends, suggestions, recurrence, free time and ICS.
-- [x] Checked public desktop/phone browsing, pin preview/View, underage onboarding rejection, verification-to-join return, age-disabled Join, pending organisation question request, calendar views and ICS; 28 targeted tests passed.
+# Juntos (formerly Tagalong)
 
-## Not fully verified / limitations
-- RSVP/Invite/Save-alert return and email-confirmation return are implemented but not independently exercised end to end.
-- Organisation admin approval/removal, passphrase auto-approval, email demo checks and new photo posting require further live verification.
-- Identity and organisation email checks are deliberately demos, not real verification.
-- Free time means no shared Tagalong bookings that day, not access to external calendars.
-- Example organisations do not have a real admin assigned; they are explicitly fictional, not official accounts.
+## V5
+- [x] Host multi-photo upload (1–5, reorder, cover), stock-photo search with cache, credits, no reuse.
+- [x] Personal interests (search + free text, 30 max, reorder/remove, levels, community at 3 users), plan interest tags, suggestions.
+- [ ] Unsplash/Pexels keys — waiting on user (form was dismissed).
+
+## V6
+- [ ] Rename to Juntos everywhere; tagline "Good plans, great company".
+- [ ] Session loading splash with cycling lines; remove inline 01/02/03 strip; how-it-works swipe cards / About.
+- [ ] Image mix: photos / generated flyer headers / object images; never bare icon.
+- [ ] Consistent header (logo, calendar, map/list, location, avatar) + Explore back links.
+- [ ] Profile redesign: tiles, memberships card, interest chips + add sheet.
+- [ ] Settings slide-in (meet prefs, languages, distance, notifications, privacy, per-friend reminders).
+- [ ] Membership slide-in comparison table.
+- [ ] Denser, lighter doodles.
+- [ ] Travel compact Where/When/Who search.
+- [ ] Four real INSEAD events (no Example label, no Zoom details).

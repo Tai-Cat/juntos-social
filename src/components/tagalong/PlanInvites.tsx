@@ -207,7 +207,7 @@ export function InvitesInbox() {
               {isRealPhoto(i.plan.image_url) && (
                 <img
                   className="aspect-[16/10] max-h-[28dvh] w-full object-cover"
-                  src={i.plan.image_url}
+                  src={i.plan.image_url ?? ""}
                   alt=""
                 />
               )}
