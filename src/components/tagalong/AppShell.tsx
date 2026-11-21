@@ -2,7 +2,7 @@ import { useAuthAction } from "./AuthSheet";
 import { Button } from "@/components/ui/button";
 import { useEffect, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Compass, Plane, Inbox, Plus, User, MapPin } from "lucide-react";
+import { Compass, Plane, Inbox, Plus, User, MapPin, CalendarDays } from "lucide-react";
 import { useMyProfile } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 const NAV = [
@@ -28,12 +28,13 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
       navigate({ to: "/onboarding" });
   }, [profile, loading, loc.pathname, navigate]);
   return (
-    <div className="mx-auto min-h-screen max-w-6xl border-x border-border">
+    <div className="mx-auto min-h-screen max-w-7xl border-x border-border">
       <header className="sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/95 px-5 py-4 backdrop-blur sm:px-8">
         <Link to="/feed" className="font-display text-3xl font-semibold">
           Tagalong<span className="text-tangerine">.</span>
         </Link>
-        <span className="flex min-w-0 items-center gap-1 text-xs font-semibold">
+        <span className="flex min-w-0 items-center gap-2 text-xs font-semibold">
+          <Button asChild size="icon" variant="ghost" aria-label="Calendar" title="Calendar"><Link to="/calendar"><CalendarDays className="h-5 w-5"/></Link></Button>
           <MapPin className="h-3.5 w-3.5 shrink-0 text-tangerine" />
           {title ?? (user ? profile?.home_city : "Good company, nearby")}
         </span>

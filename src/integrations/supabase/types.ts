@@ -382,6 +382,209 @@ export type Database = {
           },
         ]
       }
+      organisation_email_checks: {
+        Row: {
+          attempts: number
+          code_hash: string
+          email: string
+          expires_at: string
+          organisation_id: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          email: string
+          expires_at: string
+          organisation_id: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          email?: string
+          expires_at?: string
+          organisation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_email_checks_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organisation_email_checks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organisation_follows: {
+        Row: {
+          organisation_id: string
+          user_id: string
+        }
+        Insert: {
+          organisation_id: string
+          user_id: string
+        }
+        Update: {
+          organisation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_follows_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organisation_follows_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organisation_members: {
+        Row: {
+          organisation_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          organisation_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          organisation_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_members_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organisation_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organisation_requests: {
+        Row: {
+          answer: string
+          id: string
+          organisation_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          id?: string
+          organisation_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          id?: string
+          organisation_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_requests_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organisation_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organisation_secrets: {
+        Row: {
+          organisation_id: string
+          passphrase_hash: string | null
+        }
+        Insert: {
+          organisation_id: string
+          passphrase_hash?: string | null
+        }
+        Update: {
+          organisation_id?: string
+          passphrase_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_secrets_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: true
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organisations: {
+        Row: {
+          allowed_domains: string[]
+          description: string
+          id: string
+          is_example: boolean
+          logo_url: string | null
+          name: string
+          question: string
+          slug: string
+          visibility: string
+        }
+        Insert: {
+          allowed_domains?: string[]
+          description?: string
+          id?: string
+          is_example?: boolean
+          logo_url?: string | null
+          name: string
+          question?: string
+          slug: string
+          visibility?: string
+        }
+        Update: {
+          allowed_domains?: string[]
+          description?: string
+          id?: string
+          is_example?: boolean
+          logo_url?: string | null
+          name?: string
+          question?: string
+          slug?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       plan_addresses: {
         Row: {
           address: string
@@ -526,9 +729,34 @@ export type Database = {
           },
         ]
       }
+      plan_photo_registry: {
+        Row: {
+          photo: string
+          plan_id: string
+        }
+        Insert: {
+          photo: string
+          plan_id: string
+        }
+        Update: {
+          photo?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_photo_registry_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           activity: string
+          age_max: number | null
+          age_min: number | null
           area_label: string
           area_lat: number | null
           area_lng: number | null
@@ -558,6 +786,7 @@ export type Database = {
           is_public_place: boolean
           is_travel: boolean
           kind: string
+          organisation_id: string | null
           parent_plan_id: string | null
           photos: string[]
           private_participants: string[]
@@ -570,6 +799,8 @@ export type Database = {
         }
         Insert: {
           activity?: string
+          age_max?: number | null
+          age_min?: number | null
           area_label: string
           area_lat?: number | null
           area_lng?: number | null
@@ -599,6 +830,7 @@ export type Database = {
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
+          organisation_id?: string | null
           parent_plan_id?: string | null
           photos?: string[]
           private_participants?: string[]
@@ -611,6 +843,8 @@ export type Database = {
         }
         Update: {
           activity?: string
+          age_max?: number | null
+          age_min?: number | null
           area_label?: string
           area_lat?: number | null
           area_lng?: number | null
@@ -640,6 +874,7 @@ export type Database = {
           is_public_place?: boolean
           is_travel?: boolean
           kind?: string
+          organisation_id?: string | null
           parent_plan_id?: string | null
           photos?: string[]
           private_participants?: string[]
@@ -659,6 +894,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "plans_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "plans_parent_plan_id_fkey"
             columns: ["parent_plan_id"]
             isOneToOne: false
@@ -669,18 +911,30 @@ export type Database = {
       }
       profile_private: {
         Row: {
+          age_verified: boolean
+          date_of_birth: string | null
           gender: string
           gender_other: string | null
+          meet_age_max: number | null
+          meet_age_min: number | null
           user_id: string
         }
         Insert: {
+          age_verified?: boolean
+          date_of_birth?: string | null
           gender?: string
           gender_other?: string | null
+          meet_age_max?: number | null
+          meet_age_min?: number | null
           user_id: string
         }
         Update: {
+          age_verified?: boolean
+          date_of_birth?: string | null
           gender?: string
           gender_other?: string | null
+          meet_age_max?: number | null
+          meet_age_min?: number | null
           user_id?: string
         }
         Relationships: [
@@ -1031,6 +1285,38 @@ export type Database = {
         Returns: boolean
       }
       are_friends: { Args: { a: string; b: string }; Returns: boolean }
+      calendar_friend_plans: {
+        Args: never
+        Returns: {
+          area_label: string
+          city: string
+          duration_minutes: number
+          friend_id: string
+          friend_name: string
+          genre: string
+          image_url: string
+          plan_id: string
+          recurring_weekly: boolean
+          starts_at: string
+          title: string
+        }[]
+      }
+      confirm_org_email_demo: {
+        Args: { _code: string; _org: string }
+        Returns: boolean
+      }
+      demo_confirm_age: { Args: { _dob: string }; Returns: undefined }
+      edit_org: {
+        Args: {
+          _description: string
+          _domains: string[]
+          _org: string
+          _passphrase?: string
+          _question: string
+          _visibility: string
+        }
+        Returns: undefined
+      }
       find_people: {
         Args: { _search: string }
         Returns: {
@@ -1075,6 +1361,27 @@ export type Database = {
         Returns: boolean
       }
       mark_no_show: { Args: { _request: string }; Returns: undefined }
+      org_access: { Args: { _org: string; _user: string }; Returns: boolean }
+      org_admin: { Args: { _org: string; _user: string }; Returns: boolean }
+      org_member: { Args: { _org: string; _user: string }; Returns: boolean }
+      org_plan_teasers: {
+        Args: { _org?: string; _plan?: string }
+        Returns: {
+          activity: string
+          age_max: number
+          age_min: number
+          area_label: string
+          base_price: number
+          city: string
+          genre: string
+          id: string
+          image_url: string
+          is_example: boolean
+          organisation_id: string
+          starts_at: string
+          title: string
+        }[]
+      }
       people_blocked: { Args: { a: string; b: string }; Returns: boolean }
       public_host: {
         Args: { _id: string }
@@ -1085,7 +1392,15 @@ export type Database = {
         }[]
       }
       redeem_friend_code: { Args: { _code: string }; Returns: undefined }
+      remove_org_member: {
+        Args: { _org: string; _user: string }
+        Returns: undefined
+      }
       repeat_plan: { Args: { _plan: string }; Returns: string }
+      request_org_access: {
+        Args: { _answer: string; _org: string }
+        Returns: string
+      }
       respond_friend: {
         Args: { _accept: boolean; _id: string }
         Returns: undefined
@@ -1101,6 +1416,20 @@ export type Database = {
       respond_proposal: {
         Args: { _action: string; _id: string; _suggestion?: string }
         Returns: string
+      }
+      review_org_request: {
+        Args: { _approve: boolean; _request: string }
+        Returns: undefined
+      }
+      save_private_profile: {
+        Args: {
+          _dob: string
+          _gender: string
+          _max?: number
+          _min?: number
+          _other: string
+        }
+        Returns: undefined
       }
       shared_plan_count: { Args: { a: string; b: string }; Returns: number }
       shared_profile_plans: {
@@ -1141,6 +1470,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      start_org_email_demo: {
+        Args: { _email: string; _org: string }
+        Returns: string
       }
     }
     Enums: {

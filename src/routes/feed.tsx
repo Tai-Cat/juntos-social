@@ -2,7 +2,12 @@ import { HangNudges } from "@/components/tagalong/HangNudges";
 import { lazy, Suspense } from "react";
 import { ClientOnly } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { List, Map } from "lucide-react";
+import { List, Map, LayoutGrid, CalendarDays, Dumbbell, Utensils, Palette, Laptop, BookOpen, Trees, Dice5, Flower2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { EventRow, CompactEventList, LockedEventTeaser } from "@/components/tagalong/EventViews";
+import { OrganisationDirectory } from "@/components/tagalong/Organisations";
+import { GENRES,genreClass } from "@/lib/catalog";
+import { useSession } from "@/hooks/use-auth";
 import { inBounds, type Bounds } from "@/lib/spatial";
 const ExploreMap = lazy(() => import("@/components/tagalong/ExploreMap"));
 import { Input } from "@/components/ui/input";
@@ -43,7 +48,10 @@ export function Feed() {
   const [filters, setFilters] = useState(() => emptyFilters("Paris"));
   const [location, setLocation] = useState("Paris");
   const [search, setSearch] = useState("");
-  const [view, setView] = useState<"list" | "map">("list");
+  const [view, setView] = useState<"browse" | "list" | "map">("browse");
+  const {user}=useSession();
+  const friendPlans=useQuery({queryKey:["calendar-friends",user?.id],enabled:!!user,queryFn:async()=>{const {data,error}=await supabase.rpc("calendar_friend_plans");if(error)throw error;return data;}});
+  const teasers=useQuery({queryKey:["org-teasers",user?.id],queryFn:async()=>{const {data,error}=await supabase.rpc("org_plan_teasers");if(error)throw error;return data;}});
   const [area, setArea] = useState<Bounds | null>(null);
   const [position, setPosition] = useState<Position | null>(null);
   useEffect(() => {
@@ -94,7 +102,7 @@ export function Feed() {
             {visible.length} plans
           </span>
         </div>
-        <h1 className="mt-5 text-4xl font-semibold">Tagalong</h1>
+        <h1 className="mt-5 text-3xl font-semibold">Good plans. Great company.</h1>
         <p className="mt-2 text-base">
           Turn your plans into plus-ones, and venues' empty slots into full tables.
         </p>
@@ -115,9 +123,10 @@ export function Feed() {
         />
       </div>
       <ExploreControls filters={filters} onChange={setFilters} plus={plus} />
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl">Near you</h2>
         <div className="flex rounded-full border border-border bg-card p-1">
+          <Button size="sm" variant={view==="browse"?"secondary":"ghost"} onClick={()=>setView("browse")}><LayoutGrid/>Browse</Button>
           <Button
             size="sm"
             variant={view === "list" ? "secondary" : "ghost"}
@@ -126,6 +135,7 @@ export function Feed() {
             <List />
             List
           </Button>
+          <Button asChild size="sm" variant="ghost"><Link to="/calendar"><CalendarDays/><span className="hidden sm:inline">Calendar</span></Link></Button>
           <Button
             size="sm"
             variant={view === "map" ? "secondary" : "ghost"}
@@ -148,13 +158,17 @@ export function Feed() {
         <Empty>Loading your next plans…</Empty>
       ) : !visible.length ? (
         <Empty>No plans match yet. Try fewer filters, or save an alert.</Empty>
-      ) : (
-        <div className="grid items-start gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {visible.map((p) => (
-            <PlanCard key={p.id} plan={p} position={position} />
-          ))}
-        </div>
-      )}
+      ) : view==="list" ? <CompactEventList plans={visible}/> : <>
+        <EventRow title="This week" plans={visible.filter(p=>new Date(p.starts_at).getTime()<Date.now()+7*86400000)}/>
+        <EventRow title="Near you" plans={visible}/>
+        <EventRow title="Friends are going" plans={visible.filter(p=>friendPlans.data?.some(f=>f.plan_id===p.id))}/>
+        <EventRow title="Free and chill" plans={visible.filter(p=>Number(p.base_price)===0)}/>
+        <EventRow title={`Popular in ${filters.city}`} plans={[...visible].sort((a,b)=>b.going_count-a.going_count)}/>
+        <section className="mt-8 border-t border-border pt-5"><h2 className="text-xl">Browse by category</h2><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">{GENRES.map((g,i)=>{const Icon=[Dumbbell,Utensils,Palette,Laptop,BookOpen,Trees,Dice5,Flower2][i]??BookOpen;return <Button key={g.id} variant="outline" className={`h-auto min-w-0 items-start justify-start gap-3 whitespace-normal rounded-lg p-4 text-left ${genreClass(g.id)}`} onClick={()=>setFilters(f=>({...f,genre:f.genre===g.id?"":g.id}))}><Icon className="h-5 w-5 shrink-0"/><span><span className="block text-xs font-bold">{g.label}</span><span className="mt-1 block text-[11px] text-muted-foreground">{visible.filter(p=>p.genre===g.id).length} events</span></span></Button>;})}</div></section>
+        <OrganisationDirectory/>
+        {!!teasers.data?.length&&<section className="mt-7"><h2 className="text-xl">From member communities</h2><div className="grid gap-x-6 md:grid-cols-2">{teasers.data.filter(p=>p.city===filters.city&&new Date(p.starts_at).getTime()>Date.now()).map(p=><LockedEventTeaser key={p.id} plan={p}/>)}</div></section>}
+        <OrganisationDirectory title="Featured calendars"/>
+      </>}
       <HangNudges />
       <SimilarPeople
         city={filters.city}

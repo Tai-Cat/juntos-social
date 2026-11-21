@@ -18,6 +18,9 @@ import { AddTripButton } from "@/components/tagalong/TripForm";
 import { Empty, Section, VerifiedBadge } from "@/components/tagalong/bits";
 import { Button } from "@/components/ui/button";
 import { PLAN_SELECT, formatDates, formatWhen, type PlanWithHost } from "@/lib/tagalong";
+import { AGE_BRACKETS,ageLabel } from "@/lib/age";
+import { useAge } from "@/hooks/use-age";
+import { useOrganisations,useOrgMemberships } from "@/hooks/use-organisations";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -40,6 +43,7 @@ function ProfilePage() {
   const { plus, setPlus } = usePlus();
   const doodles = useDoodles();
   const [tab, setTab] = useState("profile");
+  const age=useAge(),orgs=useOrganisations(),memberships=useOrgMemberships();
   const settings = useQuery({
     queryKey: ["settings", user?.id],
     enabled: !!user,
@@ -210,6 +214,7 @@ function ProfilePage() {
           )}
           <section className="genre-ideas mt-7 rounded-lg border border-border p-5">
             <h2 className="text-2xl">Settings</h2>
+            <div className="mt-4"><p className="mb-2 font-bold">People I'd like to meet</p><Choice label="Any adult bracket" value={age.data?.meet_age_min?`${age.data.meet_age_min}-${age.data.meet_age_max??120}`:""} options={AGE_BRACKETS} onChange={async value=>{if(!user)return;const [min,max]=value.split("-").map(Number);const {error}=await supabase.from("profile_private").update({meet_age_min:min??null,meet_age_max:max??null}).eq("user_id",user.id);if(error)toast.error(error.message);else qc.invalidateQueries({queryKey:["private-age"]});}}/><p className="mt-2 text-xs text-muted-foreground">A preference, not a joining restriction.</p><p className="mt-3 text-xs">Adult demo check: {age.data?.age_verified?"Complete":"Required before joining or hosting"}</p>{!age.data?.age_verified&&<Button asChild variant="outline" className="mt-2"><Link to="/verify">Verify your age</Link></Button>}</div>
             <div className="mt-4 flex items-center justify-between gap-4">
               <span className="font-bold">Doodle background</span>
               <Switch
@@ -244,6 +249,7 @@ function ProfilePage() {
           </section>
 
           <Membership />
+          {!!memberships.data?.some(m=>m.role==="admin")&&<section className="mt-6"><h2 className="text-2xl">Your organisations</h2>{memberships.data.filter(m=>m.role==="admin").map(m=><Button asChild variant="outline" className="mt-3 mr-2" key={m.organisation_id}><Link to="/organisation-admin/$orgId" params={{orgId:m.organisation_id}}>{orgs.data?.find(o=>o.id===m.organisation_id)?.name??"Organisation"} · Admin</Link></Button>)}</section>}
           <div className="mt-10 space-y-10">
             <Section title="Hosting">
               {(hosting.data ?? []).length === 0 ? (

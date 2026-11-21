@@ -1,4 +1,5 @@
 import { safeReturn } from "@/lib/auth-return";
+import {readIntent} from "@/lib/auth-intent";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -47,7 +48,7 @@ export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
 
   function done() {
     if (onSuccess) onSuccess();
-    else navigate({ to: safeReturn(sessionStorage.getItem("tagalong-return")) });
+    else navigate({ to: readIntent()?.url??safeReturn(sessionStorage.getItem("tagalong-return")) });
   }
 
   useEffect(() => {

@@ -9,6 +9,7 @@ import { Accessibility, MapPin } from "lucide-react";
 import { AUDIENCE_LABEL, formatWhen, hostOf, type PlanWithHost } from "@/lib/tagalong";
 import { discountFor, nextTierCopy, priceFor, tierProgress } from "@/lib/discount";
 import { ExampleTag, VerifiedBadge } from "./bits";
+import {ageLabel} from "@/lib/age";
 
 export function DiscountBar({ going, basePrice }: { going: number; basePrice: number }) {
   const pct = discountFor(going);
@@ -74,6 +75,7 @@ export function PlanCard({
     <article className={`plan-card block ${genreClass(plan.genre)}`}>
       <div className="relative">
         <PhotoCarousel
+          planId={plan.id}
           photos={
             plan.photos.length
               ? plan.photos
@@ -143,6 +145,7 @@ export function PlanCard({
         {plan.audience !== "everyone" && (
           <p className="mt-2 text-xs">{AUDIENCE_LABEL[plan.audience]}</p>
         )}
+        {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-2 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
         {plan.kind === "partner_venue" && Number(plan.base_price) > 0 && (
           <div className="mt-4">
             <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} />

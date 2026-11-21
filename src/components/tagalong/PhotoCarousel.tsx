@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-export function PhotoCarousel({ photos, label }: { photos: string[]; label: string }) {
+import { useGallery } from "@/hooks/use-gallery";
+export function PhotoCarousel({ photos:source, label,planId }: { photos: string[]; label: string;planId?:string }) {
+  const photos=useGallery(planId,source);
   const [ref, api] = useEmblaCarousel({ loop: true });
   const [index, setIndex] = useState(0);
   const select = useCallback(() => setIndex(api?.selectedScrollSnap() ?? 0), [api]);

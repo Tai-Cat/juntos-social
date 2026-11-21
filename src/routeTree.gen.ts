@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as TravelRouteImport } from './routes/travel'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
@@ -22,10 +23,12 @@ import { Route as AuthenticatedVerifyRouteImport } from './routes/_authenticated
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as FriendsInviteRouteImport } from './routes/friends.invite'
 import { Route as InvitesTokenRouteImport } from './routes/invites.$token'
+import { Route as OrganisationsSlugRouteImport } from './routes/organisations.$slug'
 import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
 import { Route as SharedTokenRouteImport } from './routes/shared.$token'
 import { Route as TripsTripIdRouteImport } from './routes/trips.$tripId'
 import { Route as AuthenticatedChatUserIdRouteImport } from './routes/_authenticated/chat.$userId'
+import { Route as AuthenticatedOrganisationAdminOrgIdRouteImport } from './routes/_authenticated/organisation-admin.$orgId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,6 +42,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedRoute = FeedRouteImport.update({
@@ -91,6 +99,11 @@ const InvitesTokenRoute = InvitesTokenRouteImport.update({
   path: '/invites/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrganisationsSlugRoute = OrganisationsSlugRouteImport.update({
+  id: '/organisations/$slug',
+  path: '/organisations/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlansPlanIdRoute = PlansPlanIdRouteImport.update({
   id: '/plans/$planId',
   path: '/plans/$planId',
@@ -111,10 +124,17 @@ const AuthenticatedChatUserIdRoute = AuthenticatedChatUserIdRouteImport.update({
   path: '/chat/$userId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOrganisationAdminOrgIdRoute =
+  AuthenticatedOrganisationAdminOrgIdRouteImport.update({
+    id: '/organisation-admin/$orgId',
+    path: '/organisation-admin/$orgId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/feed': typeof FeedRoute
   '/travel': typeof TravelRoute
   '/inbox': typeof AuthenticatedInboxRoute
@@ -125,14 +145,17 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/friends/invite': typeof FriendsInviteRoute
   '/invites/$token': typeof InvitesTokenRoute
+  '/organisations/$slug': typeof OrganisationsSlugRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
+  '/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/feed': typeof FeedRoute
   '/travel': typeof TravelRoute
   '/inbox': typeof AuthenticatedInboxRoute
@@ -143,16 +166,19 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/friends/invite': typeof FriendsInviteRoute
   '/invites/$token': typeof InvitesTokenRoute
+  '/organisations/$slug': typeof OrganisationsSlugRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
+  '/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/feed': typeof FeedRoute
   '/travel': typeof TravelRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
@@ -163,16 +189,19 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/friends/invite': typeof FriendsInviteRoute
   '/invites/$token': typeof InvitesTokenRoute
+  '/organisations/$slug': typeof OrganisationsSlugRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
   '/_authenticated/chat/$userId': typeof AuthenticatedChatUserIdRoute
+  '/_authenticated/organisation-admin/$orgId': typeof AuthenticatedOrganisationAdminOrgIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/calendar'
     | '/feed'
     | '/travel'
     | '/inbox'
@@ -183,14 +212,17 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/friends/invite'
     | '/invites/$token'
+    | '/organisations/$slug'
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
     | '/chat/$userId'
+    | '/organisation-admin/$orgId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/calendar'
     | '/feed'
     | '/travel'
     | '/inbox'
@@ -201,15 +233,18 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/friends/invite'
     | '/invites/$token'
+    | '/organisations/$slug'
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
     | '/chat/$userId'
+    | '/organisation-admin/$orgId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/calendar'
     | '/feed'
     | '/travel'
     | '/_authenticated/inbox'
@@ -220,20 +255,24 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/friends/invite'
     | '/invites/$token'
+    | '/organisations/$slug'
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
     | '/_authenticated/chat/$userId'
+    | '/_authenticated/organisation-admin/$orgId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  CalendarRoute: typeof CalendarRoute
   FeedRoute: typeof FeedRoute
   TravelRoute: typeof TravelRoute
   FriendsInviteRoute: typeof FriendsInviteRoute
   InvitesTokenRoute: typeof InvitesTokenRoute
+  OrganisationsSlugRoute: typeof OrganisationsSlugRoute
   PlansPlanIdRoute: typeof PlansPlanIdRoute
   SharedTokenRoute: typeof SharedTokenRoute
   TripsTripIdRoute: typeof TripsTripIdRoute
@@ -260,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feed': {
@@ -332,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvitesTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/organisations/$slug': {
+      id: '/organisations/$slug'
+      path: '/organisations/$slug'
+      fullPath: '/organisations/$slug'
+      preLoaderRoute: typeof OrganisationsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plans/$planId': {
       id: '/plans/$planId'
       path: '/plans/$planId'
@@ -360,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatUserIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/organisation-admin/$orgId': {
+      id: '/_authenticated/organisation-admin/$orgId'
+      path: '/organisation-admin/$orgId'
+      fullPath: '/organisation-admin/$orgId'
+      preLoaderRoute: typeof AuthenticatedOrganisationAdminOrgIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -370,6 +430,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedVerifyRoute: typeof AuthenticatedVerifyRoute
   AuthenticatedChatUserIdRoute: typeof AuthenticatedChatUserIdRoute
+  AuthenticatedOrganisationAdminOrgIdRoute: typeof AuthenticatedOrganisationAdminOrgIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -379,6 +440,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedVerifyRoute: AuthenticatedVerifyRoute,
   AuthenticatedChatUserIdRoute: AuthenticatedChatUserIdRoute,
+  AuthenticatedOrganisationAdminOrgIdRoute:
+    AuthenticatedOrganisationAdminOrgIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -398,10 +461,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  CalendarRoute: CalendarRoute,
   FeedRoute: FeedRoute,
   TravelRoute: TravelRoute,
   FriendsInviteRoute: FriendsInviteRoute,
   InvitesTokenRoute: InvitesTokenRoute,
+  OrganisationsSlugRoute: OrganisationsSlugRoute,
   PlansPlanIdRoute: PlansPlanIdRoute,
   SharedTokenRoute: SharedTokenRoute,
   TripsTripIdRoute: TripsTripIdRoute,

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import {readIntent} from "@/lib/auth-intent";
+import {safeReturn} from "@/lib/auth-return";
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
     meta: [
@@ -29,7 +31,10 @@ function Callback() {
       }
       const { data } = await supabase.auth.getSession();
       if (!active) return;
-      if (data.session) navigate({ to: "/onboarding", replace: true });
+      if (data.session) {
+        const profile=await supabase.from("profiles").select("onboarded").eq("id",data.session.user.id).maybeSingle();
+        navigate({to:profile.data?.onboarded?readIntent()?.url??safeReturn(sessionStorage.getItem("tagalong-return")):"/onboarding",replace:true});
+      }
       else
         setError(
           "Your email link has expired or was already used. Sign in, or request a new confirmation email.",

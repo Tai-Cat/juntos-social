@@ -47,3 +47,7 @@ use the editor.
 - Free alert limits and advanced host gates are enforced by database triggers with per-owner locking. Why: concurrent requests cannot bypass membership limits.
 - Maps consume only approximate area coordinates and dynamically import Leaflet after hydration. Why: exact addresses stay private and SSR remains browser-safe.
 - Fictional social examples live separately from real friendships and invites. Why: example actions must never impersonate real users.
+- Persistent account-action intents are schema-validated and replayed only after onboarding and required age checks; database rules still authorize each write. Why: confirmation and verification must not lose a visitor's action.
+- Organisation roles and hashed passphrases are separate protected data, and restricted plans use narrow teaser RPCs. Why: membership must not expose full details or allow client-assigned admin privileges.
+- Calendar recurrence and ICS use a shared calendar module; suggested/saved events never mark someone busy. Why: all views and free-time calculations must agree.
+- Uploaded plan galleries use private storage references and signed URLs authorized against the caller's RLS-visible plan. Why: restricted event media must not make its storage bucket public.

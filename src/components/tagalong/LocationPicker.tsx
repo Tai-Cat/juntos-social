@@ -68,7 +68,7 @@ export function LocationPicker({
     <>
       <Button variant="outline" className="rounded-full bg-card" onClick={() => setOpen(true)}>
         <MapPin className="text-tangerine" />
-        {value}
+        <span className="min-w-0 truncate font-bold">{cityName(value || "Paris")}</span>
       </Button>
       <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground={false}>
         <DrawerContent>

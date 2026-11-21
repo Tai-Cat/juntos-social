@@ -268,3 +268,12 @@ html[data-doodles="off"] body::before {
   background: var(--category-accent);
   box-shadow: var(--card-shadow);
 }
+:root { --grass-soft: var(--active-tint); --sky-soft: var(--tech-tint); }
+@theme inline { --color-grass-soft: var(--grass-soft); --color-sky-soft: var(--sky-soft); }
+.calendar-going { background: var(--active-tint); border-left: 3px solid var(--grass); }
+.calendar-saved { background: var(--food-tint); border-left: 3px solid var(--tangerine); }
+.calendar-suggested { background: color-mix(in oklab,var(--sky-soft) 45%,var(--card)); border: 1px dashed var(--sky); opacity: .8; }
+.calendar-friend { background: var(--arts-tint); border-left: 3px solid var(--lilac); }
+.calendar-free { background: var(--active-tint); box-shadow: inset 0 2px 0 var(--grass); }
+.friend-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--lilac); flex-shrink:0; }
+.friend-dot-1 { background:var(--sky); }.friend-dot-2 {background:var(--tomato);}.friend-dot-3{background:var(--grass);}

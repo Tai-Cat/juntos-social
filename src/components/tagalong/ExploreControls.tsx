@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { PlusCard } from "./PlusCard";
-import { GENRES } from "@/lib/catalog";
+import { GENRES,activityLabel } from "@/lib/catalog";
+import { AGE_BRACKETS } from "@/lib/age";
+import { useOrganisations } from "@/hooks/use-organisations";
 import { AUDIENCE_LABEL } from "@/lib/tagalong";
 import type { ExploreFilters } from "@/lib/explore-filters";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +28,8 @@ const CHIPS: { key: Key; label: string }[] = [
   { key: "allAbilities", label: "All abilities" },
   { key: "stepFree", label: "Step-free" },
   { key: "daytime", label: "Daytime" },
+  { key: "age", label: "Age" },
+  { key: "organisation", label: "Organisation" },
 ];
 const PRICES = [
   { value: "free", label: "Free" },
@@ -51,8 +55,9 @@ export function ExploreControls({
   const auth = useAuthAction();
   const qc = useQueryClient();
   const activities = useActivities();
+  const orgs=useOrganisations();
   const options =
-    sheet === "price"
+    sheet === "age" ? AGE_BRACKETS : sheet === "organisation" ? (orgs.data??[]).map(o=>({value:o.id,label:o.name})) : sheet === "price"
       ? PRICES
       : sheet === "audience"
         ? Object.entries(AUDIENCE_LABEL).map(([value, label]) => ({ value, label }))
@@ -61,7 +66,7 @@ export function ExploreControls({
           : sheet === "activity"
             ? activities
                 .filter((a) => a.includes(search.toLowerCase()))
-                .map((a) => ({ value: a, label: a }))
+                .map((a) => ({ value: a, label: activityLabel(a) }))
             : sheet === "time"
               ? ["morning", "afternoon", "evening", "late"].map((value) => ({
                   value,
@@ -83,7 +88,7 @@ export function ExploreControls({
           ? PRICES.find((p) => p.value === value)?.label
           : typeof value === "boolean"
             ? ""
-            : value;
+            : key==="age" ? AGE_BRACKETS.find(b=>b.value===value)?.label : key==="organisation" ? orgs.data?.find(o=>o.id===value)?.name : activityLabel(String(value??""));
   };
   async function saveAlert() {
     if (!user || !name.trim()) return;
@@ -114,7 +119,7 @@ export function ExploreControls({
               variant={f[key] ? "secondary" : "outline"}
               className={`shrink-0 rounded-full ${f[key] ? "bg-sunflower border-sunflower" : ""}`}
               onClick={() => {
-                setDraft(f[key]);
+                setDraft(f[key]??"");
                 setSearch("");
                 setSheet(key);
               }}
@@ -134,11 +139,14 @@ export function ExploreControls({
           aria-label="Save alert"
           title="Save alert"
           className="shrink-0 self-start"
-          onClick={() =>
+          onClick={() => user ?
             auth(() => {
               setName([f.activity || "Plans", f.time, f.city].filter(Boolean).join(" · "));
               setSheet("save");
-            }, "save an alert")
+            }, "save an alert") : auth(async account=>{
+              const {error}=await supabase.from("saved_alerts").insert({user_id:account.id,name:[f.activity||"Plans",f.time,f.city].filter(Boolean).join(" · "),filters:{...f,level:plus?f.level:""}});
+              if(error)toast.error(error.message);else toast.success("Alert saved");
+            },"save an alert",{kind:"alert",name:[f.activity||"Plans",f.time,f.city].filter(Boolean).join(" · "),filters:{...f,level:plus?f.level:""}})
           }
         >
           <Bell />
@@ -202,7 +210,7 @@ export function ExploreControls({
                           <Button
                             key={o.value}
                             variant={String(draft) === o.value ? "secondary" : "ghost"}
-                            className="h-12 w-full justify-between capitalize"
+                            className={`h-12 w-full justify-between ${o.value==="ai"?"":"capitalize"}`}
                             onClick={() =>
                               setDraft(
                                 ["allAbilities", "stepFree", "daytime"].includes(sheet ?? "")

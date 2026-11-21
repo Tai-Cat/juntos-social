@@ -4,6 +4,7 @@ import { canUseLevel, PLUS_MONTHLY_EUR } from "./catalog";
 import type { Plan } from "./tagalong";
 const p: Plan = {
   id: "a",
+  age_min:null,age_max:null,organisation_id:null,
   is_private: false, private_participants: [], photos: [], area_lat: null, area_lng: null, what_to_bring: "", duration_minutes: 120, host_intro: "", early_booking: false,
   host_id: null,
   title: "Tennis",

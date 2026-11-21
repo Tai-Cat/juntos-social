@@ -12,6 +12,8 @@ export type ExploreFilters = {
   stepFree: boolean;
   daytime: boolean;
   timezone: string;
+  age?: string;
+  organisation?: string;
 };
 export const emptyFilters = (city: string): ExploreFilters => ({
   city,
@@ -28,6 +30,11 @@ export const emptyFilters = (city: string): ExploreFilters => ({
   timezone: "UTC",
 });
 export function matchesPlan(p: Plan, f: ExploreFilters, plus = true) {
+  if (f.organisation && p.organisation_id !== f.organisation) return false;
+  if (f.age) {
+    const [lo,hi]=f.age.split("-").map(Number);
+    if (lo!==undefined && hi!==undefined && ((p.age_min??18)>hi || (p.age_max??120)<lo)) return false;
+  }
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: f.timezone || "UTC",
     year: "numeric",

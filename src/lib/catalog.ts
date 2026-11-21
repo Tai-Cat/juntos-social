@@ -207,3 +207,4 @@ export function countryFlag(country: string) {
     .join("");
 }
 export const genreClass = (genre: string) => `genre-${genre}`;
+export const activityLabel = (activity: string) => activity.toLowerCase() === "ai" ? "AI" : activity;

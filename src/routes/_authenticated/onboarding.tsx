@@ -12,6 +12,8 @@ import { CityInput } from "@/components/tagalong/CityInput";
 import { InterestPicker } from "@/components/tagalong/InterestPicker";
 import { GENDER_OPTIONS, errMsg } from "@/lib/tagalong";
 import { ACTIVITIES, cityName } from "@/lib/catalog";
+import { adultAge } from "@/lib/age";
+import {readIntent} from "@/lib/auth-intent";
 export const INTERESTS = ACTIVITIES;
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -37,6 +39,7 @@ function Onboarding() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [privateReady, setPrivateReady] = useState(false);
+  const [dob,setDob]=useState("");
   const [name, setName] = useState(""),
     [pronouns, setPronouns] = useState(""),
     [city, setCity] = useState("Paris, France"),
@@ -69,6 +72,7 @@ function Onboarding() {
         if (data) {
           setGender(data.gender_other ? "other" : data.gender);
           setOther(data.gender_other ?? "");
+          setDob(data.date_of_birth??"");
         }
         setPrivateReady(true);
       });
@@ -78,6 +82,7 @@ function Onboarding() {
   }, [user]);
   async function save() {
     if (!user) return;
+    const age=adultAge(dob);if(age===null || age<18 || age>120){setError("Tagalong is for adults aged 18 and over.");return;}
     setBusy(true);
     setError("");
     try {
@@ -94,16 +99,15 @@ function Onboarding() {
         .select("id")
         .single();
       if (e) throw e;
-      const { error: e2 } = await supabase
-        .from("profile_private")
-        .upsert({
-          user_id: user.id,
-          gender: gender === "other" ? "prefer_not_to_say" : gender,
-          gender_other: gender === "other" ? other.trim() : null,
+      const { error: e2 } = await supabase.rpc("save_private_profile",{
+          _gender: gender === "other" ? "prefer_not_to_say" : gender,
+          _other: gender === "other" ? other.trim() : "",
+          _dob:dob,
         });
       if (e2) throw e2;
       await qc.invalidateQueries({ queryKey: ["profile"] });
-      navigate({ to: profile?.onboarded ? "/profile" : "/verify" });
+      await qc.invalidateQueries({queryKey:["private-age"]});
+      navigate({ to: readIntent()?"/verify":profile?.onboarded ? "/profile" : "/verify" });
     } catch (e) {
       setError(errMsg(e));
     } finally {
@@ -145,6 +149,9 @@ function Onboarding() {
           <CityInput id="c" value={city} onChange={setCity} />
         </div>
         <fieldset className="space-y-3">
+          <Label htmlFor="dob">Date of birth</Label>
+          <Input id="dob" type="date" value={dob} onChange={e=>setDob(e.target.value)} required />
+          <p className="flex gap-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5"/>Private. Tagalong is 18+. Only age brackets are shown.</p>
           <legend className="text-sm font-bold">How do you describe your gender?</legend>
           <p className="flex gap-2 text-xs text-muted-foreground">
             <Lock className="h-3.5 w-3.5 shrink-0" />
@@ -189,7 +196,7 @@ function Onboarding() {
           className="w-full"
           onClick={save}
           disabled={
-            busy || loading || !name.trim() || !city.trim() || (gender === "other" && !other.trim())
+            busy || loading || !name.trim() || !city.trim() || !dob || (gender === "other" && !other.trim())
           }
         >
           {busy ? "Saving…" : profile?.onboarded ? "Save profile" : "Continue"}

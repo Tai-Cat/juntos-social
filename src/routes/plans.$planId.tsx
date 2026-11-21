@@ -1,6 +1,13 @@
 import { PlanInvites } from "@/components/tagalong/PlanInvites";
 import { PhotoCarousel } from "@/components/tagalong/PhotoCarousel";
-import { Share2, Bookmark } from "lucide-react";
+import { Share2, Bookmark,Download } from "lucide-react";
+import { useAge } from "@/hooks/use-age";
+import { ageAllowed,ageLabel } from "@/lib/age";
+import { rememberIntent } from "@/lib/auth-intent";
+import { OrganisationAccess } from "@/components/tagalong/Organisations";
+import { LockedEventTeaser } from "@/components/tagalong/EventViews";
+import { useOrganisations } from "@/hooks/use-organisations";
+import { downloadICS } from "@/lib/calendar";
 import { useAuthAction } from "@/components/tagalong/AuthSheet";
 import { SimilarPeople } from "@/components/tagalong/SimilarPeople";
 import { imageFor } from "@/lib/catalog";
@@ -77,6 +84,9 @@ function PlanDetail() {
   const { planId } = Route.useParams();
   const auth = useAuthAction();
   const { user, profile } = useMyProfile();
+  const privateAge=useAge();
+  const organisations=useOrganisations();
+  const teaserQ=useQuery({queryKey:["locked-plan",planId,user?.id],queryFn:async()=>{const {data,error}=await supabase.rpc("org_plan_teasers",{_plan:planId});if(error)throw error;return data?.[0]??null;}});
   const qc = useQueryClient();
   const navigate = useNavigate();
   const now = useNow();
@@ -85,7 +95,7 @@ function PlanDetail() {
   const [busy, setBusy] = useState(false);
 
   const planQ = useQuery({
-    queryKey: ["plan", planId],
+    queryKey: ["plan", planId,user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
@@ -165,11 +175,12 @@ function PlanDetail() {
   if (!plan)
     return (
       <AppShell>
-        <Empty>Plan not found.</Empty>
+        {teaserQ.data?<><h1 className="text-3xl">{teaserQ.data.title}</h1><LockedEventTeaser plan={teaserQ.data}/>{organisations.data?.filter(o=>o.id===teaserQ.data?.organisation_id).map(o=><OrganisationAccess key={o.id} org={o}/>)}</>:<Empty>{teaserQ.isLoading?"Loading plan…":"Plan not found."}</Empty>}
       </AppShell>
     );
   const host = hostQ.data ? {name:hostQ.data.name,verified:hostQ.data.verified,reliability:hostQ.data.reliability_score} : hostOf(plan);
   const restricted = ["women_only", "men_only", "nonbinary_only"].includes(plan.audience);
+  const ageMismatch=!!privateAge.data?.date_of_birth&&!ageAllowed(privateAge.data.date_of_birth,plan.age_min,plan.age_max,new Date(plan.starts_at));
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["myreq", planId] });
@@ -178,6 +189,8 @@ function PlanDetail() {
   };
 
   async function join(accountId: string) {
+    const {data:age}=await supabase.from("profile_private").select("date_of_birth,age_verified").eq("user_id",accountId).maybeSingle();
+    if(!age?.age_verified){rememberIntent({kind:"join",planId,buddy});navigate({to:age?.date_of_birth?"/verify":"/onboarding"});return;}
     setBusy(true);
     const { data, error } = await supabase
       .from("join_requests")
@@ -251,6 +264,7 @@ function PlanDetail() {
 
       <div className="mt-5 overflow-hidden rounded-lg">
         <PhotoCarousel
+          planId={plan.id}
           photos={
             plan.photos.length
               ? plan.photos
@@ -260,6 +274,7 @@ function PlanDetail() {
         />
       </div>
       <div className="mt-4 flex gap-2">
+        <Button variant="outline" title="Add to my calendar" onClick={()=>{try{downloadICS({id:plan.id,planId:plan.id,title:plan.title,start:plan.starts_at,duration:plan.duration_minutes,kind:"going",example:plan.is_example,recurring:plan.recurring_weekly,area:plan.area_label,image:plan.image_url});}catch{toast.error("Calendar download couldn't complete");}}}><Download/><span className="hidden sm:inline">Calendar</span></Button>
         <Button
           variant="outline"
           onClick={() =>
@@ -300,6 +315,8 @@ function PlanDetail() {
         {plan.is_example && <ExampleTag />}
       </div>
       <h1 className="mt-2 text-3xl leading-tight">{plan.title}</h1>
+      {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-3 inline-flex rounded-full bg-sky-soft px-3 py-1 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
+      {plan.organisation_id&&organisations.data?.filter(o=>o.id===plan.organisation_id).map(o=><p className="mt-3 text-sm" key={o.id}>Hosted by <Link className="font-bold text-grass" to="/organisations/$slug" params={{slug:o.slug}}>{o.name}</Link></p>)}
       {plan.description && <p className="mt-3 text-muted-foreground">{plan.description}</p>}
 
       <section className="mt-6 border-y border-border py-5">
@@ -409,7 +426,7 @@ function PlanDetail() {
                     They come with you, counted as one more.
                   </p>
                 </div>
-                <Switch checked={buddy} onCheckedChange={setBuddy} aria-label="Bring a buddy" />
+                <Switch checked={buddy} onCheckedChange={setBuddy} aria-label="Bring a buddy" disabled={plan.age_min!==null||plan.age_max!==null||plan.organisation_id!==null}/>
               </div>
               {plan.audience === "lgbtq_friendly" && (
                 <label className="flex items-start gap-3 text-sm">
@@ -442,16 +459,18 @@ function PlanDetail() {
                 onClick={() =>
                   auth((account) => {
                     void join(account.id);
-                  }, "join this plan")
+                  }, "join this plan",{kind:"join",planId,buddy})
                 }
                 disabled={
                   busy ||
+                  ageMismatch ||
                   (plan.audience === "lgbtq_friendly" && !optIn) ||
                   plan.going_count >= plan.capacity
                 }
               >
                 {plan.going_count >= plan.capacity ? "Full" : "Request to join"}
               </Button>
+              {ageMismatch&&<p className="text-sm text-muted-foreground">This plan welcomes ages {ageLabel(plan.age_min,plan.age_max)}. Your bracket is different — try another welcoming plan.</p>}
             </>
           )}
           {myReq.data?.status === "pending" && (

@@ -1,4 +1,4 @@
-import { GENRES, CITY_SUGGESTIONS, imageFor, genreClass, cityName } from "@/lib/catalog";
+import { GENRES, CITY_SUGGESTIONS, imageFor, genreClass, cityName,activityLabel } from "@/lib/catalog";
 import {
   Accordion,
   AccordionItem,
@@ -28,7 +28,7 @@ export function InterestPicker({
       className={`interest-tile ${genreClass(genre)} ${selected.includes(a) ? "selected" : ""}`}
     >
       <img src={imageFor(a, genre)} alt="" loading="lazy" />
-      <span className="min-w-0 whitespace-normal text-left capitalize">{a}</span>
+      <span className={`min-w-0 whitespace-normal text-left ${a.toLowerCase()==="ai"?"":"capitalize"}`}>{activityLabel(a)}</span>
       {selected.includes(a) && <Check className="shrink-0" />}
     </Button>
   );

@@ -5,7 +5,10 @@ import { ACTIVITIES, genreOf, imageFor, cityName, cityImage, GENRES } from "@/li
 import { Choice } from "@/components/tagalong/Choice";
 import { PlusCard } from "@/components/tagalong/PlusCard";
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate,Link } from "@tanstack/react-router";
+import {useAge} from "@/hooks/use-age";
+import {useOrganisations,useOrgMemberships} from "@/hooks/use-organisations";
+import {AGE_BRACKETS} from "@/lib/age";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
@@ -66,6 +69,9 @@ function PostPlan() {
   const s = Route.useSearch();
   const { user, profile } = useMyProfile();
   const { plus } = usePlus();
+  const age=useAge(),organisations=useOrganisations(),memberships=useOrgMemberships();
+  const [ageBracket,setAgeBracket]=useState(""),[ageMin,setAgeMin]=useState(18),[ageMax,setAgeMax]=useState(34),[orgId,setOrgId]=useState("");
+  const [photoFiles,setPhotoFiles]=useState<File[]>([]);
   const [level, setLevel] = useState("");
   const [activity, setActivity] = useState(s.category ? s.category.toLowerCase() : "co-working");
   const navigate = useNavigate();
@@ -114,6 +120,8 @@ function PostPlan() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if(!age.data?.age_verified){toast.error("Complete demo age verification before hosting.");return;}
+    if(photoFiles.length<3||photoFiles.length>5){toast.error("Add 3 to 5 distinct photos for this plan.");return;}
     if (!publicPlace) {
       toast.error("Plans must be at a public place or partner venue");
       return;
@@ -125,6 +133,9 @@ function PostPlan() {
     if (!canUseHostTools(plus,capacity,weekly,autoApprove)) { toast.error("These host tools require Tagalong Plus"); return; }
     setBusy(true);
     try {
+      const photos:string[]=[];
+      for(const file of photoFiles){const suffix=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";const path=`${user.id}/${crypto.randomUUID()}.${suffix}`;const {error}=await supabase.storage.from("plan-photos").upload(path,file,{contentType:file.type});if(error)throw error;photos.push(`storage:plan-photos/${path}`);}
+      const bracket=AGE_BRACKETS.find(b=>b.value===ageBracket);
       const { data, error } = await supabase
         .from("plans")
         .insert({
@@ -133,14 +144,11 @@ function PostPlan() {
           category: activity,
           activity: activity.toLowerCase().trim(),
           genre: genreOf(activity),
-          image_url: imageFor(activity),
-          photos: [
-            imageFor(activity),
-            imageFor(
-              GENRES.find((g) => g.id === genreOf(activity))?.items.split("|")[0] ?? activity,
-            ),
-            cityImage(city),
-          ],
+          image_url:null,
+          photos,
+          age_min:ageBracket==="custom"?ageMin:bracket?.min??null,
+          age_max:ageBracket==="custom"?ageMax:bracket?.max??null,
+          organisation_id:orgId||null,
           area_lat: CITY_CENTERS[city]?.[0] ?? null,
           area_lng: CITY_CENTERS[city]?.[1] ?? null,
           what_to_bring: bring,
@@ -199,6 +207,10 @@ function PostPlan() {
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
+        {!age.data?.age_verified&&<div className="border-y border-border py-4"><p className="text-sm">Complete the adult demo check before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/verify">Verify your age</Link></Button></div>}
+        <Field label="Event photos (3 to 5 distinct photos)" id="event-photos"><Input id="event-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={async e=>{const files=Array.from(e.target.files??[]);if(files.length<3||files.length>5||files.some(f=>f.size>8*1024*1024||!["image/jpeg","image/png","image/webp"].includes(f.type))){toast.error("Choose 3 to 5 JPG, PNG or WebP photos, under 8 MB each.");return;}const hashes=await Promise.all(files.map(async f=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",await f.arrayBuffer()))).join("")));if(new Set(hashes).size!==files.length){toast.error("Each photo needs to be different.");return;}setPhotoFiles(files);}}/><p className="text-xs text-muted-foreground">{photoFiles.length?`${photoFiles.length} photos selected`:"Your own relevant photos, not reused on another plan."}</p></Field>
+        <div className="space-y-2"><Label>Age bracket (optional)</Label><Choice label="Any adult bracket" value={ageBracket} onChange={setAgeBracket} options={[...AGE_BRACKETS,{value:"custom",label:"Custom range"}]}/>{ageBracket==="custom"&&<div className="grid grid-cols-2 gap-3"><Input aria-label="Minimum age" type="number" min={18} max={120} value={ageMin} onChange={e=>setAgeMin(Number(e.target.value))}/><Input aria-label="Maximum age" type="number" min={ageMin} max={120} value={ageMax} onChange={e=>setAgeMax(Number(e.target.value))}/></div>}</div>
+        {!!memberships.data?.some(m=>m.role==="admin")&&<div className="space-y-2"><Label>Post on behalf of</Label><Choice label="Yourself" value={orgId} onChange={setOrgId} options={(organisations.data??[]).filter(o=>memberships.data?.some(m=>m.organisation_id===o.id&&m.role==="admin")).map(o=>({value:o.id,label:o.name}))}/></div>}
         <div className="space-y-2">
           <Label>Activity</Label>
           <Input
@@ -370,7 +382,7 @@ function PostPlan() {
           size="lg"
           variant="accent"
           className="w-full"
-          disabled={busy || !publicPlace}
+          disabled={busy || !publicPlace || !age.data?.age_verified || photoFiles.length<3}
         >
           Post plan
         </Button>

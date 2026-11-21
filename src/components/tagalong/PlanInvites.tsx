@@ -1,5 +1,5 @@
 import { SocialExamples } from "./SocialExamples";
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Share2, UserPlus } from "lucide-react";
@@ -33,6 +33,7 @@ export function PlanInvites({ planId, member }: { planId: string; member: boolea
     auth = useAuthAction(),
     qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  useEffect(()=>{const handler=(event:Event)=>{if((event as CustomEvent<string>).detail===planId){if(member)setOpen(true);else toast("Join this plan before inviting friends.");}};window.addEventListener("tagalong-invite",handler);return ()=>window.removeEventListener("tagalong-invite",handler);},[planId,member]);
   const q = useQuery({
     queryKey: ["plan-invites", planId, user?.id],
     enabled: member,
@@ -62,13 +63,14 @@ export function PlanInvites({ planId, member }: { planId: string; member: boolea
       <Button
         variant="outline"
         onClick={() =>
-          auth(() => {
-            if (!member) {
+          auth(async account => {
+            const {data}=await supabase.rpc("is_plan_member",{_plan:planId,_user:account.id});
+            if (!data) {
               toast("Join this plan before inviting friends.");
               return;
             }
             setOpen(true);
-          }, "invite your friends")
+          }, "invite your friends",{kind:"invite",planId})
         }
       >
         <UserPlus />
