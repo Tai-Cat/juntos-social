@@ -33,13 +33,16 @@ export default function ExploreMap({
       }).addTo(m);
       setReady(true);
     });
-    useEffect(() => { const center = CITY_CENTERS[city]; if (center && map.current) map.current.setView(center,12); }, [city, ready]);
-  return () => {
+    return () => {
       active = false;
       map.current?.remove();
       map.current = null;
     };
   }, []);
+  useEffect(() => {
+    const center = CITY_CENTERS[city];
+    if (center && map.current) map.current.setView(center, 12);
+  }, [city, ready]);
   useEffect(() => {
     if (!ready || !map.current) return;
     const m = map.current;
