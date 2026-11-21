@@ -56,3 +56,10 @@
 - [ ] Same gap-fill rule in categories, organisations, Travel, calendar, map, friends
 - [ ] Examples excluded from My plans, counts, notifications, analytics; not joinable for payment
 - [ ] Admin: Settings switch to hide all examples; delete-all-examples action
+
+## Finish list (Nov 21)
+- [ ] AI image fallback for plans, interests, trips, cities, groups (cached, credited)
+- [ ] Example fade-out per city (6 real), admin hide switch, admin delete-all
+- [ ] Accounts & groups (types, Request Official + review queue, groups, Post as, Create entries, 3-group limit row)
+- [ ] Edit plan screen with visibility
+- [ ] Remove ID/selfie age-check requirement: self-declared DOB + 18+ checkbox; Verify optional badge only
