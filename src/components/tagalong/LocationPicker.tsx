@@ -78,8 +78,8 @@ export function LocationPicker({
     : recent;
   return (
     <>
-      <Button variant="outline" size={compact ? "sm" : "default"} aria-label={`Location: ${cityName(value || "Paris")}`} className="min-w-0 max-w-[9rem] rounded-full bg-card sm:max-w-[14rem]" onClick={() => setOpen(true)}>
-        <MapPin className="text-tangerine" />
+      <Button variant="outline" size={compact ? "sm" : "default"} aria-label={`Location: ${cityName(value || "Paris")}`} className="h-9 min-w-0 max-w-[10rem] items-center justify-center gap-1.5 rounded-full bg-card px-3 sm:max-w-[14rem]" onClick={() => setOpen(true)}>
+        <MapPin className="h-4 w-4 shrink-0 text-tangerine" aria-hidden />
         <span className="min-w-0 truncate font-bold">{cityName(value || "Paris")}</span>
       </Button>
       <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground={false}>

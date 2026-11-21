@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
-import { Share, SquarePlus, X } from "lucide-react";
+import { Share, SquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JuntosMark } from "./JuntosLogo";
 import { isInstalled } from "@/lib/push";
 
-/** Chrome / Android fires this when the site can be installed as an app. */
+/** Chrome / Android / desktop Chrome fire this when the site can be installed as an app. */
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
 
 const DISMISS_KEY = "juntos-install-dismissed";
+/** Anything on the page can open the pop-up with: window.dispatchEvent(new Event(OPEN_INSTALL)) */
+export const OPEN_INSTALL = "juntos-open-install";
 
 function dismissedRecently(): boolean {
   try {
-    const t = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
-    return Date.now() - t < 3 * 24 * 60 * 60 * 1000; // ask again after 3 days
+    return Date.now() - Number(localStorage.getItem(DISMISS_KEY) ?? 0) < 3 * 24 * 60 * 60 * 1000;
   } catch {
     return false;
   }
@@ -20,122 +21,157 @@ function dismissedRecently(): boolean {
 
 const ua = () => navigator.userAgent;
 const isIos = () => /iPhone|iPad|iPod/.test(ua()) || (ua().includes("Mac") && "ontouchend" in document);
-const isMobile = () => /Android|iPhone|iPad|iPod/i.test(ua()) || (ua().includes("Mac") && "ontouchend" in document);
+const isMobile = () => /Android|iPhone|iPad|iPod/i.test(ua()) || isIos();
+const isIosSafari = () => isIos() && /Safari/.test(ua()) && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV|WhatsApp/.test(ua());
 const welcomeOpen = () => !!document.querySelector(".welcome-screen") && document.documentElement.dataset["welcome"] !== "seen";
 
+// Chrome fires beforeinstallprompt once, often before React mounts: catch it early.
+let earlyPrompt: InstallPromptEvent | null = null;
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    earlyPrompt = e as InstallPromptEvent;
+  });
+}
+
 /**
- * "Get the Juntos app" pop-up for phone visitors who haven't installed it.
- * Android/Chrome: "Install" opens the phone's own install dialog (one more tap: Install).
- * iPhone: Apple lets only the person add a website to the home screen, so the pop-up
- * shows the two Safari taps with pictures. It waits until the welcome screen is closed.
+ * "Download Juntos as an app?" with Yes / No.
+ * Android and Chrome: Yes opens the phone's own install confirmation.
+ * iPhone: Apple doesn't let websites install themselves, so Yes shows the two Safari taps.
+ * Opens by itself once on phones, and any time from "Get the app" links (OPEN_INSTALL).
  */
 export function InstallBanner() {
-  const [mode, setMode] = useState<"hidden" | "android" | "ios" | "ios-other">("hidden");
-  const [ready, setReady] = useState<"android" | "ios" | "ios-other" | null>(null);
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"ask" | "ios" | "ios-other" | "done">("ask");
   const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);
 
   useEffect(() => {
-    if (isInstalled() || dismissedRecently() || !isMobile()) return;
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/push-sw.js").catch(() => {});
+    if (earlyPrompt) setPromptEvent(earlyPrompt);
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setPromptEvent(e as InstallPromptEvent);
-      setReady("android");
     };
-    const onInstalled = () => setMode("hidden");
-    if (isIos()) {
-      const safari = /Safari/.test(ua()) && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV|WhatsApp/.test(ua());
-      setReady(safari ? "ios" : "ios-other");
-    } else {
-      window.addEventListener("beforeinstallprompt", onPrompt);
-      window.addEventListener("appinstalled", onInstalled);
+    const onInstalled = () => setOpen(false);
+    const onOpen = () => {
+      setStep("ask");
+      setOpen(true);
+    };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    window.addEventListener(OPEN_INSTALL, onOpen);
+
+    let t = 0;
+    const auto = () => {
+      t = window.setTimeout(() => setOpen(true), 900);
+    };
+    if (!isInstalled() && !dismissedRecently() && isMobile()) {
+      if ("serviceWorker" in navigator) navigator.serviceWorker.register("/push-sw.js").catch(() => {});
+      if (welcomeOpen()) window.addEventListener("juntos-welcome-closed", auto, { once: true });
+      else auto();
     }
     return () => {
+      window.clearTimeout(t);
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener(OPEN_INSTALL, onOpen);
+      window.removeEventListener("juntos-welcome-closed", auto);
     };
   }, []);
 
-  // Pop up a moment after the page settles, and never on top of the welcome screen.
-  useEffect(() => {
-    if (!ready) return;
-    let t = 0;
-    const show = () => {
-      window.clearTimeout(t);
-      t = window.setTimeout(() => setMode(ready), 900);
-    };
-    if (welcomeOpen()) window.addEventListener("juntos-welcome-closed", show, { once: true });
-    else show();
-    return () => {
-      window.clearTimeout(t);
-      window.removeEventListener("juntos-welcome-closed", show);
-    };
-  }, [ready]);
+  if (!open) return null;
 
-  if (mode === "hidden") return null;
-
-  const close = () => {
+  const no = () => {
     try {
       localStorage.setItem(DISMISS_KEY, String(Date.now()));
     } catch {
       /* storage blocked: the pop-up returns next visit */
     }
-    setMode("hidden");
+    setOpen(false);
+  };
+
+  const yes = async () => {
+    const p = promptEvent ?? earlyPrompt;
+    if (p) {
+      await p.prompt();
+      const { outcome } = await p.userChoice;
+      earlyPrompt = null;
+      setPromptEvent(null);
+      if (outcome === "accepted") setOpen(false);
+      return;
+    }
+    if (isIos()) {
+      setStep(isIosSafari() ? "ios" : "ios-other");
+      return;
+    }
+    setStep("done");
   };
 
   return (
-    <div className="install-popup-backdrop" role="presentation" onClick={close}>
+    <div className="install-popup-backdrop" role="presentation" onClick={no}>
       <div className="install-popup" role="dialog" aria-modal="true" aria-labelledby="install-title" onClick={(e) => e.stopPropagation()}>
-        <button type="button" aria-label="Not now" onClick={close} className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground hover:bg-muted">
-          <X className="h-5 w-5" aria-hidden />
-        </button>
         <span className="mx-auto grid h-20 w-20 place-items-center rounded-[22px] border border-border bg-background shadow-sm">
           <JuntosMark className="h-14 w-14" />
         </span>
-        <h2 id="install-title" className="mt-4 text-center font-display text-2xl">Get the Juntos app</h2>
-        <p className="mt-1 text-center text-sm text-muted-foreground">Free. On your home screen, full screen, with plan alerts.</p>
 
-        {mode === "android" && promptEvent && (
-          <button
-            type="button"
-            className="welcome-cta mt-5"
-            onClick={async () => {
-              await promptEvent.prompt();
-              const { outcome } = await promptEvent.userChoice;
-              if (outcome === "accepted") setMode("hidden");
-            }}
-          >
-            Yes, install the app
-          </button>
+        {step === "ask" && (
+          <>
+            <h2 id="install-title" className="mt-4 text-center font-display text-2xl">Download Juntos as an app?</h2>
+            <p className="mt-1 text-center text-sm text-muted-foreground">Free, on your home screen, with plan alerts.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <Button variant="outline" size="lg" className="rounded-full" onClick={no}>No</Button>
+              <button type="button" className="welcome-cta !py-3" onClick={yes}>Yes</button>
+            </div>
+          </>
         )}
 
-        {mode === "ios" && (
-          <ol className="mt-5 space-y-3">
-            <li className="flex items-center gap-3 rounded-xl bg-background p-3 text-sm">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-card shadow-sm"><Share className="h-5 w-5 text-[#0A84FF]" aria-hidden /></span>
-              <span>Tap <b>Share</b> in Safari's bottom bar</span>
-            </li>
-            <li className="flex items-center gap-3 rounded-xl bg-background p-3 text-sm">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-card shadow-sm"><SquarePlus className="h-5 w-5" aria-hidden /></span>
-              <span>Choose <b>Add to Home Screen</b>, then <b>Add</b></span>
-            </li>
-          </ol>
+        {step === "ios" && (
+          <>
+            <h2 id="install-title" className="mt-4 text-center font-display text-2xl">Two taps and it's yours</h2>
+            <ol className="mt-4 space-y-3">
+              <li className="flex items-center gap-3 rounded-xl bg-background p-3 text-sm">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-card shadow-sm"><Share className="h-5 w-5 text-[#0A84FF]" aria-hidden /></span>
+                <span>Tap <b>Share</b> at the bottom of Safari</span>
+              </li>
+              <li className="flex items-center gap-3 rounded-xl bg-background p-3 text-sm">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-card shadow-sm"><SquarePlus className="h-5 w-5" aria-hidden /></span>
+                <span>Tap <b>Add to Home Screen</b>, then <b>Add</b></span>
+              </li>
+            </ol>
+            <Button className="mt-4 w-full rounded-full" variant="outline" onClick={() => setOpen(false)}>Done</Button>
+          </>
         )}
 
-        {mode === "ios-other" && (
-          <p className="mt-5 rounded-xl bg-background p-3 text-center text-sm">
-            Open this link in <b>Safari</b> to install Juntos. iPhone only adds apps to the home screen from Safari.
-          </p>
+        {step === "ios-other" && (
+          <>
+            <h2 id="install-title" className="mt-4 text-center font-display text-2xl">Open in Safari first</h2>
+            <p className="mt-2 text-center text-sm">iPhone only installs apps from Safari. Open this link in Safari, then tap <b>Get the app</b> again.</p>
+            <Button className="mt-4 w-full rounded-full" variant="outline" onClick={() => setOpen(false)}>OK</Button>
+          </>
         )}
 
-        <button type="button" onClick={close} className="mt-4 w-full text-center text-sm font-bold text-muted-foreground">
-          {mode === "ios" ? "Got it" : "Not now"}
-        </button>
+        {step === "done" && (
+          <>
+            <h2 id="install-title" className="mt-4 text-center font-display text-2xl">Use your browser's menu</h2>
+            <p className="mt-2 text-center text-sm">Open your browser menu and choose <b>Install app</b> or <b>Add to Home Screen</b>.</p>
+            <Button className="mt-4 w-full rounded-full" variant="outline" onClick={() => setOpen(false)}>OK</Button>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
+/** Small "Get the app" link that opens the pop-up; hidden inside the installed app. */
+export function GetAppLink({ className = "" }: { className?: string }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => setShow(!isInstalled()), []);
+  if (!show) return null;
+  return (
+    <button type="button" className={className} onClick={() => window.dispatchEvent(new Event(OPEN_INSTALL))}>
+      Get the app
+    </button>
+  );
+}
 
 /**
  * Inside the installed app, signed-out visitors land straight on a sign-up card

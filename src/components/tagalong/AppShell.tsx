@@ -2,7 +2,7 @@ import { useAuthAction } from "./AuthSheet";
 import { Button } from "@/components/ui/button";
 import { useEffect, type ReactNode } from "react";
 import { Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
-import { Compass, Plane, Inbox, Plus, User, CalendarDays, Map, List, ArrowLeft, Bell } from "lucide-react";
+import { Compass, Plane, Inbox, Plus, User, ArrowLeft, Bell } from "lucide-react";
 import { useMyProfile } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { LocationPicker } from "./LocationPicker";
@@ -38,7 +38,6 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
     )
       navigate({ to: "/onboarding" });
   }, [profile, loading, loc.pathname, navigate]);
-  const mapOn = prefs.view === "map";
   const unread = useNotificationFeed();
   const badge = unread > 9 ? "9+" : String(unread);
   return (
@@ -53,24 +52,6 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
             onChange={(v) => setExplorePrefs({ city: v })}
             onPosition={(position) => setExplorePrefs({ position })}
           />
-          <Button
-            size="icon"
-            variant={onExplore && mapOn ? "secondary" : "ghost"}
-            aria-label={mapOn ? "Show list" : "Show map"}
-            title={mapOn ? "Show list" : "Show map"}
-            onClick={() => {
-              setExplorePrefs({ view: onExplore && mapOn ? "browse" : "map" });
-              if (!onExplore) navigate({ to: "/feed" });
-            }}
-          >
-            {onExplore && mapOn ? <List className="h-5 w-5" /> : <Map className="h-5 w-5" />}
-          </Button>
-          <Button asChild size="sm" variant={loc.pathname === "/pricing" ? "secondary" : "ghost"} className="px-2 text-xs font-bold">
-            <Link to="/pricing">Membership</Link>
-          </Button>
-          <Button asChild size="icon" variant={loc.pathname.startsWith("/calendar") ? "secondary" : "ghost"} aria-label="Calendar" title="Calendar">
-            <Link to="/calendar"><CalendarDays className="h-5 w-5" /></Link>
-          </Button>
           {user && (
             <Button asChild size="icon" variant="ghost" className="relative" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} title="Notifications">
               <Link to="/inbox" search={{ tab: "notifications" }}>
