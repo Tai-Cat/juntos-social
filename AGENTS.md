@@ -28,3 +28,10 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Exact venue addresses live in `plan_addresses` (host-only RLS); joiners read them only via the `get_plan_address` RPC, which enforces the 2-hours-before unlock. Why: the address must never leak through the public `plans` table.
+- Self-described gender lives in `profile_private` (owner-only RLS), never in `profiles`. Why: profiles are readable by all signed-in users.
+- Join eligibility, auto-approval and going counts are enforced by DB triggers on `join_requests`, not client code. Why: the client can't be trusted for audience restrictions.
+- The "whats-on" Tavily search is a TanStack server function (`src/lib/whats-on.functions.ts`), not a Supabase edge function. Why: this stack uses createServerFn for app-internal server logic.
+- Discount tiers live in `src/lib/discount.ts` with tests. Why: one source for card copy and pricing.
