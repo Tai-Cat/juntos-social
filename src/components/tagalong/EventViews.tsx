@@ -1,4 +1,4 @@
-import {photoOr,isRealPhoto} from "@/lib/placeholder";
+import {photoOr,isRealPhoto,planFallback} from "@/lib/placeholder";
 import {Link} from "@tanstack/react-router";
 import {Heart,Lock,ChevronRight} from "lucide-react";
 import {useQuery,useQueryClient} from "@tanstack/react-query";

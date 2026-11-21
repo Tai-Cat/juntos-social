@@ -16,3 +16,7 @@
 - [ ] Denser, lighter doodles.
 - [ ] Travel compact Where/When/Who search.
 - [ ] Four real INSEAD events (no Example label, no Zoom details).
+
+## V6 status
+- Done: Juntos rename, splash, first-visit cards + About, flyer/illustrated headers, header (logo, location, map/list, calendar, avatar, back/Explore), profile tiles + memberships, Settings and Membership panels, per-friend reminders, denser doodles, Travel Where/When/Who, four INSEAD events.
+- Open: real stock photos need UNSPLASH_ACCESS_KEY and PEXELS_API_KEY (user to add); Singapore event shows a flyer until then.

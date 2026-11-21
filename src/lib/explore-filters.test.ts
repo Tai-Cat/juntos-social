@@ -5,7 +5,7 @@ import type { Plan } from "./tagalong";
 const p: Plan = {
   id: "a",
   age_min:null,age_max:null,organisation_id:null,
-  is_private: false, private_participants: [], photos: [], interest_tags: [], area_lat: null, area_lng: null, what_to_bring: "", duration_minutes: 120, host_intro: "", early_booking: false,
+  is_private: false, private_participants: [], photos: [], interest_tags: [], ticket_url: null, area_lat: null, area_lng: null, what_to_bring: "", duration_minutes: 120, host_intro: "", early_booking: false,
   host_id: null,
   title: "Tennis",
   category: "tennis",

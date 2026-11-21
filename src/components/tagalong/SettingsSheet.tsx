@@ -59,7 +59,7 @@ export function SettingsSheet() {
             if (!user) return;
             const [min, max] = value ? value.split("-").map(Number) : [null, null];
             const { error } = await supabase.from("profile_private").upsert({ user_id: user.id, meet_age_min: min ?? null, meet_age_max: max ?? null });
-            if (error) toast.error(error.message); else qc.invalidateQueries({ queryKey: ["age"] });
+            if (error) toast.error(error.message); else qc.invalidateQueries({ queryKey: ["private-age"] });
           }} />
           <p className="mt-1 text-xs text-muted-foreground">A preference, not a joining restriction.</p>
         </div>

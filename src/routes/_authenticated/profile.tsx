@@ -1,5 +1,7 @@
 import { FriendsPanel } from "@/components/tagalong/Friends";
-import { Membership } from "@/components/tagalong/Membership";
+import { SettingsSheet } from "@/components/tagalong/SettingsSheet";
+import { MembershipSheet } from "@/components/tagalong/MembershipSheet";
+import { ProfileMemberships } from "@/components/tagalong/ProfileMemberships";
 import { ProfileShare } from "@/components/tagalong/ProfileShare";
 import { useState } from "react";
 import { useDoodles } from "@/hooks/use-doodles";
@@ -176,6 +178,14 @@ function ProfilePage() {
           Friends
         </Button>
         <ProfileShare />
+        <SettingsSheet />
+        <MembershipSheet />
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="genre-food rounded-lg p-4"><p className="eyebrow">Reliability</p><p className="mt-1 font-display text-3xl">{profile.reliability_score}%</p></div>
+        <div className="genre-active rounded-lg p-4"><p className="eyebrow">Hosting</p><p className="mt-1 font-display text-3xl">{hosting.data?.length ?? 0}</p></div>
+        <div className="genre-tech rounded-lg p-4"><p className="eyebrow">Joined</p><p className="mt-1 font-display text-3xl">{joined.data?.length ?? 0}</p></div>
+        <div className="genre-ideas rounded-lg p-4"><p className="eyebrow">Trips</p><p className="mt-1 font-display text-3xl">{trips.data?.length ?? 0}</p></div>
       </div>
       {tab === "friends" ? (
         <FriendsPanel />
@@ -201,44 +211,7 @@ function ProfilePage() {
               <p className="mt-2 text-sm">{profile.learning_interests.join(" · ")}</p>
             </section>
           )}
-          <section className="genre-ideas mt-7 rounded-lg border border-border p-5">
-            <h2 className="text-2xl">Settings</h2>
-            <div className="mt-4"><p className="mb-2 font-bold">People I'd like to meet</p><Choice label="Any adult bracket" value={age.data?.meet_age_min?`${age.data.meet_age_min}-${age.data.meet_age_max??120}`:""} options={AGE_BRACKETS} onChange={async value=>{if(!user)return;const [min,max]=value.split("-").map(Number);const {error}=await supabase.from("profile_private").update({meet_age_min:min??null,meet_age_max:max??null}).eq("user_id",user.id);if(error)toast.error(error.message);else qc.invalidateQueries({queryKey:["private-age"]});}}/><p className="mt-2 text-xs text-muted-foreground">A preference, not a joining restriction.</p><p className="mt-3 text-xs">Adult demo check: {age.data?.age_verified?"Complete":"Required before joining or hosting"}</p>{!age.data?.age_verified&&<Button asChild variant="outline" className="mt-2"><Link to="/verify">Verify your age</Link></Button>}</div>
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <span className="font-bold">Doodle background</span>
-              <Switch
-                aria-label="Doodle background"
-                checked={doodles.enabled}
-                onCheckedChange={doodles.toggle}
-              />
-            </div>
-            <div className="mt-4">
-              <p className="mb-2 font-bold">Hang-again reminders</p>
-              <Choice
-                label="Reminder frequency"
-                value={settings.data?.hang_frequency ?? "monthly"}
-                options={[
-                  { value: "never", label: "Never" },
-                  { value: "monthly", label: "Monthly" },
-                  { value: "every_2_months", label: "Every 2 months" },
-                ]}
-                onChange={async (v) => {
-                  if (!user) return;
-                  const { error } = await supabase
-                    .from("user_settings")
-                    .upsert({ user_id: user.id, hang_frequency: v });
-                  if (error) toast.error(error.message);
-                  else {
-                    qc.invalidateQueries({ queryKey: ["settings"] });
-                    qc.invalidateQueries({ queryKey: ["hang-candidates"] });
-                  }
-                }}
-              />
-            </div>
-          </section>
-
-          <Membership />
-          {!!memberships.data?.some(m=>m.role==="admin")&&<section className="mt-6"><h2 className="text-2xl">Your organisations</h2>{memberships.data.filter(m=>m.role==="admin").map(m=><Button asChild variant="outline" className="mt-3 mr-2" key={m.organisation_id}><Link to="/organisation-admin/$orgId" params={{orgId:m.organisation_id}}>{orgs.data?.find(o=>o.id===m.organisation_id)?.name??"Organisation"} · Admin</Link></Button>)}</section>}
+          <ProfileMemberships />
           <div className="mt-10 space-y-10">
             <Section title="Hosting">
               {(hosting.data ?? []).length === 0 ? (

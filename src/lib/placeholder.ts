@@ -38,9 +38,9 @@ export function placeholderImage(genre: string, label?: string) {
     const sc = 0.9 + ((seed >> (i + 1)) % 5) * 0.25, r = ((seed >> (i + 2)) % 60) - 30;
     return `<g transform="translate(${x} ${y}) rotate(${r} 12 12) scale(${sc})" opacity="${i % 2 ? 0.35 : 0.6}">${ICONS[key]}</g>`;
   }).join("");
-  const big = `<g transform="translate(96 22) scale(2.6) rotate(-8 12 12)" stroke-width="1.4">${ICONS[key]}</g>`;
-  const text = label ? `<rect x="0" y="86" width="160" height="34" fill="${bg}" opacity=".85"/><text x="10" y="108" font-family="Georgia, serif" font-size="13" font-weight="700" fill="${fg}">${esc(wrap(titleCase(label), 22, 1)[0] ?? "")}</text>` : "";
-  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120"><rect width="160" height="120" fill="${bg}"/><g fill="none" stroke="${fg}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${marks}${big}</g>${text}</svg>`);
+  const big = `<g transform="translate(92 40) scale(2.6) rotate(-8 12 12)" stroke-width="1.4">${ICONS[key]}</g>`;
+  const text = label ? `<rect x="0" y="100" width="160" height="26" fill="${bg}" opacity=".9"/><text x="10" y="118" font-family="Georgia, serif" font-size="13" font-weight="700" fill="${fg}">${esc(wrap(titleCase(label), 22, 1)[0] ?? "")}</text>` : "";
+  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><rect width="160" height="160" fill="${bg}"/><g fill="none" stroke="${fg}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${marks}${big}</g>${text}</svg>`);
 }
 /** Luma-style flyer header generated from the event itself. */
 export function flyerImage(p: { title: string; starts_at?: string | null; genre?: string | null; area_label?: string | null }) {
@@ -49,9 +49,11 @@ export function flyerImage(p: { title: string; starts_at?: string | null; genre?
   const lines = wrap(p.title, 15, 3);
   const d = p.starts_at ? new Date(p.starts_at) : null;
   const date = d ? d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }).toUpperCase() + " · " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "";
-  const size = lines.length > 2 ? 34 : 40;
-  const title = lines.map((l, i) => `<text x="28" y="${70 + i * (size + 4)}" font-family="Georgia, serif" font-size="${size}" font-weight="700" fill="#FFF8EE">${esc(l)}</text>`).join("");
-  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250"><rect width="400" height="250" fill="${strong}"/><circle cx="350" cy="40" r="90" fill="${soft}" opacity=".22"/><rect y="196" width="400" height="54" fill="${soft}"/><g transform="translate(330 120) scale(2.2)" fill="none" stroke="#FFF8EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".55">${ICONS[key]}</g>${title}<text x="28" y="222" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="800" fill="${strong}">${esc(date)}</text><text x="28" y="240" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#2A2824">${esc((p.area_label ?? "").slice(0, 48))}</text><text x="378" y="236" text-anchor="end" font-family="Georgia, serif" font-size="16" font-weight="700" fill="#2A2824">Juntos.</text></svg>`);
+  const size = lines.length > 2 ? 30 : 36;
+  // Square canvas; all text sits in the middle band so both square cards and wide carousels show it.
+  const top = 150 - (lines.length - 1) * (size / 2);
+  const title = lines.map((l, i) => `<text x="28" y="${top + i * (size + 4)}" font-family="Georgia, serif" font-size="${size}" font-weight="700" fill="#FFF8EE">${esc(l)}</text>`).join("");
+  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="${strong}"/><circle cx="350" cy="90" r="110" fill="${soft}" opacity=".22"/><rect y="236" width="400" height="164" fill="${soft}"/><g transform="translate(318 250) scale(2.4)" fill="none" stroke="${strong}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".45">${ICONS[key]}</g>${title}<text x="28" y="268" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="800" fill="${strong}">${esc(date)}</text><text x="28" y="290" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#2A2824">${esc((p.area_label ?? "").slice(0, 44))}</text><text x="28" y="318" font-family="Georgia, serif" font-size="16" font-weight="700" fill="#2A2824">Juntos.</text></svg>`);
 }
 /** Cover when no real photo exists: roughly half flyers, half illustrated object headers (deterministic per plan). */
 export function planFallback(p: { id: string; title: string; starts_at?: string | null; genre?: string | null; area_label?: string | null; activity?: string | null }) {
