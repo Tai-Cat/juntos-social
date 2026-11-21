@@ -31,6 +31,7 @@ export function PhotoCarousel({ photos:source, label,planId,genre="outdoors",cre
                 alt={`${label} · photo ${i + 1}`}
                 className="aspect-[16/10] max-h-[32dvh] w-full object-cover"
                 loading="lazy"
+                onError={(e)=>{const el=e.currentTarget,fb=fallback??placeholderImage(genre,label),ph=placeholderImage(genre,label);if(el.dataset["f"]==="2")return;if(el.dataset["f"]==="1"||el.src.endsWith(fb)){el.dataset["f"]="2";el.src=ph;}else{el.dataset["f"]="1";el.src=fb;}}}
               />
             </div>
           ))}
