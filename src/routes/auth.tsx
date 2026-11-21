@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { errMsg } from "@/lib/tagalong";
 import { focusNextOnEnter } from "@/hooks/use-keyboard-inset";
+import { JuntosLogo } from "@/components/tagalong/JuntosLogo";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -25,10 +26,21 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  // Once the iPhone keyboard has finished opening, centre the focused field so
+  // neither it nor the button under it sits behind the keyboard.
+  useEffect(() => {
+    const onFocus = (e: FocusEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!el || el.tagName !== "INPUT") return;
+      window.setTimeout(() => el.scrollIntoView({ block: "center", behavior: "smooth" }), 350);
+    };
+    document.addEventListener("focusin", onFocus);
+    return () => document.removeEventListener("focusin", onFocus);
+  }, []);
   return (
-    <div className="mx-auto min-h-[100dvh] max-w-md px-6 py-8">
-      <Link to="/" className="font-display text-2xl">
-        Juntos
+    <div className="auth-page mx-auto min-h-[100dvh] max-w-md px-6 pb-48 pt-8">
+      <Link to="/" aria-label="Juntos home">
+        <JuntosLogo />
       </Link>
       <div className="mt-8">
         <AuthForm />
