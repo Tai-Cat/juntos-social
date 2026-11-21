@@ -37,7 +37,10 @@ function Contact() {
     setBusy(true);
     const { error } = await supabase.rpc("submit_contact", { _name: name, _email: email || user?.email || "", _message: message });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setSent(true);
   };
   return (

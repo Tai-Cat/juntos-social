@@ -46,6 +46,10 @@ export function AuthForm({ onSuccess }: { onSuccess?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState("");
+  // /auth?mode=signup (used by the installed app) opens on the sign-up form.
+  useEffect(() => {
+    if (!onSuccess && new URLSearchParams(window.location.search).get("mode") === "signup") setMode("signup");
+  }, [onSuccess]);
 
   function done() {
     if (onSuccess) onSuccess();
