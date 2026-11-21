@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/tagalong/AppShell";
 import { Button } from "@/components/ui/button";
 import { HOW_IT_WORKS } from "@/lib/how-it-works";
+import { WhyJuntosCard } from "@/components/tagalong/WhyJuntos";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/about")({
 function About() {
   return (
     <AppShell>
+      <WhyJuntosCard />
       <p className="eyebrow">Juntos means together</p>
       <h1 className="mt-2 text-4xl">Good plans, great company.</h1>
       <p className="mt-3 max-w-xl text-lg">Turn your plans into plus-ones, and venues' empty slots into full tables.</p>

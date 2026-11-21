@@ -28,6 +28,7 @@ import { Empty } from "@/components/tagalong/bits";
 import { ExploreControls } from "@/components/tagalong/ExploreControls";
 import { SimilarPeople } from "@/components/tagalong/SimilarPeople";
 import { CityInput } from "@/components/tagalong/CityInput";
+import { WhyJuntosLine } from "@/components/tagalong/WhyJuntos";
 import { PLAN_SELECT, type PlanWithHost } from "@/lib/tagalong";
 import { emptyFilters, matchesPlan } from "@/lib/explore-filters";
 import { cityName } from "@/lib/catalog";
@@ -53,7 +54,7 @@ export function Feed() {
   const prefs = useExplorePrefs();
   const view = prefs.view;
   const setView = (v: ExploreView) => setExplorePrefs({ view: v });
-  const {user}=useSession();
+  const {user, ready}=useSession();
   const friendPlans=useQuery({queryKey:["calendar-friends",user?.id],enabled:!!user,queryFn:async()=>{const {data,error}=await supabase.rpc("calendar_friend_plans");if(error)throw error;return data;}});
   const teasers=useQuery({queryKey:["org-teasers",user?.id],queryFn:async()=>{const {data,error}=await supabase.rpc("org_plan_teasers");if(error)throw error;return data;}});
   const [area, setArea] = useState<Bounds | null>(null);
@@ -102,6 +103,7 @@ export function Feed() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
+      {ready && !user && <WhyJuntosLine />}
       <ExploreControls filters={filters} onChange={setFilters} plus={plus} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl">Near you</h2>
