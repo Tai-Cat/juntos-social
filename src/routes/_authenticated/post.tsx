@@ -168,7 +168,7 @@ function PostPlan() {
       </p>
 
       <p className="eyebrow mb-2 mt-6">Quick start</p>
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+      <div className="flex flex-wrap gap-2 pb-1">
         {TEMPLATES.map((t) => (
           <Chip key={t.title} active={title === t.title} onClick={() => useTemplate(t)}>
             {t.title}
