@@ -33,7 +33,7 @@ export function HomeHero() {
         >
           <Crown className="h-3.5 w-3.5" aria-hidden /> Get Plus
         </a>
-        <Link to="/pricing" className="text-xs font-bold text-tangerine underline-offset-2 hover:underline">Compare plans</Link>
+        <Link to="/pricing" className="text-xs font-bold text-tangerine underline-offset-2 hover:underline">See all benefits</Link>
       </div>
     </div>
   );

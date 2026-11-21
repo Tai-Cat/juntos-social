@@ -76,7 +76,7 @@ export function WelcomeScreen() {
               <Crown className="h-4 w-4" aria-hidden /> Get Plus
             </a>
             <Link to="/pricing" onClick={enter} className="inline-flex items-center gap-1 text-muted-foreground underline-offset-2 hover:underline">
-              <Check className="h-4 w-4" aria-hidden /> Compare plans
+              <Check className="h-4 w-4" aria-hidden /> See all benefits
             </Link>
           </div>
         </div>

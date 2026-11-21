@@ -13,7 +13,7 @@ export function PlusCheckoutButton({ label = "Get Plus" }: { label?: string }) {
           {label} · €5 / month
         </a>
       </Button>
-      <p className="mt-1 text-xs text-muted-foreground">Plus activates within 24 hours of payment.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Renews monthly; cancel anytime. Benefits switch on as soon as the payment goes through.</p>
     </div>
   );
 }
