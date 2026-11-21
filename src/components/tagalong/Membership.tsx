@@ -1,3 +1,4 @@
+import { BillingActions } from "./BillingActions";
 import { Link } from "@tanstack/react-router";
 import { MANAGE_SUBSCRIPTION_LINK } from "@/lib/plus";
 import { useIsAppAdmin } from "@/hooks/use-app-config";
@@ -50,6 +51,7 @@ export function Membership() {
         Want more? <Link to="/pricing" className="font-bold text-tangerine underline">Juntos Club is €10 / month</Link>.{" "}
         Already a member? <a href={MANAGE_SUBSCRIPTION_LINK} target="_blank" rel="noopener noreferrer" className="font-bold underline">Manage or cancel your subscription</a>.
       </p>
+      <BillingActions />
       <ul className="mt-5 divide-y divide-border">
         {PLUS_FEATURES.map((f) => (
           <li key={f.name} className="flex items-center gap-3 py-3 text-sm">

@@ -1,3 +1,4 @@
+import { BillingActions } from "./BillingActions";
 import { MANAGE_SUBSCRIPTION_LINK } from "@/lib/plus";
 import { Check, Minus, Crown } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -37,6 +38,7 @@ export function MembershipSheet() {
           {" · "}
           <a href={MANAGE_SUBSCRIPTION_LINK} target="_blank" rel="noopener noreferrer" className="underline">Manage subscription</a>
         </p>
+        <BillingActions />
         {isAdmin && <div className="mt-6 rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between"><span className="font-bold">Simulate Plus (admin only)</span><Switch aria-label="Simulate Plus" checked={plus} onCheckedChange={setPlus} /></div>
           <p className="mt-1 text-xs text-muted-foreground">Testing switch, visible to admins only.</p>
