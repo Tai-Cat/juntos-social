@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "./use-auth";
 import { toast } from "sonner";
+import { membershipCurrent } from "@/lib/plus";
 export function usePlus() {
   const { user } = useSession();
   const qc = useQueryClient();
@@ -30,5 +31,7 @@ export function usePlus() {
     }
     await qc.invalidateQueries({ queryKey: ["settings"] });
   }
-  return { plus: q.data?.demo_plus ?? false, setPlus, loading: q.isLoading };
+  // One-month passes carry an end date in app_metadata (set only by the payment webhook).
+  const current = membershipCurrent(user?.app_metadata as Record<string, unknown> | undefined);
+  return { plus: (q.data?.demo_plus ?? false) && current, setPlus, loading: q.isLoading };
 }
