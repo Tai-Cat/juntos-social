@@ -64,6 +64,9 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
           const ref = (o["client_reference_id"] as string | null) ?? "";
           const customer = (o["customer"] as string | null) ?? null;
           const tier = Number(o["amount_total"] ?? 0) >= 1000 ? "club" : "plus";
+          // One-off "1 month, no renewal" links arrive as mode "payment": the pass runs 30 days.
+          const oneOff = o["mode"] === "payment";
+          const until = oneOff ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null;
           const label = tier === "club" ? "Juntos Club" : "Juntos Plus";
           let user = /^[0-9a-f-]{36}$/.test(ref) ? (await admin.auth.admin.getUserById(ref)).data.user : null;
           if (!user && email) user = (await findUser((u) => (u.email ?? "").toLowerCase() === email)) as typeof user;
@@ -72,9 +75,9 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
             return Response.json({ received: true, matched: false });
           }
           await admin.from("user_settings").upsert({ user_id: user.id, demo_plus: true });
-          await admin.auth.admin.updateUserById(user.id, { app_metadata: { ...user.app_metadata, stripe_customer: customer, membership: tier } });
-          await admin.from("notifications").insert({ user_id: user.id, title: `Welcome to ${label}! Your membership is active.`, kind: "membership", link: "/profile" });
-          await notifyAdmins(`New ${label} member: ${email || user.email}`);
+          await admin.auth.admin.updateUserById(user.id, { app_metadata: { ...user.app_metadata, stripe_customer: customer ?? user.app_metadata?.["stripe_customer"] ?? null, membership: tier, membership_until: until } });
+          await admin.from("notifications").insert({ user_id: user.id, title: until ? `Welcome to ${label}! Your one-month pass runs until ${until.slice(0, 10)} and won't renew.` : `Welcome to ${label}! Your membership is active and renews monthly.`, kind: "membership", link: "/profile" });
+          await notifyAdmins(`New ${label} member${until ? " (1-month pass, no renewal)" : " (monthly)"}: ${email || user.email}`);
           return Response.json({ received: true, matched: true });
         }
 
@@ -84,7 +87,7 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
           const user = await findUser((u) => u.app_metadata?.["stripe_customer"] === customer);
           if (user) {
             await admin.from("user_settings").upsert({ user_id: user.id, demo_plus: false });
-            await admin.auth.admin.updateUserById(user.id, { app_metadata: { ...user.app_metadata, membership: null } });
+            await admin.auth.admin.updateUserById(user.id, { app_metadata: { ...user.app_metadata, membership: null, membership_until: null } });
             await admin.from("notifications").insert({ user_id: user.id, title: "Your Juntos membership has ended. You can rejoin any time from Pricing.", kind: "membership", link: "/pricing" });
             await notifyAdmins(`Membership cancelled: ${user.email}`);
           }
