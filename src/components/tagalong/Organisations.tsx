@@ -1,7 +1,7 @@
 import {useState} from "react";
 import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {Link} from "@tanstack/react-router";
-import {Building2,Check,Lock,Plus} from "lucide-react";
+import {BadgeCheck,Building2,Check,Lock,Plus} from "lucide-react";
 import {supabase} from "@/integrations/supabase/client";
 import {useSession} from "@/hooks/use-auth";
 import {useOrganisations,useOrgMemberships} from "@/hooks/use-organisations";
@@ -13,6 +13,8 @@ import {toast} from "sonner";
 import type {Database} from "@/integrations/supabase/types";
 type Org=Database["public"]["Tables"]["organisations"]["Row"];
 export function OrganisationLogo({org}:{org:Org}){return <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-grass-soft font-display text-xl font-bold text-grass">{org.logo_url?<img src={org.logo_url} alt={`${org.name} logo`} className="h-full w-full object-contain"/>:org.name==="INSEAD"?"IN":<Building2/>}</span>;}
+/** Organisation-level badge, distinct from the personal Verified tick. */
+export function OfficialBadge({org}:{org:Org}){return org.is_official?<span title="Official organisation" className="inline-flex items-center gap-0.5 rounded-full border border-sky px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-sky"><BadgeCheck className="h-3 w-3"/>Official</span>:null;}
 export function FollowOrganisation({org}:{org:Org}){
  const {user}=useSession(),auth=useAuthAction(),qc=useQueryClient();
  const q=useQuery({queryKey:["org-follow",org.id,user?.id],enabled:!!user,queryFn:async()=>{if(!user)return false;return !!(await supabase.from("organisation_follows").select("organisation_id").eq("organisation_id",org.id).eq("user_id",user.id).maybeSingle()).data;}});
@@ -20,7 +22,7 @@ export function FollowOrganisation({org}:{org:Org}){
 }
 export function OrganisationDirectory({title="Browse by organisation"}:{title?:string}){
  const orgs=useOrganisations();
- return <section className="mt-8 border-t border-border pt-6"><h2 className="text-2xl">{title}</h2><div className="mt-4 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-4">{orgs.data?.map(org=><article key={org.id} className="flex flex-wrap items-center gap-3 border-b border-border py-4"><OrganisationLogo org={org}/><div className="min-w-0 flex-1"><Link className="font-bold" to="/organisations/$slug" params={{slug:org.slug}}>{org.name}</Link><p className="mt-1 text-xs text-muted-foreground">{org.visibility==="open"?"Open community":"Members only"}{org.is_example?" · Example":""}</p></div><FollowOrganisation org={org}/></article>)}</div></section>;
+ return <section className="mt-8 border-t border-border pt-6"><h2 className="text-2xl">{title}</h2><div className="mt-4 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-4">{[...(orgs.data??[])].sort((a,b)=>Number(b.is_official)-Number(a.is_official)).map(org=><article key={org.id} className="flex flex-wrap items-center gap-3 border-b border-border py-4"><OrganisationLogo org={org}/><div className="min-w-0 flex-1"><Link className="font-bold" to="/organisations/$slug" params={{slug:org.slug}}>{org.name}</Link> <OfficialBadge org={org}/><p className="mt-1 text-xs text-muted-foreground">{org.visibility==="open"?"Open community":"Members only"}{org.is_example?" · Example":""}</p></div><FollowOrganisation org={org}/></article>)}</div></section>;
 }
 export function OrganisationAccess({org}:{org:Org}){
  const memberships=useOrgMemberships(),{user}=useSession(),auth=useAuthAction(),qc=useQueryClient();

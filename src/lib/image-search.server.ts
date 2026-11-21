@@ -21,8 +21,17 @@ const OBJECT_QUERIES: Record<string, string[]> = {
   "baking classes": ["pastel de nata", "pastry baking flour"], "chess in the park": ["chess board park", "chess pieces"], "urban sketching": ["sketchbook drawing pencils", "watercolor sketch city"],
   volleyball: ["beach volleyball net", "volleyball on sand"], "wellness walks": ["city viewpoint sunset", "evening street walk old town"],
 };
-export function searchTerms(activity: string, _title = "") {
+/** Title keywords that need a more specific scene than their activity. */
+const TITLE_QUERIES: [RegExp, string[]][] = [
+  [/gala/i, ["gala dinner table setting", "elegant banquet table"]],
+  [/food festival/i, ["food festival market stalls", "street food market stalls"]],
+  [/recovery|wellness|bath/i, ["sauna interior wood", "bath house pool empty"]],
+  [/portfolio|website|\bai\b/i, ["laptop code screen", "programming laptop desk"]],
+];
+export function searchTerms(activity: string, title = "") {
   const a = activity.toLowerCase().trim();
+  const byTitle = TITLE_QUERIES.find(([r]) => r.test(title));
+  if (byTitle) return byTitle[1];
   const curated = OBJECT_QUERIES[a];
   // Generic fallbacks only for activities without a curated query; they are where odd images came from.
   return curated?.length ? curated : [`${a} still life`, a].filter(Boolean);

@@ -590,10 +590,12 @@ export type Database = {
       }
       organisations: {
         Row: {
+          about: string
           allowed_domains: string[]
           description: string
           id: string
           is_example: boolean
+          is_official: boolean
           logo_url: string | null
           name: string
           question: string
@@ -601,10 +603,12 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          about?: string
           allowed_domains?: string[]
           description?: string
           id?: string
           is_example?: boolean
+          is_official?: boolean
           logo_url?: string | null
           name: string
           question?: string
@@ -612,10 +616,12 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          about?: string
           allowed_domains?: string[]
           description?: string
           id?: string
           is_example?: boolean
+          is_official?: boolean
           logo_url?: string | null
           name?: string
           question?: string
