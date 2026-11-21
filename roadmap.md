@@ -20,3 +20,19 @@
 ## V6 status
 - Done: Juntos rename, splash, first-visit cards + About, flyer/illustrated headers, header (logo, location, map/list, calendar, avatar, back/Explore), profile tiles + memberships, Settings and Membership panels, per-friend reminders, denser doodles, Travel Where/When/Who, four INSEAD events.
 - Open: real stock photos need UNSPLASH_ACCESS_KEY and PEXELS_API_KEY (user to add); Singapore event shows a flyer until then.
+
+## Pre-publish fixes (in progress)
+- [x] Stricter plan photo search; market plan reset to fruit/veg query
+- [ ] Market plan + 3 others refill once Unsplash hourly limit resets
+- [x] City photos on trip cards, trip page, Where results
+- [x] Who stepper + group toggle, separate Interests filter
+- [x] Juntos project name + favicon
+- [ ] Verify splash, Profile tiles, Settings, Membership, INSEAD events
+
+## Accounts and groups (next)
+- [ ] Official INSEAD: badge, pinned, About, owner = account owner, events hosted by org
+- [ ] Account types Personal/Business/Institution, org profile, team roles, analytics, group discounts
+- [ ] Request Official status + admin review queue
+- [ ] Personal groups/communities (privacy, questions, co-hosts, delete), free limit 3, Plus unlimited
+- [ ] Post as dropdown; Create group/organisation in Profile
+- [ ] Test: create group, business account, approve member via question

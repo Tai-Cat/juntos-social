@@ -23,7 +23,9 @@ const OBJECT_QUERIES: Record<string, string[]> = {
 };
 export function searchTerms(activity: string, _title = "") {
   const a = activity.toLowerCase().trim();
-  return [...new Set([...(OBJECT_QUERIES[a] ?? []), `${a} still life`, a])].filter(Boolean);
+  const curated = OBJECT_QUERIES[a];
+  // Generic fallbacks only for activities without a curated query; they are where odd images came from.
+  return curated?.length ? curated : [`${a} still life`, a].filter(Boolean);
 }
 /** Drops photos whose description suggests faces/people or off-topic finance imagery. */
 const BLOCKED = /\b(man|men|woman|women|person|people|girl|boy|face|portrait|selfie|child|kid|crowd|couple|chart|graph|stock|trading|crypto|bitcoin|finance|candlestick)\b/i;

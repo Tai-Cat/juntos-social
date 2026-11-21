@@ -26,7 +26,8 @@ export const ensurePlanPhotos = createServerFn({ method: "POST" })
     const keys = photoKeys();
     if (!keys.unsplash && !keys.pexels) return { photos: [], status: "missing_keys" };
     const candidates = [];
-    for (const term of searchTerms(plan.activity, plan.title)) candidates.push(...(await cachedSearch(supabaseAdmin, term)));
+    // Stop early: the free Unsplash tier allows ~50 searches an hour.
+    for (const term of searchTerms(plan.activity, plan.title)) { candidates.push(...(await cachedSearch(supabaseAdmin, term))); if (candidates.length >= 8) break; }
     const claimed = await claimPhotos(supabaseAdmin, candidates, 5, { plan_id: plan.id });
     if (!claimed.length) return { photos: [], status: "none" };
     const photos = claimed.map((c) => c.url);
