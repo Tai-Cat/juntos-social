@@ -165,6 +165,7 @@ function ProfilePage() {
           </Link>
         )}
         <span>{profile.reliability_score}% reliable</span>
+        <a href="/help#reliability" className="text-xs text-tangerine underline">How it works</a>
         <span className="text-muted-foreground">{profile.home_city}</span>
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
