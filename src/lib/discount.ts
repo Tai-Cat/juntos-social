@@ -35,10 +35,10 @@ export function priceFor(basePrice: number, going: number, tiers: DiscountTier[]
 }
 
 /** e.g. "2 more for 15% off", or null when the top tier is reached / no tiers. */
-export function nextTierCopy(going: number, tiers: DiscountTier[]): string | null {
+export function nextTierCopy(going: number, tiers: DiscountTier[], currency = "€"): string | null {
   const next = parseTiers(tiers).find((t) => going < t.min);
   if (!next) return null;
-  return `${next.min - going} more for ${tierLabel(next)}`;
+  return `${next.min - going} more for ${tierLabel(next, currency)}`;
 }
 
 /** 0..1 progress toward the top tier */
