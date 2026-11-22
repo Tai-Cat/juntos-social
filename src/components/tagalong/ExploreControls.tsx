@@ -65,7 +65,7 @@ export function ExploreControls({
           ? GENRES.map((g) => ({ value: g.id, label: g.label }))
           : sheet === "activity"
             ? activities
-                .filter((a) => a.includes(normalizeActivity(search)))
+                .filter((a) => a.includes(search.trim().toLowerCase()) || a.replace(/\s+/g, "").includes(normalizeActivity(search).replace(/\s+/g, "")))
                 .map((a) => ({ value: a, label: activityLabel(a) }))
             : sheet === "time"
               ? ["morning", "afternoon", "evening", "late"].map((value) => ({
