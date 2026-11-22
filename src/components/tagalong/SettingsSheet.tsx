@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -16,7 +17,12 @@ import { Settings } from "lucide-react";
 import { useExamplesHidden, useIsAppAdmin } from "@/hooks/use-app-config";
 type SettingsRow = Database["public"]["Tables"]["user_settings"]["Update"];
 const GENDERS = [["woman", "Women"], ["man", "Men"], ["non-binary", "Non-binary people"]] as const;
-const LANGS = ["English", "French", "Portuguese", "Spanish", "Italian", "German", "Mandarin", "Arabic"];
+const LANGS = [
+  "English", "French", "Portuguese", "Spanish", "Italian", "German", "Mandarin", "Arabic",
+  "Japanese", "Korean", "Dutch", "Swedish", "Norwegian", "Danish", "Finnish", "Greek",
+  "Turkish", "Hindi", "Urdu", "Bengali", "Russian", "Ukrainian", "Polish", "Czech",
+  "Thai", "Vietnamese", "Indonesian", "Swahili", "Hebrew", "Romanian", "Hungarian",
+];
 function Row({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div className="border-b border-border py-4">
@@ -39,6 +45,10 @@ export function SettingsSheet() {
   const doodles = useDoodles();
   const age = useAge();
   const s = useSettings().data;
+  const [distance, setDistance] = useState<number[]>([25]);
+  useEffect(() => {
+    if (s?.max_distance_km != null) setDistance([s.max_distance_km]);
+  }, [s?.max_distance_km]);
   async function save(patch: SettingsRow) {
     if (!user) return;
     const { error } = await supabase.from("user_settings").upsert({ user_id: user.id, ...patch });
@@ -77,7 +87,7 @@ export function SettingsSheet() {
         <Row label="Only show gender-restricted plans" hint="Show women-only, men-only or non-binary-only plans that match you."><Switch aria-label="Only gender-restricted plans" checked={!!s?.gender_plans_only} onCheckedChange={(v) => save({ gender_plans_only: v })} /></Row>
         <div className="border-b border-border py-4">
           <p className="mb-2 font-bold">Languages</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid max-h-52 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
             {LANGS.map((l) => {
               const on = (s?.languages ?? []).includes(l);
               return <Button key={l} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => save({ languages: toggleIn(s?.languages, l) })}>{l}</Button>;
@@ -85,8 +95,9 @@ export function SettingsSheet() {
           </div>
         </div>
         <div className="border-b border-border py-4">
-          <div className="flex justify-between"><span className="font-bold">Distance</span><span className="text-sm">{s?.max_distance_km ?? 25} km</span></div>
-          <Slider className="mt-3" aria-label="Distance" min={1} max={100} step={1} value={[s?.max_distance_km ?? 25]} onValueCommit={([v]) => save({ max_distance_km: v ?? 25 })} />
+          <div className="flex justify-between"><span className="font-bold">Distance</span><span className="text-sm tabular-nums">{distance[0] ?? 25} km</span></div>
+          <Slider className="mt-3 touch-pan-y" aria-label="Distance" min={1} max={100} step={1} value={distance} onValueChange={setDistance} onValueCommit={([v]) => save({ max_distance_km: v ?? 25 })} />
+          <p className="mt-1 text-xs text-muted-foreground">Drag to choose how far away you're happy to meet people.</p>
         </div>
         <h3 className="mt-6 eyebrow">Notifications</h3>
         <Row label="Messages"><Switch aria-label="Message notifications" checked={s?.notify_messages ?? true} onCheckedChange={(v) => save({ notify_messages: v })} /></Row>
