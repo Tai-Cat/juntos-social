@@ -1,5 +1,6 @@
 import { MapLink } from "@/components/tagalong/MapLink";
 import { planFallback } from "@/lib/placeholder";
+import { activityLabel } from "@/lib/catalog";
 import { PlanPeople } from "@/components/tagalong/PlanPeople";
 import { PlanVisibilityPanel, MemberNote, InterestedButton, WaitingListButton } from "@/components/tagalong/PlanVisibility";
 import { PlanInvites } from "@/components/tagalong/PlanInvites";
@@ -324,7 +325,7 @@ function PlanDetail() {
       </div>
       <div className="mt-6 flex items-center gap-2">
         <span className="eyebrow">
-          {plan.category}
+          {activityLabel(plan.category || plan.activity)}
           {plan.venue_type === "private" ? " · Private venue" : plan.venue_type === "partner_venue" || plan.kind === "partner_venue" ? " · Partner venue" : ""}
         </span>
         {plan.is_example && <ExampleTag variant="detail" />}
