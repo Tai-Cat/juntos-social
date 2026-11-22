@@ -137,7 +137,7 @@ function AdminControls() {
         <Switch aria-label="Show example data" checked={!hidden} onCheckedChange={async (v) => { const { error } = await supabase.rpc("set_hide_examples", { _hide: !v }); if (error) toast.error(error.message); else { await qc.invalidateQueries(); toast.success(v ? "Examples shown where needed" : "All examples hidden"); } }} />
       </Row>
       <div className="border-b border-border py-4 space-y-2">
-        <Button asChild variant="outline" size="sm"><Link to="/admin/review">Official status review queue</Link></Button>
+        <Button asChild variant="outline" size="sm"><Link to="/admin/plans">All plans · real and examples</Link></Button>\n        <Button asChild variant="outline" size="sm"><Link to="/admin/members">All accounts · free and Plus</Link></Button>\n        <Button asChild variant="outline" size="sm"><Link to="/admin/review">Official status review queue</Link></Button>
         <Button variant="destructive" size="sm" className="block" onClick={async () => { if (!window.confirm("Permanently delete every example plan, traveller, organisation and social example? This cannot be undone.")) return; const { data, error } = await supabase.rpc("delete_all_examples"); if (error) toast.error(error.message); else { await qc.invalidateQueries(); toast.success(`Deleted ${data} example items`); } }}>Delete all examples permanently</Button>
       </div>
     </>
