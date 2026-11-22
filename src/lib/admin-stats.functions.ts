@@ -26,6 +26,7 @@ export type AdminStats = {
   members: { free: number; plus: number; club: number; paidByStripe: number; manualPlus: number };
   plans: { real: number; examples: number; upcoming: number; cancelled: number; last7: number; byDay: { day: string; count: number }[]; topHosts: { name: string; count: number }[] };
   activity: { joinRequests: number; approvedJoins: number; trips: number };
+  locations: { plans: { city: string; count: number; upcoming: number; lat: number | null; lng: number | null }[]; members: { city: string; count: number }[] };
   memberList: AdminMember[];
 };
 
@@ -62,7 +63,7 @@ export const getAdminStats = createServerFn({ method: "GET" })
     const [profiles, settings, plans, joins, trips] = await Promise.all([
       supabaseAdmin.from("profiles").select("id,name,home_city,onboarded,verified,reliability_score,no_show_count"),
       supabaseAdmin.from("user_settings").select("user_id,demo_plus"),
-      supabaseAdmin.from("plans").select("id,host_id,created_at,starts_at,status,is_example"),
+      supabaseAdmin.from("plans").select("id,host_id,created_at,starts_at,status,is_example,city,area_lat,area_lng"),
       supabaseAdmin.from("join_requests").select("status", { count: "exact", head: false }),
       supabaseAdmin.from("trips").select("id", { count: "exact", head: true }).eq("is_example", false),
     ]);
@@ -109,7 +110,28 @@ export const getAdminStats = createServerFn({ method: "GET" })
       if (p.host_id) hostCount.set(p.host_id, (hostCount.get(p.host_id) ?? 0) + 1);
     }
 
+    const cityKey = (c: string | null | undefined) => (c ?? "").split(",")[0]!.trim() || "Not set";
+    const planCities = new Map<string, { city: string; count: number; upcoming: number; lat: number | null; lng: number | null }>();
+    for (const p of realPlans) {
+      const k = cityKey(p.city);
+      const row = planCities.get(k.toLowerCase()) ?? { city: k, count: 0, upcoming: 0, lat: null, lng: null };
+      row.count++;
+      if (p.status !== "cancelled" && new Date(p.starts_at).getTime() > now) row.upcoming++;
+      if (row.lat === null && p.area_lat !== null && p.area_lng !== null) { row.lat = p.area_lat; row.lng = p.area_lng; }
+      planCities.set(k.toLowerCase(), row);
+    }
+    const memberCities = new Map<string, { city: string; count: number }>();
+    for (const m of memberList) {
+      const k = cityKey(m.home_city);
+      const row = memberCities.get(k.toLowerCase()) ?? { city: k, count: 0 };
+      row.count++;
+      memberCities.set(k.toLowerCase(), row);
+    }
     return {
+      locations: {
+        plans: [...planCities.values()].sort((a, b) => b.count - a.count),
+        members: [...memberCities.values()].sort((a, b) => b.count - a.count),
+      },
       generatedAt: new Date().toISOString(),
       signups: {
         total: real.length,

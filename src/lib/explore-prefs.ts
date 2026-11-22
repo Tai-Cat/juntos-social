@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
 // Shared Explore preferences so the header (location pill, map/list toggle) works on every page.
 export type ExploreView = "browse" | "list" | "map";
-type Prefs = { city: string | null; view: ExploreView; position: { lat: number; lng: number } | null };
+type Prefs = { city: string | null; view: ExploreView; position: { lat: number; lng: number } | null; nearMe: boolean };
 const KEY = "juntos-explore";
-let state: Prefs = { city: null, view: "browse", position: null };
+let state: Prefs = { city: null, view: "browse", position: null, nearMe: false };
 let loaded = false;
 const subs = new Set<() => void>();
 function load() {
@@ -17,7 +17,7 @@ export function setExplorePrefs(next: Partial<Prefs>) {
   try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch {}
   subs.forEach((f) => f());
 }
-const SERVER: Prefs = { city: null, view: "browse", position: null };
+const SERVER: Prefs = { city: null, view: "browse", position: null, nearMe: false };
 export function useExplorePrefs() {
   return useSyncExternalStore(
     (f) => { subs.add(f); return () => subs.delete(f); },

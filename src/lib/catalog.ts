@@ -169,6 +169,20 @@ export const CITIES = [
   "Buenos Aires, Argentina",
   "Lima, Peru",
   "Bogotá, Colombia",
+  "Fontainebleau, France",
+  "Avon, France",
+  "Melun, France",
+  "Versailles, France",
+  "Bordeaux, France",
+  "Toulouse, France",
+  "Lille, France",
+  "Nantes, France",
+  "Nice, France",
+  "Braga, Portugal",
+  "Seville, Spain",
+  "Valencia, Spain",
+  "Geneva, Switzerland",
+  "Abu Dhabi, United Arab Emirates",
 ];
 export const cityName = (value: string) => value.split(",")[0]?.trim() || value;
 export function cityImage(city: string) {
