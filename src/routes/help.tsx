@@ -50,7 +50,7 @@ function HelpPage() {
       <p className="eyebrow">Juntos support</p><h1 className="mt-2 text-4xl">Help & FAQs</h1>
       <p className="mt-3 text-sm text-muted-foreground">Practical answers about making plans, meeting safely and managing your activity. We’ll keep expanding this guide as Juntos grows.</p>
       <div className="mt-7 space-y-5">
-        {topics.map(topic => <section key={topic.title}>
+        {topics.map(topic => <section id={topic.title === "Safety, reliability and verification" ? "reliability" : undefined} key={topic.title}>
           <h2 className="mb-2 text-xl font-semibold">{topic.title}</h2>
           <div className="space-y-2">{topic.items.map(([question, answer]) => <details key={question} className="rounded-xl border border-border bg-card p-4">
             <summary className="cursor-pointer font-semibold">{question}</summary><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{answer}</p>
