@@ -35,6 +35,7 @@ const p: Plan = {
   recurring_weekly: false,
   starts_at: "2026-11-22T18:00:00Z",
   step_free: true,
+  cancelled_at: null, discount_tiers: [], status: "active", venue_type: "public",
 };
 describe("Explore rules", () => {
   it("Plus is 5 EUR monthly", () => expect(PLUS_MONTHLY_EUR).toBe(5));
