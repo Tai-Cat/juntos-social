@@ -14,7 +14,8 @@ export function TripCard({ trip: t, hostName }: { trip: Trip; hostName?: string 
           <span className="text-xs font-semibold">{t.country}</span>
           {t.is_example && <ExampleTag />}
         </div>
-        <h3 className="mt-2 text-3xl">{t.city}</h3>\n        {hostName && <p className="mt-1 text-sm font-medium">Travelling with {hostName}</p>}
+        <h3 className="mt-2 text-3xl">{t.city}</h3>
+        {hostName && <p className="mt-1 text-sm font-medium">Travelling with {hostName}</p>}
         <p className="mt-2 text-sm text-muted-foreground">
           {formatDates(t.start_date, t.end_date)}
         </p>
