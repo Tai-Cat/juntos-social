@@ -27,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { AUDIENCE_LABEL, errMsg } from "@/lib/tagalong";
 
@@ -102,14 +101,16 @@ function PostPlan() {
   const [address, setAddress] = useState("");
   const [when, setWhen] = useState("");
   const [moreWhens, setMoreWhens] = useState<string[]>([]);
-  const [capacity, setCapacity] = useState(6);
+  const [capacityInput, setCapacityInput] = useState("6");
   const [kind, setKind] = useState<"chill" | "partner_venue">("chill");
-  const [price, setPrice] = useState(0);
+  const [venueType, setVenueType] = useState<"public" | "partner_venue" | "private">("public");
+  const [priceMode, setPriceMode] = useState<"free" | "paid">("free");
+  const [priceInput, setPriceInput] = useState("0");
+  const [discountTiers, setDiscountTiers] = useState<{ min: string; type: "pct" | "amount"; value: string }[]>([]);
   const [audience, setAudience] = useState("everyone");
   const [stepFree, setStepFree] = useState(false);
   const [weekly, setWeekly] = useState(false);
   const [autoApprove, setAutoApprove] = useState(false);
-  const [publicPlace, setPublicPlace] = useState(false);
   const [busy, setBusy] = useState(false);
   const city = cityName(s.city ?? profile?.home_city ?? "Paris");
   const country = s.country ?? (city === "Paris" ? "France" : "");
@@ -122,7 +123,7 @@ function PostPlan() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id,title,category,activity,kind,capacity,base_price,duration_minutes,host_intro,what_to_bring,description,area_label,audience,step_free,interest_tags,age_min,age_max,visibility,starts_at")
+        .select("id,title,category,activity,kind,venue_type,capacity,base_price,discount_tiers,duration_minutes,host_intro,what_to_bring,description,area_label,audience,step_free,interest_tags,age_min,age_max,visibility,starts_at")
         .eq("host_id", user?.id ?? "")
         .order("starts_at", { ascending: false })
         .limit(6);
@@ -152,8 +153,11 @@ function PostPlan() {
     setCategory(pl.category ?? "");
     setActivity(pl.activity ?? "");
     setKind(pl.kind as "chill" | "partner_venue");
-    setCapacity(pl.capacity);
-    setPrice(Number(pl.base_price));
+    setVenueType((pl.venue_type as "public" | "partner_venue" | "private") ?? (pl.kind === "partner_venue" ? "partner_venue" : "public"));
+    setCapacityInput(String(pl.capacity));
+    setPriceInput(String(Math.max(0, Number(pl.base_price))));
+    setPriceMode(Number(pl.base_price) > 0 ? "paid" : "free");
+    setDiscountTiers(Array.isArray(pl.discount_tiers) ? pl.discount_tiers.map((t: any) => ({ min: String(t.min), type: t.type, value: String(t.value) })) : []);
     setDuration(pl.duration_minutes);
     if (pl.host_intro) setIntro(pl.host_intro);
     setBring(pl.what_to_bring ?? "");
@@ -181,7 +185,8 @@ function PostPlan() {
     setTitle(t.title);
     setCategory(t.category);
     setKind(t.kind);
-    setCapacity(t.capacity);
+    setVenueType(t.kind === "partner_venue" ? "partner_venue" : "public");
+    setCapacityInput(String(t.capacity));
     const map: Record<string, string> = {
       "Dog walk": "dog walks",
       Errands: "laundry runs",
@@ -198,16 +203,31 @@ function PostPlan() {
     e.preventDefault();
     if (!user) return;
     if(!age.data?.date_of_birth){toast.error("Add your date of birth and confirm you are 18 or over before hosting.");return;}
-    if (!publicPlace) {
-      toast.error("Plans must be at a public place or partner venue");
+    const capacityValue = Number(capacityInput);
+    const priceValue = priceMode === "paid" ? Number(priceInput) : 0;
+    if (!Number.isInteger(capacityValue) || capacityValue < 2 || capacityValue > (plus ? 30 : 8)) {
+      toast.error(`Choose a whole number of people between 2 and ${plus ? 30 : 8}.`);
+      return;
+    }
+    if (priceMode === "paid" && (!priceInput.trim() || !Number.isFinite(priceValue) || priceValue <= 0)) {
+      toast.error("Enter a price greater than zero, or choose Free.");
       return;
     }
     const dates = [when, ...moreWhens].filter(Boolean);
-    if (!dates.length || dates.some((d) => new Date(d).getTime() < Date.now())) {
-      toast.error("Pick times in the future for every date");
+    if (!when || !Number.isFinite(new Date(when).getTime()) || new Date(when).getTime() <= Date.now()) {
+      toast.error("Choose a start date and time in the future.");
       return;
     }
-    if (!canUseHostTools(plus,capacity,weekly,autoApprove)) { toast.error("These host tools require Juntos Plus"); return; }
+    if (dates.some((d) => !Number.isFinite(new Date(d).getTime()) || new Date(d).getTime() <= Date.now())) {
+      toast.error("Choose a future time for each additional date, or remove that date.");
+      return;
+    }
+    const normalizedTiers = priceValue > 0 ? discountTiers.map((t) => ({ min: Number(t.min), type: t.type, value: Number(t.value) })) : [];
+    if (normalizedTiers.some((t) => !Number.isInteger(t.min) || t.min < 2 || t.min > capacityValue || !Number.isFinite(t.value) || t.value <= 0 || (t.type === "pct" && t.value > 50) || (t.type === "amount" && t.value > priceValue))) {
+      toast.error("Check each discount: the group size must fit the event, and the discount cannot exceed 50% or the ticket price.");
+      return;
+    }
+    if (!canUseHostTools(plus,capacityValue,weekly,autoApprove)) { toast.error("These host tools require Juntos Plus"); return; }
     setBusy(true);
     try {
       const photos:string[]=[];
@@ -243,19 +263,21 @@ function PostPlan() {
           early_booking: plus && early,
           required_level: plus && level ? level : "any",
           kind,
+          venue_type: venueType,
           area_label: area,
           starts_at: new Date(date).toISOString(),
-          capacity,
-          base_price: price,
+          capacity: capacityValue,
+          base_price: priceValue,
+          discount_tiers: normalizedTiers,
           audience,
           step_free: stepFree,
           recurring_weekly: plus && weekly,
-          auto_approve: plus && autoApprove,
+          auto_approve: venueType === "private" ? false : plus && autoApprove,
           description: description || null,
           city,
           country: country || city,
           is_travel: isTravel,
-          is_public_place: true,
+          is_public_place: venueType !== "private",
         })
         .select("id")
         .single();
@@ -329,6 +351,21 @@ function PostPlan() {
         </div>
         </div>
         {age.data&&!age.data.date_of_birth&&<div className="border-y border-border py-4"><p className="text-sm">Add your date of birth (18+) before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/onboarding">Add date of birth</Link></Button></div>}
+        <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+          <Label>Does this plan have a cost?</Label>
+          <div className="flex gap-2">
+            <Chip active={priceMode === "free"} onClick={() => { setPriceMode("free"); setPriceInput("0"); setDiscountTiers([]); }}>Free</Chip>
+            <Chip active={priceMode === "paid"} onClick={() => setPriceMode("paid")}>Has a cost</Chip>
+          </div>
+          <p className="text-xs text-muted-foreground">{priceMode === "free" ? "People can join without paying." : "Add an estimated price per person below."}</p>
+          <Label>Venue type (optional)</Label>
+          <div className="flex flex-wrap gap-2">
+            <Chip active={venueType === "public"} onClick={() => { setVenueType("public"); setKind("chill"); }}>Public space</Chip>
+            <Chip active={venueType === "partner_venue"} onClick={() => { setVenueType("partner_venue"); setKind("partner_venue"); }}>Partner venue</Chip>
+            <Chip active={venueType === "private"} onClick={() => { setVenueType("private"); setKind("chill"); setAutoApprove(false); }}>Private home / private venue</Chip>
+          </div>
+          {venueType === "private" && <p className="text-xs text-muted-foreground">Private venues always require the host to approve each attendee. Your exact address remains protected.</p>}
+        </div>
         <PhotoUploader files={photoFiles} onChange={setPhotoFiles}/>
         <div className="space-y-2"><Label>Tag interests (optional)</Label><InterestSearch label="Tag an interest" exclude={tags} disabled={tags.length>=8} onAdd={t=>setTags(v=>[...v,t])}/>{tags.length>0&&<div className="flex flex-wrap gap-2">{tags.map(t=><Chip key={t} active onClick={()=>setTags(v=>v.filter(x=>x!==t))}>{t} ×</Chip>)}</div>}<p className="text-xs text-muted-foreground">Helps people with matching personal interests find this plan.</p></div>
         <div className="space-y-2"><Label>Age ranges (optional)</Label><p className="text-xs text-muted-foreground">Pick one or more. Leave empty for any adult.</p><div className="flex flex-wrap gap-2">{AGE_BRACKETS.map(b=><Chip key={b.value} active={!customAge&&ageBrackets.includes(b.value)} onClick={()=>{setCustomAge(false);setAgeBrackets(v=>v.includes(b.value)?v.filter(x=>x!==b.value):[...v,b.value]);}}>{b.label}</Chip>)}<Chip active={customAge} onClick={()=>{setCustomAge(v=>!v);setAgeBrackets([]);}}>Custom</Chip></div>{customAge&&<div className="grid grid-cols-2 gap-3"><Input aria-label="Minimum age" type="number" min={18} max={120} value={ageMin} onChange={e=>setAgeMin(Number(e.target.value))}/><Input aria-label="Maximum age" type="number" min={ageMin} max={120} value={ageMax} onChange={e=>setAgeMax(Number(e.target.value))}/></div>}</div>
@@ -387,7 +424,7 @@ function PostPlan() {
           <Input id="a" required value={area} onChange={(e) => setArea(e.target.value)} />
         </Field>
         <Field
-          label="Exact address"
+          label="Meet-up address and directions"
           id="ad"
           hint={
             <span className="inline-flex items-center gap-1">
@@ -414,7 +451,7 @@ function PostPlan() {
             />
             {moreWhens.map((w, i) => (
               <div key={i} className="mt-2 flex items-center gap-2">
-                <Input aria-label={`Extra date ${i + 1}`} type="datetime-local" required value={w} onChange={(e) => setMoreWhens((v) => v.map((x, j) => (j === i ? e.target.value : x)))} />
+                <Input aria-label={`Extra date ${i + 1}`} type="datetime-local" value={w} onChange={(e) => setMoreWhens((v) => v.map((x, j) => (j === i ? e.target.value : x)))} />
                 <Button type="button" variant="ghost" size="icon" aria-label="Remove this date" onClick={() => setMoreWhens((v) => v.filter((_, j) => j !== i))}><X className="h-4 w-4" /></Button>
               </div>
             ))}
@@ -428,38 +465,29 @@ function PostPlan() {
               type="number"
               min={2}
               max={plus ? 30 : 8}
-              value={capacity}
-              onChange={(e) => setCapacity(Number(e.target.value))}
+              value={capacityInput}
+              onChange={(e) => setCapacityInput(e.target.value)}
             />
           </Field>
         </div>
-        <div className="space-y-2">
-          <Label>Kind</Label>
-          <div className="flex gap-2">
-            <Chip active={kind === "chill"} onClick={() => setKind("chill")}>
-              Chill, free
-            </Chip>
-            <Chip active={kind === "partner_venue"} onClick={() => setKind("partner_venue")}>
-              Partner venue
-            </Chip>
+        {priceMode === "paid" && <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
+          <Field label="Estimated price per person (€)" id="pr">
+            <Input id="pr" type="number" min={0.01} step="0.5" value={priceInput} onChange={(e) => setPriceInput(e.target.value)} placeholder="e.g. 18" />
+          </Field>
+          <div className="space-y-3 border-t border-border pt-3">
+            <div>
+              <p className="font-semibold">Discount (optional)</p>
+              <p className="text-xs text-muted-foreground">Set group discounts for this plan. Leave blank to offer no discount.</p>
+            </div>
+            {discountTiers.map((tier, index) => <div key={index} className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2">
+              <div><Label>People</Label><Input aria-label="Minimum people for discount" type="number" min={2} max={Number(capacityInput) || 500} value={tier.min} onChange={e => setDiscountTiers(v => v.map((t,i) => i === index ? {...t,min:e.target.value} : t))} placeholder="4" /></div>
+              <div><Label>Type</Label><select aria-label="Discount type" className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value={tier.type} onChange={e => setDiscountTiers(v => v.map((t,i) => i === index ? {...t,type:e.target.value as "pct"|"amount"} : t))}><option value="pct">% off</option><option value="amount">€ off</option></select></div>
+              <div><Label>Amount</Label><Input aria-label="Discount value" type="number" min={0.01} step="0.5" value={tier.value} onChange={e => setDiscountTiers(v => v.map((t,i) => i === index ? {...t,value:e.target.value} : t))} placeholder={tier.type === "pct" ? "15" : "5"} /></div>
+              <Button type="button" variant="ghost" size="icon" aria-label="Remove discount" onClick={() => setDiscountTiers(v => v.filter((_,i) => i !== index))}><X /></Button>
+            </div>)}
+            {discountTiers.length < 5 && <Button type="button" variant="outline" size="sm" onClick={() => setDiscountTiers(v => [...v,{min:"4",type:"pct",value:"15"}])}><Plus className="h-4 w-4" /> Add discount</Button>}
           </div>
-        </div>
-        {
-          <Field
-            label="Estimated price per person (€)"
-            id="pr"
-            hint="4+ people get 15% off, 6+ get 25% off"
-          >
-            <Input
-              id="pr"
-              type="number"
-              min={0}
-              step="0.5"
-              value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
-            />
-          </Field>
-        }
+        </div>}
         <div className="space-y-2">
           <Label>Who can join</Label>
           <div className="flex flex-wrap gap-2">
@@ -505,22 +533,14 @@ function PostPlan() {
             }}
           />
         </div>
-        <label className="flex items-start gap-3 text-sm">
-          <Checkbox
-            checked={publicPlace}
-            onCheckedChange={(v) => setPublicPlace(!!v)}
-            className="mt-0.5"
-          />
-          This is a public place or partner venue
-        </label>
         <Button
           type="submit"
           size="lg"
           variant="accent"
           className="w-full"
-          disabled={busy || !publicPlace || !age.data?.date_of_birth}
+          disabled={busy || !age.data?.date_of_birth}
         >
-          Post plan
+          {busy ? "Posting…" : "Post plan"}
         </Button>
       </form>
     </AppShell>
