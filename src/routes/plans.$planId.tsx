@@ -334,6 +334,7 @@ function PlanDetail() {
         {plan.visibility==="link"&&<span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-bold"><Lock className="h-3 w-3"/>Private</span>}
         {plan.visibility==="friends"&&<span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-bold"><Lock className="h-3 w-3"/>Friends and groups</span>}
         {isPast&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">Past · {new Date(plan.starts_at).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})}</span>}
+        {!isCancelled && isHost && <span className="rounded-full bg-tangerine-soft px-2 py-0.5 text-xs font-bold text-tangerine">You're hosting</span>}
         {isCancelled&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">Cancelled</span>}
         {plan.venue_tbc&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Venue to be confirmed</span>}
         {plan.has_virtual_option&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Virtual option</span>}
@@ -409,7 +410,7 @@ function PlanDetail() {
 
       {Number(plan.base_price) > 0 && Array.isArray(plan.discount_tiers) && plan.discount_tiers.length > 0 && (
         <Card className="mt-6 space-y-4">
-          <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} tiers={plan.discount_tiers} />
+          <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} tiers={plan.discount_tiers} city={plan.city} />
         </Card>
       )}
 
