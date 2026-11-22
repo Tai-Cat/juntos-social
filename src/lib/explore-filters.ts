@@ -1,4 +1,5 @@
 import type { Plan } from "./tagalong";
+import { normalizeActivity } from "./catalog";
 export type ExploreFilters = {
   city: string;
   date: string;
@@ -76,7 +77,7 @@ export function matchesPlan(p: Plan, f: ExploreFilters, plus = true) {
     return false;
   if (f.audience && p.audience !== f.audience) return false;
   if (f.genre && p.genre !== f.genre) return false;
-  if (f.activity && p.activity.toLowerCase() !== f.activity.toLowerCase()) return false;
+  if (f.activity && normalizeActivity(p.activity) !== normalizeActivity(f.activity)) return false;
   if (plus && f.level && p.required_level !== f.level) return false;
   if (f.allAbilities && p.required_level !== "any") return false;
   if (f.stepFree && !p.step_free) return false;
