@@ -1,53 +1,73 @@
 import { aiImage, placeholderImage } from "./placeholder";
+
+/** Common alternate spellings map to one canonical activity across filters, interests and older plans. */
+const ACTIVITY_ALIASES: Record<string, string> = {
+  "bird watching": "birdwatching",
+  "book clubs": "book club",
+  "book discussion": "book club",
+  "ceramics": "pottery",
+  "chess in the park": "chess",
+  "languages and language exchange": "language exchange",
+  "open mic nights": "open mic",
+  "park picnics": "picnics",
+  "pub quizzes": "pub quiz",
+  "trivia and pub quiz": "pub quiz",
+};
+
+export function normalizeActivity(value: string): string {
+  const normalized = value.toLowerCase().trim().replace(/\s+/g, " ");
+  return ACTIVITY_ALIASES[normalized] ?? normalized;
+}
+
 export const GENRES = [
   {
     id: "active",
-    label: "Active and sports",
+    label: "Active and Sports",
     photo: "tennis",
     items:
       "tennis|padel|swimming|golf|running|climbing and bouldering|yoga|pilates|cycling|football|basketball|volleyball|hiking|surfing|skiing|martial arts|boxing|dance classes|rowing|ice skating|pickleball|table tennis|gym",
   },
   {
     id: "food",
-    label: "Food and drink",
+    label: "Food and Drink",
     photo: "food",
     items:
       "coffee|matcha|tea|wine tasting|champagne evenings|gin evenings|cocktails|craft beer|whisky|cooking together|baking classes|cooking classes|dinner parties|eating out|brunch|street food crawls|supper clubs|ramen|pizza making|chocolate tasting|cheese and charcuterie",
   },
   {
     id: "arts",
-    label: "Arts and culture",
+    label: "Arts and Culture",
     photo: "pottery",
     items:
-      "photography|museums|galleries|pottery|painting|drawing|life drawing|poetry evenings|open mic|live music|jazz|vinyl listening|theatre|cinema and film clubs|book clubs|comedy|architecture walks|fashion and thrifting|knitting and crafts|calligraphy|creative writing",
+      "photography|museums|galleries|pottery|painting|drawing|life drawing|poetry evenings|open mic|live music|jazz|vinyl listening|theatre|cinema and film clubs|book club|comedy|architecture walks|fashion and thrifting|knitting and crafts|calligraphy|creative writing",
   },
   {
     id: "tech",
-    label: "Tech and business",
+    label: "Tech and Business",
     photo: "tech",
     items:
       "AI|coding|hackathons|hacking and security|startups|founders|product|investing|crypto|finance|marketing|design|side projects|public speaking|networking",
   },
   {
     id: "ideas",
-    label: "Ideas and learning",
+    label: "Ideas and Learning",
     photo: "learning",
     items:
-      "philosophy|history|politics and debate|psychology|science|languages and language exchange|book discussion|economics|sustainability|spirituality",
+      "philosophy|history|politics and debate|psychology|science|language exchange|economics|sustainability|spirituality",
   },
   {
     id: "outdoors",
-    label: "Outdoors and chill",
+    label: "Outdoors and Chill",
     photo: "park",
     items:
-      "dog walks|park picnics|markets|laundry runs|co-working|library sessions|gardening|birdwatching|sunrise swims|stargazing",
+      "dog walks|picnics|markets|laundry runs|co-working|library sessions|gardening|birdwatching|sunrise swims|stargazing",
   },
   {
     id: "social",
-    label: "Social and games",
+    label: "Social and Games",
     photo: "games",
     items:
-      "board games|trivia and pub quiz|karaoke|poker night|chess|video games|escape rooms|bowling",
+      "board games|pub quiz|karaoke|poker night|chess|video games|escape rooms|bowling",
   },
   {
     id: "wellness",
@@ -56,8 +76,8 @@ export const GENRES = [
     items: "meditation|sauna and cold plunge|breathwork|wellness walks",
   },
 ] as const;
-export const EXTRA_ACTIVITIES = ["sourdough baking", "ceramics", "rock pools", "bird watching", "board game cafes", "chess in the park", "language exchange", "run clubs", "thrifting", "urban sketching", "open mic nights", "pub quiz", "book club", "silent disco", "wild swimming", "foraging", "film photography", "printmaking", "linocut", "embroidery", "flower arranging", "candle making", "fermentation", "pasta making", "dumpling making", "coffee cupping", "kombucha brewing", "roller skating", "pétanque", "disc golf", "orienteering", "geocaching", "trail running", "bicycle repair", "repair cafes", "community gardening", "beach cleanups", "improv", "storytelling", "swing dancing", "salsa", "astronomy", "puzzle swaps", "zine making"];
-export const ACTIVITIES = [...new Set([...GENRES.flatMap((g) => g.items.split("|")), ...EXTRA_ACTIVITIES])].sort((a,b) => a.localeCompare(b));
+export const EXTRA_ACTIVITIES = ["sourdough baking", "rock pools", "board game cafes", "run clubs", "thrifting", "urban sketching", "silent disco", "wild swimming", "foraging", "film photography", "printmaking", "linocut", "embroidery", "flower arranging", "candle making", "fermentation", "pasta making", "dumpling making", "coffee cupping", "kombucha brewing", "roller skating", "pétanque", "disc golf", "orienteering", "geocaching", "trail running", "bicycle repair", "repair cafes", "community gardening", "beach cleanups", "improv", "storytelling", "swing dancing", "salsa", "astronomy", "puzzle swaps", "zine making"];
+export const ACTIVITIES = [...new Set([...GENRES.flatMap((g) => g.items.split("|")), ...EXTRA_ACTIVITIES].map(normalizeActivity))].sort((a,b) => a.localeCompare(b));
 export const LEVELS = ["any", "beginner", "intermediate", "advanced"] as const;
 export const PLUS_MONTHLY_EUR = 5;
 export function canUseLevel(plus: boolean, level: string) {
@@ -69,7 +89,7 @@ export const CITY_SUGGESTIONS: Record<string, string[]> = {
   "New York": ["rooftop sessions", "Central Park runs", "comedy cellars"],
 };
 export function genreOf(activity: string) {
-  const key = activity.toLowerCase();
+  const key = normalizeActivity(activity);
   return (
     GENRES.find((g) => g.items.toLowerCase().split("|").includes(key))?.id ??
     (/wine|ramen|dinner|food|drink|coffee|brunch|roast|supper/.test(key)
@@ -173,4 +193,7 @@ export function countryFlag(country: string) {
     .join("");
 }
 export const genreClass = (genre: string) => `genre-${genre}`;
-export const activityLabel = (activity: string) => activity.toLowerCase() === "ai" ? "AI" : activity;
+export const activityLabel = (activity: string) => {
+  const canonical = normalizeActivity(activity);
+  return canonical === "ai" ? "AI" : canonical;
+};
