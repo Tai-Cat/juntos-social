@@ -9,10 +9,12 @@ import type { Map } from "leaflet";
 export default function ExploreMap({
   plans,
   city,
+  center: focus = null,
   onArea,
 }: {
   plans: PlanWithHost[];
   city: string;
+  center?: { lat: number; lng: number } | null;
   onArea: (bounds: Bounds | null) => void;
 }) {
   const el = useRef<HTMLDivElement>(null),
@@ -41,9 +43,14 @@ export default function ExploreMap({
     };
   }, []);
   useEffect(() => {
+    if (!map.current) return;
+    if (focus) { map.current.setView([focus.lat, focus.lng], 11); return; }
     const center = CITY_CENTERS[city];
-    if (center && map.current) map.current.setView(center, 12);
-  }, [city, ready]);
+    if (center) { map.current.setView(center, 12); return; }
+    const pts = plans.filter((p) => p.area_lat !== null && p.area_lng !== null).map((p) => [p.area_lat!, p.area_lng!] as [number, number]);
+    if (pts.length) map.current.fitBounds(pts, { padding: [30, 30], maxZoom: 12 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [city, ready, focus?.lat, focus?.lng]);
   useEffect(() => {
     if (!ready || !map.current) return;
     const m = map.current;

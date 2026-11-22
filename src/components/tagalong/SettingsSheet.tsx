@@ -13,7 +13,8 @@ import { useDoodles } from "@/hooks/use-doodles";
 import { useAge } from "@/hooks/use-age";
 import { AGE_BRACKETS } from "@/lib/age";
 import type { Database } from "@/integrations/supabase/types";
-import { Settings } from "lucide-react";
+import { Settings, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useExamplesHidden, useIsAppAdmin } from "@/hooks/use-app-config";
 type SettingsRow = Database["public"]["Tables"]["user_settings"]["Update"];
 const GENDERS = [["woman", "Women"], ["man", "Men"], ["non-binary", "Non-binary people"]] as const;
@@ -22,7 +23,34 @@ const LANGS = [
   "Japanese", "Korean", "Dutch", "Swedish", "Norwegian", "Danish", "Finnish", "Greek",
   "Turkish", "Hindi", "Urdu", "Bengali", "Russian", "Ukrainian", "Polish", "Czech",
   "Thai", "Vietnamese", "Indonesian", "Swahili", "Hebrew", "Romanian", "Hungarian",
-];
+  "Catalan", "Basque", "Galician", "Irish", "Welsh", "Icelandic", "Estonian", "Latvian", "Lithuanian",
+  "Slovak", "Slovenian", "Croatian", "Serbian", "Bosnian", "Bulgarian", "Albanian", "Macedonian",
+  "Maltese", "Luxembourgish", "Armenian", "Georgian", "Azerbaijani", "Kazakh", "Uzbek", "Persian",
+  "Pashto", "Kurdish", "Punjabi", "Gujarati", "Marathi", "Tamil", "Telugu", "Kannada", "Malayalam",
+  "Sinhala", "Nepali", "Burmese", "Khmer", "Lao", "Malay", "Filipino", "Cantonese", "Mongolian",
+  "Amharic", "Somali", "Yoruba", "Igbo", "Hausa", "Zulu", "Xhosa", "Afrikaans", "Shona", "Wolof",
+  "Haitian Creole", "Quechua", "Guarani", "Maori", "Samoan", "Hawaiian", "Esperanto", "Latin",
+  "British Sign Language", "French Sign Language", "American Sign Language",
+].sort((a, b) => a.localeCompare(b));
+const WORLDWIDE_STEP = 101;
+const WORLDWIDE_KM = 20000;
+/** Type a language, pick it, and it becomes a removable bubble. */
+function LanguagePicker({ value, onChange }: { value: string[]; onChange: (next: string[]) => void }) {
+  const [q, setQ] = useState("");
+  const query = q.trim().toLowerCase();
+  const matches = query ? LANGS.filter((l) => !value.includes(l) && l.toLowerCase().includes(query)).sort((a, b) => Number(!b.toLowerCase().startsWith(query)) - Number(!a.toLowerCase().startsWith(query))).slice(0, 6) : [];
+  const add = (l: string) => { const clean = l.trim(); if (clean && !value.some((v) => v.toLowerCase() === clean.toLowerCase())) onChange([...value, clean]); setQ(""); };
+  return (
+    <div>
+      {value.length > 0 && <div className="mb-2 flex flex-wrap gap-1.5">{value.map((l) => <button key={l} type="button" onClick={() => onChange(value.filter((x) => x !== l))} className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-xs font-semibold text-background" aria-label={`Remove ${l}`}>{l}<X className="h-3 w-3" /></button>)}</div>}
+      <Input aria-label="Add a language" placeholder="Type a language, e.g. Japanese" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(matches[0] ?? q); } }} />
+      {query && <div className="mt-1 overflow-hidden rounded-md border border-border bg-card">
+        {matches.map((l) => <button key={l} type="button" className="block w-full px-3 py-2 text-left text-sm hover:bg-muted" onClick={() => add(l)}>{l}</button>)}
+        {!matches.length && !value.some((v) => v.toLowerCase() === query) && <button type="button" className="block w-full px-3 py-2 text-left text-sm hover:bg-muted" onClick={() => add(q)}>Add “{q.trim()}”</button>}
+      </div>}
+    </div>
+  );
+}
 function Row({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div className="border-b border-border py-4">
@@ -47,7 +75,7 @@ export function SettingsSheet() {
   const s = useSettings().data;
   const [distance, setDistance] = useState<number[]>([25]);
   useEffect(() => {
-    if (s?.max_distance_km != null) setDistance([s.max_distance_km]);
+    if (s?.max_distance_km != null) setDistance([s.max_distance_km > 100 ? WORLDWIDE_STEP : s.max_distance_km]);
   }, [s?.max_distance_km]);
   async function save(patch: SettingsRow) {
     if (!user) return;
@@ -87,17 +115,13 @@ export function SettingsSheet() {
         <Row label="Only show gender-restricted plans" hint="Show women-only, men-only or non-binary-only plans that match you."><Switch aria-label="Only gender-restricted plans" checked={!!s?.gender_plans_only} onCheckedChange={(v) => save({ gender_plans_only: v })} /></Row>
         <div className="border-b border-border py-4">
           <p className="mb-2 font-bold">Languages</p>
-          <div className="grid max-h-52 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
-            {LANGS.map((l) => {
-              const on = (s?.languages ?? []).includes(l);
-              return <Button key={l} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => save({ languages: toggleIn(s?.languages, l) })}>{l}</Button>;
-            })}
-          </div>
+          <LanguagePicker value={s?.languages ?? []} onChange={(languages) => save({ languages })} />
         </div>
         <div className="border-b border-border py-4">
-          <div className="flex justify-between"><span className="font-bold">Distance</span><span className="text-sm tabular-nums">{distance[0] ?? 25} km</span></div>
-          <Slider className="mt-3 touch-pan-y" aria-label="Distance" min={1} max={100} step={1} value={distance} onValueChange={setDistance} onValueCommit={([v]) => save({ max_distance_km: v ?? 25 })} />
-          <p className="mt-1 text-xs text-muted-foreground">Drag to choose how far away you're happy to meet people.</p>
+          <div className="flex justify-between"><span className="font-bold">Distance</span><span className="text-sm font-semibold tabular-nums">{(distance[0] ?? 25) >= WORLDWIDE_STEP ? "Worldwide" : `${distance[0] ?? 25} km`}</span></div>
+          <Slider className="mt-3 touch-pan-y" aria-label="Distance" min={1} max={WORLDWIDE_STEP} step={1} value={distance} onValueChange={setDistance} onValueCommit={([v]) => save({ max_distance_km: (v ?? 25) >= WORLDWIDE_STEP ? WORLDWIDE_KM : v ?? 25 })} />
+          <div className="mt-1 flex justify-between text-[10px] text-muted-foreground"><span>1 km</span><span>100 km</span><span>Worldwide</span></div>
+          <p className="mt-1 text-xs text-muted-foreground">How far away you're happy to meet people. "Use my location" on Explore shows plans within this distance.</p>
         </div>
         <h3 className="mt-6 eyebrow">Notifications</h3>
         <Row label="Messages"><Switch aria-label="Message notifications" checked={s?.notify_messages ?? true} onCheckedChange={(v) => save({ notify_messages: v })} /></Row>

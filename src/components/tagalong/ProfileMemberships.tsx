@@ -21,8 +21,9 @@ export function ProfileMemberships() {
     if (error) toast.error(error.message); else { toast("You left the organisation."); qc.invalidateQueries({ queryKey: ["org-memberships"] }); }
   }
   return (
-    <section className="mt-8">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="text-2xl">Memberships and communities</h2><div className="flex gap-2"><Button asChild size="sm"><Link to="/organisations/new" search={{ kind: "community" }}>Create group</Link></Button><Button asChild size="sm" variant="outline"><Link to="/organisations/new" search={{ kind: "business" }}>Create organisation</Link></Button></div></div>
+    <details className="group mt-8 rounded-2xl border border-border bg-card px-4 py-3">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-1"><span className="text-xl font-semibold">Groups and communities <span className="text-sm font-normal text-muted-foreground">· {rows.length}</span></span><span className="text-sm text-tangerine group-open:hidden">Show</span><span className="hidden text-sm text-tangerine group-open:inline">Hide</span></summary>
+      <div className="mb-3 mt-3 flex flex-wrap items-center justify-end gap-2"><div className="flex gap-2"><Button asChild size="sm"><Link to="/organisations/new" search={{ kind: "community" }}>Create group</Link></Button><Button asChild size="sm" variant="outline"><Link to="/organisations/new" search={{ kind: "business" }}>Create organisation</Link></Button></div></div>
       {!rows.length ? <p className="text-sm text-muted-foreground">You're not part of any organisation yet. Find one on Explore.</p> : (
         <div className="grid gap-3 sm:grid-cols-2">
           {rows.map((r) => { const o = name(r.org); return (
@@ -34,6 +35,6 @@ export function ProfileMemberships() {
             </article>); })}
         </div>
       )}
-    </section>
+    </details>
   );
 }

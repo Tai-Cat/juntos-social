@@ -49,8 +49,9 @@ export function AppShell({ children, hideBackExplore = false }: { children: Reac
             compact
             autoLocate={!prefs.city}
             value={city}
-            onChange={(v) => setExplorePrefs({ city: v })}
-            onPosition={(position) => setExplorePrefs({ position })}
+            nearMe={prefs.nearMe}
+            onChange={(v) => setExplorePrefs({ city: v, nearMe: false })}
+            onNearMe={(position, near) => setExplorePrefs({ position, nearMe: true, ...(near ? { city: near } : {}) })}
           />
           {user && (
             <Button asChild size="icon" variant="ghost" className="relative" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} title="Notifications">
