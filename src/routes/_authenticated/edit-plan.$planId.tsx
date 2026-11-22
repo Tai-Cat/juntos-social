@@ -27,7 +27,7 @@ function EditPlan(){
   if(!Number.isFinite(durationValue)||durationValue<15||durationValue>720){toast.error("Choose a duration between 15 and 720 minutes.");return;}
   if(!startsAt||!Number.isFinite(new Date(startsAt).getTime())||new Date(startsAt).getTime()<=Date.now()){toast.error("Choose a start date and time in the future.");return;}
   setBusy(true);
-  const {error}=await supabase.from("plans").update({title:title.trim(),description:description.trim()||null,starts_at:new Date(startsAt).toISOString(),duration_minutes:durationValue,capacity:capacityValue,area_label:area.trim(),what_to_bring:bring,venue_tbc:venueTbc}).eq("id",plan.id);
+  const {error}=await supabase.from("plans").update({title:title.trim(),description:description.trim()||null,starts_at:new Date(startsAt).toISOString(),duration_minutes:durationValue,capacity:capacityValue,discount_tiers:Array.isArray(plan.discount_tiers)?plan.discount_tiers.filter((t:any)=>Number(t.min)<=capacityValue):[],area_label:area.trim(),what_to_bring:bring,venue_tbc:venueTbc}).eq("id",plan.id);
   setBusy(false);if(error){toast.error(error.message);return;}
   await qc.invalidateQueries();toast.success("Plan updated");navigate({to:"/plans/$planId",params:{planId:plan.id}});}
  return <AppShell title="Edit plan"><div className="mx-auto max-w-xl"><h1 className="text-3xl">Edit plan</h1>
@@ -36,7 +36,7 @@ function EditPlan(){
    <div><Label htmlFor="e-title">Title</Label><Input id="e-title" required maxLength={120} value={title} onChange={e=>setTitle(e.target.value)}/></div>
    <div><Label htmlFor="e-desc">Description</Label><Textarea id="e-desc" maxLength={2000} value={description} onChange={e=>setDescription(e.target.value)}/></div>
    <div className="grid grid-cols-2 gap-3"><div><Label htmlFor="e-when">Starts</Label><Input id="e-when" type="datetime-local" required value={startsAt} onChange={e=>setStartsAt(e.target.value)}/></div><div><Label htmlFor="e-dur">Length (minutes)</Label><Input id="e-dur" type="number" min={15} max={720} value={duration} onChange={e=>setDuration(e.target.value)}/></div></div>
-   <div className="grid grid-cols-2 gap-3"><div><Label htmlFor="e-cap">Spots</Label><Input id="e-cap" type="number" min={1} max={200} value={capacity} onChange={e=>setCapacity(e.target.value)}/></div><div><Label htmlFor="e-area">Area (shown publicly)</Label><Input id="e-area" required value={area} onChange={e=>setArea(e.target.value)}/></div></div>
+   <div className="grid grid-cols-2 gap-3"><div><Label htmlFor="e-cap">Spots</Label><Input id="e-cap" type="number" min={2} max={500} value={capacity} onChange={e=>setCapacity(e.target.value)}/></div><div><Label htmlFor="e-area">Area (shown publicly)</Label><Input id="e-area" required value={area} onChange={e=>setArea(e.target.value)}/></div></div>
    <div><Label htmlFor="e-bring">What to bring</Label><Input id="e-bring" value={bring} onChange={e=>setBring(e.target.value)}/></div>
    <label className="flex items-center justify-between rounded-lg border border-border bg-card p-3 text-sm">Venue to be confirmed<Switch checked={venueTbc} onCheckedChange={setVenueTbc} aria-label="Venue to be confirmed"/></label>
    <div className="flex gap-2"><Button type="submit" disabled={busy}>{busy?"Saving…":"Save changes"}</Button><Button asChild variant="outline"><Link to="/plans/$planId" params={{planId:plan.id}}>Cancel</Link></Button></div>
