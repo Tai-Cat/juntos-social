@@ -147,7 +147,7 @@ function PostPlan() {
   }, [intros[0]]);
 
   async function fillFrom(planId: string) {
-    const pl = myPlans.data?.find((x) => x.id === planId) ?? (await supabase.from("plans").select("id,title,category,activity,kind,capacity,base_price,duration_minutes,host_intro,what_to_bring,description,area_label,audience,step_free,interest_tags,age_min,age_max,visibility,starts_at").eq("id", planId).maybeSingle()).data;
+    const pl = myPlans.data?.find((x) => x.id === planId) ?? (await supabase.from("plans").select("id,title,category,activity,kind,venue_type,capacity,base_price,discount_tiers,duration_minutes,host_intro,what_to_bring,description,area_label,audience,step_free,interest_tags,age_min,age_max,visibility,starts_at").eq("id", planId).maybeSingle()).data;
     if (!pl) return;
     setTitle(pl.title);
     setCategory(pl.category ?? "");
