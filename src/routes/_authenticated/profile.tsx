@@ -25,6 +25,7 @@ import { PLAN_SELECT, formatDates, formatWhen, type PlanWithHost } from "@/lib/t
 import { AGE_BRACKETS,ageLabel } from "@/lib/age";
 import { useAge } from "@/hooks/use-age";
 import { useOrganisations,useOrgMemberships } from "@/hooks/use-organisations";
+import { useIsAppAdmin } from "@/hooks/use-app-config";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -42,6 +43,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const { user, profile } = useMyProfile();
+  const isAdmin = useIsAppAdmin();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { plus, setPlus } = usePlus();
@@ -181,6 +183,7 @@ function ProfilePage() {
         <ProfileShare />
         <SettingsSheet />
         <MembershipSheet />
+        {isAdmin && <Button asChild variant="outline" size="sm"><Link to="/admin/plans">Admin · All plans</Link></Button>}
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="genre-food rounded-lg p-4"><p className="eyebrow">Reliability</p><p className="mt-1 font-display text-3xl">{profile.reliability_score}%</p></div>
