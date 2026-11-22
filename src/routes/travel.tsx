@@ -88,7 +88,7 @@ function Travel() {
   });
   const cityResults=(()=>{const m=new Map<string,{city:string;country:string}>();for(const r of [...(examples.data??[]),...(plans.data??[])])if(r.city&&!m.has(r.city))m.set(r.city,{city:r.city,country:r.country});const q=citySearch.toLowerCase().trim();return [...m.values()].filter(c=>!q||`${c.city} ${c.country}`.toLowerCase().includes(q)).slice(0,6);})();
   return (
-    <AppShell>
+    <AppShell hideBackExplore>
       <h1 className="text-4xl">Somewhere new, together</h1>
       <div className="mt-5 grid grid-cols-1 rounded-2xl border border-border bg-card sm:grid-cols-3">
         <div className="relative border-b border-border px-5 py-2 sm:border-b-0 sm:border-r">
