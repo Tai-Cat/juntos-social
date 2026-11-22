@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { fadeExamples } from "@/lib/examples";
 import { useExamplesHidden } from "@/hooks/use-app-config";
 import { Input } from "@/components/ui/input";
@@ -37,7 +38,10 @@ export const Route = createFileRoute("/travel")({
 function Travel() {
   const { user } = useMyProfile();
   const [citySearch,setCitySearch]=useState("");
-  const [when,setWhen]=useState("");
+  const [dateFrom,setDateFrom]=useState("");
+  const [dateTo,setDateTo]=useState("");
+  const [timeOfDay,setTimeOfDay]=useState("any");
+  const [budget,setBudget]=useState("any");
   const [travellers,setTravellers]=useState(1);
   const [groupOnly,setGroupOnly]=useState(false);
   const [interest,setInterest]=useState("");
@@ -45,7 +49,25 @@ function Travel() {
   const who=interest.trim();
   const examplesHidden=useExamplesHidden();
   const fits=(p:PlanWithHost)=>(p.capacity-p.going_count)>=travellers&&(!groupOnly||p.capacity>=4);
-  const onDate=(d:string)=>!when||d.slice(0,7)===when;
+  const cityFits=(city:string,country:string)=>!citySearch.trim()||`${city} ${country}`.toLowerCase().includes(citySearch.trim().toLowerCase());
+  const tripDateFits=(start:string,end:string)=>{
+    if(dateFrom && end < dateFrom) return false;
+    if(dateTo && start > dateTo) return false;
+    return true;
+  };
+  const planDateFits=(value:string)=>{
+    const date=new Date(value);
+    if(dateFrom && date < new Date(dateFrom+"T00:00:00")) return false;
+    if(dateTo && date > new Date(dateTo+"T23:59:59")) return false;
+    const hour=date.getHours();
+    if(timeOfDay==="morning" && !(hour>=5 && hour<12)) return false;
+    if(timeOfDay==="afternoon" && !(hour>=12 && hour<17)) return false;
+    if(timeOfDay==="evening" && !(hour>=17 && hour<22)) return false;
+    if(timeOfDay==="late" && !(hour>=22 || hour<5)) return false;
+    return true;
+  };
+  const planBudgetFits=(price:number)=>budget==="any" || (budget==="free" && price===0) || (budget==="under25" && price>0 && price<25) || (budget==="25to100" && price>=25 && price<100) || (budget==="100plus" && price>=100);
+  function clearFilters(){setCitySearch("");setDateFrom("");setDateTo("");setTimeOfDay("any");setBudget("any");setTravellers(1);setGroupOnly(false);setInterest("");}
   const trips = useQuery({
     queryKey: ["trips", "mine", user?.id],
     enabled: !!user,
@@ -86,17 +108,22 @@ function Travel() {
       return data as unknown as PlanWithHost[];
     },
   });
-  const cityResults=(()=>{const m=new Map<string,{city:string;country:string}>();for(const r of [...(examples.data??[]),...(plans.data??[])])if(r.city&&!m.has(r.city))m.set(r.city,{city:r.city,country:r.country});const q=citySearch.toLowerCase().trim();return [...m.values()].filter(c=>!q||`${c.city} ${c.country}`.toLowerCase().includes(q)).slice(0,6);})();
+  const cityResults=(()=>{const m=new Map<string,{city:string;country:string}>();for(const r of [...(examples.data??[]),...(plans.data??[])])if(r.city&&!m.has(r.city))m.set(r.city,{city:r.city,country:r.country});const q=citySearch.toLowerCase().trim();return [...m.values()].filter(c=>!q||`${c.city} ${c.country}`.toLowerCase().includes(q)).slice(0,8);})();
+  const matchingTravellers=fadeExamples([...(trips.data??[]).filter(t=>!t.is_example),...(examples.data??[])],{hideAll:examplesHidden}).filter(t=>t.is_example).filter(t=>cityFits(t.city,t.country)&&tripDateFits(t.start_date,t.end_date)&&(!who||t.interests.join(" ").toLowerCase().includes(who.toLowerCase())));
+  const matchingPlans=fadeExamples(plans.data??[],{hideAll:examplesHidden}).filter(p=>cityFits(p.city,p.country)&&planDateFits(p.starts_at)&&fits(p)&&planBudgetFits(Number(p.base_price))&&(!who||`${p.activity} ${p.title} ${p.description??""}`.toLowerCase().includes(who.toLowerCase())));
   return (
     <AppShell hideBackExplore>
       <h1 className="text-4xl">Somewhere new, together</h1>
-      <div className="mt-5 grid grid-cols-1 rounded-2xl border border-border bg-card sm:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-0 rounded-2xl border border-border bg-card sm:grid-cols-2 lg:grid-cols-4">
         <div className="relative border-b border-border px-5 py-2 sm:border-b-0 sm:border-r">
           <label><span className="block text-xs font-bold">Where</span><Input className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" aria-label="Where" placeholder="Search a city" value={citySearch} onFocus={()=>setWhereOpen(true)} onBlur={()=>setTimeout(()=>setWhereOpen(false),150)} onChange={e=>{setCitySearch(e.target.value);setWhereOpen(true);}}/></label>
           {whereOpen&&cityResults.length>0&&<ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">{cityResults.map(c=><li key={c.city}><button type="button" className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-muted" onMouseDown={e=>e.preventDefault()} onClick={()=>{setCitySearch(c.city);setWhereOpen(false);}}><CityPhoto city={c.city} alt={`${c.city} skyline`} className="h-12 w-16 shrink-0 rounded-md object-cover"/><span><span className="block text-sm font-bold">{c.city}</span><span className="text-xs text-muted-foreground">{c.country}</span></span></button></li>)}</ul>}
         </div>
-        <label className="border-b border-border px-5 py-2 sm:border-b-0 sm:border-r"><span className="block text-xs font-bold">When</span><Input type="month" className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" aria-label="When" value={when} onChange={e=>setWhen(e.target.value)}/></label>
-        <div className="px-5 py-2">
+        <div className="grid grid-cols-2 gap-3 border-b border-border px-5 py-2 sm:border-r lg:border-b-0">
+          <label><span className="block text-xs font-bold">From</span><Input type="date" className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" aria-label="Travel from date" value={dateFrom} max={dateTo||undefined} onChange={e=>setDateFrom(e.target.value)}/></label>
+          <label><span className="block text-xs font-bold">To</span><Input type="date" className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" aria-label="Travel to date" value={dateTo} min={dateFrom||undefined} onChange={e=>setDateTo(e.target.value)}/></label>
+        </div>
+        <div className="border-b border-border px-5 py-2 sm:border-r lg:border-b-0">
           <span className="block text-xs font-bold">Who</span>
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm">{travellers} traveller{travellers>1?"s":""}</span>
@@ -108,7 +135,12 @@ function Travel() {
           <label className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">Looking for a group<Switch checked={groupOnly} onCheckedChange={setGroupOnly} aria-label="Looking for a group"/></label>
         </div>
       </div>
-      <label className="mt-3 flex max-w-sm items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5"><span className="text-xs font-bold">Interests</span><Input className="h-7 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" aria-label="Interests (optional)" placeholder="Optional, e.g. surfing" value={interest} onChange={e=>setInterest(e.target.value)}/></label>
+      <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
+        <label className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card px-4 py-2"><span className="shrink-0 text-xs font-bold">Interests</span><Input className="h-8 min-w-0 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" aria-label="Interests (optional)" placeholder="e.g. surfing, food, photography" value={interest} onChange={e=>setInterest(e.target.value)}/></label>
+        <label className="rounded-xl border border-border bg-card px-4 py-2"><span className="block text-xs font-bold">Time of day</span><select aria-label="Time of day" className="h-8 w-full bg-transparent text-sm" value={timeOfDay} onChange={e=>setTimeOfDay(e.target.value)}><option value="any">Any time</option><option value="morning">Morning</option><option value="afternoon">Afternoon</option><option value="evening">Evening</option><option value="late">Late</option></select></label>
+        <label className="rounded-xl border border-border bg-card px-4 py-2"><span className="block text-xs font-bold">Budget per person</span><select aria-label="Budget" className="h-8 w-full bg-transparent text-sm" value={budget} onChange={e=>setBudget(e.target.value)}><option value="any">Any budget</option><option value="free">Free</option><option value="under25">Under €25</option><option value="25to100">€25–100</option><option value="100plus">€100+</option></select></label>
+        <Button variant="outline" className="h-full min-h-12" onClick={clearFilters}>Clear filters</Button>
+      </div>
       <div className="my-5 max-w-xs">
         <AddTripButton />
       </div>
@@ -122,18 +154,10 @@ function Travel() {
           ))}
         </div>
       )}
-      <h2 className="mb-4 mt-8 text-2xl">Travellers on the move</h2>
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {fadeExamples([...(trips.data??[]).filter(t=>!t.is_example),...(examples.data??[])],{hideAll:examplesHidden}).filter(t=>t.is_example).filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())&&onDate(t.start_date)&&(!who||t.interests.join(" ").toLowerCase().includes(who.toLowerCase()))).map((t) => (
-          <TripCard key={t.id} trip={t} />
-        ))}
-      </div>
-      <h2 className="mb-4 mt-8 text-2xl">Plans worth the trip</h2>
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {fadeExamples(plans.data??[],{hideAll:examplesHidden}).filter(t=>`${t.city} ${t.country}`.toLowerCase().includes(citySearch.toLowerCase())&&onDate(t.starts_at)&&fits(t)&&(!who||`${t.activity} ${t.title}`.toLowerCase().includes(who.toLowerCase()))).map((p) => (
-          <PlanCard key={p.id} plan={p} />
-        ))}
-      </div>
+      <h2 className="mb-4 mt-8 text-2xl">Travellers on the move <span className="text-sm font-normal text-muted-foreground">· {matchingTravellers.length} matches</span></h2>
+      {matchingTravellers.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingTravellers.map(t=><TripCard key={t.id} trip={t}/>)}</div> : <Empty>No traveller examples match these filters. Try a wider date range, another destination or clear your filters.</Empty>}
+      <h2 className="mb-4 mt-8 text-2xl">Plans worth the trip <span className="text-sm font-normal text-muted-foreground">· {matchingPlans.length} matches</span></h2>
+      {matchingPlans.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingPlans.map(p=><PlanCard key={p.id} plan={p}/>)}</div> : <Empty>No plans match those dates and preferences yet. Your filters are still saved above, so you can widen the dates or clear them to see more.</Empty>}
     </AppShell>
   );
 }
