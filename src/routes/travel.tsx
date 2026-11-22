@@ -124,7 +124,7 @@ function Travel() {
       return data as unknown as PlanWithHost[];
     },
   });
-  const cityResults=(()=>{const m=new Map<string,{city:string;country:string}>();for(const r of [...(examples.data??[]),...(plans.data??[])])if(r.city&&!m.has(r.city))m.set(r.city,{city:r.city,country:r.country});const q=citySearch.toLowerCase().trim();return [...m.values()].filter(c=>!q||`${c.city} ${c.country}`.toLowerCase().includes(q)).slice(0,8);})();
+  const cityResults=(()=>{const m=new Map<string,{city:string;country:string}>();for(const r of [...(realTravellers.data??[]),...(examples.data??[]),...(plans.data??[])])if(r.city&&!m.has(r.city))m.set(r.city,{city:r.city,country:r.country});const q=citySearch.toLowerCase().trim();return [...m.values()].filter(c=>!q||`${c.city} ${c.country}`.toLowerCase().includes(q)).slice(0,8);})();
   const matchingTravellers=fadeExamples([...(realTravellers.data??[]).filter(t=>!t.user_id||!blocks.data?.has(t.user_id)),...(examples.data??[])],{hideAll:examplesHidden}).filter(t=>cityFits(t.city,t.country)&&tripDateFits(t.start_date,t.end_date)&&(!who||t.interests.join(" ").toLowerCase().includes(who.toLowerCase())));
   const matchingPlans=fadeExamples(plans.data??[],{hideAll:examplesHidden}).filter(p=>cityFits(p.city,p.country)&&planDateFits(p.starts_at)&&fits(p)&&planBudgetFits(Number(p.base_price))&&(!who||`${p.activity} ${p.title} ${p.description??""}`.toLowerCase().includes(who.toLowerCase())));
   return (
