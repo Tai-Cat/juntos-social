@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FeedRouteImport } from './routes/feed'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -34,7 +35,10 @@ import { Route as OrganisationsSlugRouteImport } from './routes/organisations.$s
 import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
 import { Route as SharedTokenRouteImport } from './routes/shared.$token'
 import { Route as TripsTripIdRouteImport } from './routes/trips.$tripId'
+import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin.dashboard'
 import { Route as AuthenticatedAdminLogoRouteImport } from './routes/_authenticated/admin.logo'
+import { Route as AuthenticatedAdminMembersRouteImport } from './routes/_authenticated/admin.members'
+import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
 import { Route as AuthenticatedAdminReviewRouteImport } from './routes/_authenticated/admin.review'
 import { Route as AuthenticatedChatUserIdRouteImport } from './routes/_authenticated/chat.$userId'
 import { Route as AuthenticatedEditPlanPlanIdRouteImport } from './routes/_authenticated/edit-plan.$planId'
@@ -76,6 +80,11 @@ const ContactRoute = ContactRouteImport.update({
 const FeedRoute = FeedRouteImport.update({
   id: '/feed',
   path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalRoute = LegalRouteImport.update({
@@ -168,9 +177,26 @@ const TripsTripIdRoute = TripsTripIdRouteImport.update({
   path: '/trips/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminDashboardRoute =
+  AuthenticatedAdminDashboardRouteImport.update({
+    id: '/admin/dashboard',
+    path: '/admin/dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminLogoRoute = AuthenticatedAdminLogoRouteImport.update({
   id: '/admin/logo',
   path: '/admin/logo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminMembersRoute =
+  AuthenticatedAdminMembersRouteImport.update({
+    id: '/admin/members',
+    path: '/admin/members',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
+  id: '/admin/plans',
+  path: '/admin/plans',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminReviewRoute =
@@ -226,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/contact': typeof ContactRoute
   '/feed': typeof FeedRoute
+  '/help': typeof HelpRoute
   '/legal': typeof LegalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -244,7 +271,10 @@ export interface FileRoutesByFullPath {
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
+  '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/logo': typeof AuthenticatedAdminLogoRoute
+  '/admin/members': typeof AuthenticatedAdminMembersRoute
+  '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/review': typeof AuthenticatedAdminReviewRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
   '/edit-plan/$planId': typeof AuthenticatedEditPlanPlanIdRoute
@@ -261,6 +291,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/contact': typeof ContactRoute
   '/feed': typeof FeedRoute
+  '/help': typeof HelpRoute
   '/legal': typeof LegalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -279,7 +310,10 @@ export interface FileRoutesByTo {
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
+  '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/logo': typeof AuthenticatedAdminLogoRoute
+  '/admin/members': typeof AuthenticatedAdminMembersRoute
+  '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/review': typeof AuthenticatedAdminReviewRoute
   '/chat/$userId': typeof AuthenticatedChatUserIdRoute
   '/edit-plan/$planId': typeof AuthenticatedEditPlanPlanIdRoute
@@ -298,6 +332,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/contact': typeof ContactRoute
   '/feed': typeof FeedRoute
+  '/help': typeof HelpRoute
   '/legal': typeof LegalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -316,7 +351,10 @@ export interface FileRoutesById {
   '/plans/$planId': typeof PlansPlanIdRoute
   '/shared/$token': typeof SharedTokenRoute
   '/trips/$tripId': typeof TripsTripIdRoute
+  '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/_authenticated/admin/logo': typeof AuthenticatedAdminLogoRoute
+  '/_authenticated/admin/members': typeof AuthenticatedAdminMembersRoute
+  '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/review': typeof AuthenticatedAdminReviewRoute
   '/_authenticated/chat/$userId': typeof AuthenticatedChatUserIdRoute
   '/_authenticated/edit-plan/$planId': typeof AuthenticatedEditPlanPlanIdRoute
@@ -335,6 +373,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/contact'
     | '/feed'
+    | '/help'
     | '/legal'
     | '/pricing'
     | '/privacy'
@@ -353,7 +392,10 @@ export interface FileRouteTypes {
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
+    | '/admin/dashboard'
     | '/admin/logo'
+    | '/admin/members'
+    | '/admin/plans'
     | '/admin/review'
     | '/chat/$userId'
     | '/edit-plan/$planId'
@@ -370,6 +412,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/contact'
     | '/feed'
+    | '/help'
     | '/legal'
     | '/pricing'
     | '/privacy'
@@ -388,7 +431,10 @@ export interface FileRouteTypes {
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
+    | '/admin/dashboard'
     | '/admin/logo'
+    | '/admin/members'
+    | '/admin/plans'
     | '/admin/review'
     | '/chat/$userId'
     | '/edit-plan/$planId'
@@ -406,6 +452,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/contact'
     | '/feed'
+    | '/help'
     | '/legal'
     | '/pricing'
     | '/privacy'
@@ -424,7 +471,10 @@ export interface FileRouteTypes {
     | '/plans/$planId'
     | '/shared/$token'
     | '/trips/$tripId'
+    | '/_authenticated/admin/dashboard'
     | '/_authenticated/admin/logo'
+    | '/_authenticated/admin/members'
+    | '/_authenticated/admin/plans'
     | '/_authenticated/admin/review'
     | '/_authenticated/chat/$userId'
     | '/_authenticated/edit-plan/$planId'
@@ -443,6 +493,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   ContactRoute: typeof ContactRoute
   FeedRoute: typeof FeedRoute
+  HelpRoute: typeof HelpRoute
   LegalRoute: typeof LegalRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -508,6 +559,13 @@ declare module '@tanstack/react-router' {
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal': {
@@ -636,11 +694,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TripsTripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/dashboard': {
+      id: '/_authenticated/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/logo': {
       id: '/_authenticated/admin/logo'
       path: '/admin/logo'
       fullPath: '/admin/logo'
       preLoaderRoute: typeof AuthenticatedAdminLogoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/members': {
+      id: '/_authenticated/admin/members'
+      path: '/admin/members'
+      fullPath: '/admin/members'
+      preLoaderRoute: typeof AuthenticatedAdminMembersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/plans': {
+      id: '/_authenticated/admin/plans'
+      path: '/admin/plans'
+      fullPath: '/admin/plans'
+      preLoaderRoute: typeof AuthenticatedAdminPlansRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/review': {
@@ -708,7 +787,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPostRoute: typeof AuthenticatedPostRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedVerifyRoute: typeof AuthenticatedVerifyRoute
+  AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
   AuthenticatedAdminLogoRoute: typeof AuthenticatedAdminLogoRoute
+  AuthenticatedAdminMembersRoute: typeof AuthenticatedAdminMembersRoute
+  AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
   AuthenticatedAdminReviewRoute: typeof AuthenticatedAdminReviewRoute
   AuthenticatedChatUserIdRoute: typeof AuthenticatedChatUserIdRoute
   AuthenticatedEditPlanPlanIdRoute: typeof AuthenticatedEditPlanPlanIdRoute
@@ -723,7 +805,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPostRoute: AuthenticatedPostRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedVerifyRoute: AuthenticatedVerifyRoute,
+  AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
   AuthenticatedAdminLogoRoute: AuthenticatedAdminLogoRoute,
+  AuthenticatedAdminMembersRoute: AuthenticatedAdminMembersRoute,
+  AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
   AuthenticatedAdminReviewRoute: AuthenticatedAdminReviewRoute,
   AuthenticatedChatUserIdRoute: AuthenticatedChatUserIdRoute,
   AuthenticatedEditPlanPlanIdRoute: AuthenticatedEditPlanPlanIdRoute,
@@ -754,6 +839,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   ContactRoute: ContactRoute,
   FeedRoute: FeedRoute,
+  HelpRoute: HelpRoute,
   LegalRoute: LegalRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
