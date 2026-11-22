@@ -17,6 +17,7 @@ import { SafetyMenu } from "@/components/tagalong/SafetyMenu";
 import { Empty, VerifiedBadge } from "@/components/tagalong/bits";
 import { Button } from "@/components/ui/button";
 import { errMsg, firstName, formatWhen } from "@/lib/tagalong";
+import { GENRES, genreClass } from "@/lib/catalog";
 
 export const Route = createFileRoute("/_authenticated/inbox")({
   head: () => ({
@@ -39,20 +40,20 @@ export const Route = createFileRoute("/_authenticated/inbox")({
 function Inbox() {
   const { user } = useSession();
   const search = Route.useSearch();
-  const [tab, setTab] = useState(search.tab ?? "messages"),
+  const [tab, setTab] = useState(search.tab ?? "plans"),
     [find, setFind] = useState(false);
   const qc = useQueryClient();
   const hosted = useQuery({
     queryKey: ["activity-hosted", user?.id], enabled: !!user,
-    queryFn: async () => { const { data, error } = await supabase.from("plans").select("id,title,starts_at,status,going_count,capacity,city,area_label").eq("host_id", user?.id ?? "").order("starts_at", { ascending: true }); if (error) throw error; return data ?? []; },
+    queryFn: async () => { const { data, error } = await supabase.from("plans").select("id,title,starts_at,status,going_count,capacity,city,area_label,genre").eq("host_id", user?.id ?? "").order("starts_at", { ascending: true }); if (error) throw error; return data ?? []; },
   });
   const attending = useQuery({
     queryKey: ["activity-attending", user?.id], enabled: !!user,
-    queryFn: async () => { const { data, error } = await supabase.from("join_requests").select("id,status,plans!inner(id,title,starts_at,status,city,area_label,host_id)").eq("user_id", user?.id ?? "").in("status", ["pending", "approved"]).order("created_at", { ascending: false }); if (error) throw error; return data ?? []; },
+    queryFn: async () => { const { data, error } = await supabase.from("join_requests").select("id,status,plans!inner(id,title,starts_at,status,city,area_label,host_id,genre)").eq("user_id", user?.id ?? "").in("status", ["pending", "approved"]).order("created_at", { ascending: false }); if (error) throw error; return data ?? []; },
   });
   const saved = useQuery({
     queryKey: ["activity-saved", user?.id], enabled: !!user,
-    queryFn: async () => { const { data, error } = await supabase.from("saved_plans").select("plan_id,plans!inner(id,title,starts_at,city,area_label,status)").eq("user_id", user?.id ?? "").order("created_at", { ascending: false }); if (error) throw error; return data ?? []; },
+    queryFn: async () => { const { data, error } = await supabase.from("saved_plans").select("plan_id,plans!inner(id,title,starts_at,city,area_label,status,genre)").eq("user_id", user?.id ?? "").order("created_at", { ascending: false }); if (error) throw error; return data ?? []; },
   });
   const q = useQuery({
     queryKey: ["inbox", user?.id],
@@ -129,15 +130,15 @@ function Inbox() {
         <section className="space-y-8">
           <div>
             <h2 className="mb-3 text-2xl">Plans you're hosting</h2>
-            {hosted.isLoading ? <Empty>Loading your plans…</Empty> : !hosted.data?.length ? <Empty>You haven't hosted a plan yet.</Empty> : <div className="space-y-3">{hosted.data.map(p => <article key={p.id} className="rounded-xl border border-border bg-card p-4"><Link to="/plans/$planId" params={{planId:p.id}} className="font-semibold">{p.title}</Link><p className="mt-1 text-xs text-muted-foreground">{formatWhen(p.starts_at)} · {p.area_label}, {p.city} · {p.going_count}/{p.capacity} going</p><div className="mt-3 flex items-center justify-between"><span className="text-xs capitalize text-muted-foreground">{p.status === "cancelled" ? "Cancelled" : new Date(p.starts_at).getTime() < Date.now() ? "Past" : "Active"}</span>{p.status !== "cancelled" && new Date(p.starts_at).getTime() > Date.now() && <Button size="sm" variant="destructive" onClick={() => cancelHosted(p.id,p.title)}>Cancel plan</Button>}</div></article>)}</div>}
+            {hosted.isLoading ? <Empty>Loading your plans…</Empty> : !hosted.data?.length ? <Empty>You haven't hosted a plan yet.</Empty> : <div className="space-y-2">{GENRES.map(g => { const items = hosted.data.filter(p => p.genre === g.id); return items.length ? <details key={g.id} className={`rounded-xl border border-border ${genreClass(g.id)}`}><summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold"><span>{g.label}</span><span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span></summary><div className="space-y-2 border-t border-border p-3">{items.map(p => <article key={p.id} className="rounded-lg border border-border bg-card p-3"><Link to="/plans/$planId" params={{planId:p.id}} className="font-semibold">{p.title}</Link><p className="mt-1 text-xs text-muted-foreground">{formatWhen(p.starts_at)} · {p.area_label}, {p.city} · {p.going_count}/{p.capacity} going</p><div className="mt-3 flex items-center justify-between"><span className="text-xs capitalize text-muted-foreground">{p.status === "cancelled" ? "Cancelled" : new Date(p.starts_at).getTime() < Date.now() ? "Past" : "Active"}</span>{p.status !== "cancelled" && new Date(p.starts_at).getTime() > Date.now() && <Button size="sm" variant="destructive" onClick={() => cancelHosted(p.id,p.title)}>Cancel plan</Button>}</div></article>)}</div></details> : null; })}</div>}
           </div>
           <div>
             <h2 className="mb-3 text-2xl">Plans you're joining</h2>
-            {attending.isLoading ? <Empty>Loading your plans…</Empty> : !attending.data?.length ? <Empty>You haven't joined or requested a place yet.</Empty> : <div className="space-y-3">{attending.data.map(r => { const p = r.plans as {id:string;title:string;starts_at:string;status:string;city:string;area_label:string}|null; if(!p)return null; return <article key={r.id} className="rounded-xl border border-border bg-card p-4"><Link to="/plans/$planId" params={{planId:p.id}} className="font-semibold">{p.title}</Link><p className="mt-1 text-xs text-muted-foreground">{formatWhen(p.starts_at)} · {p.area_label}, {p.city} · {r.status === "approved" ? "Going" : "Awaiting approval"}</p><div className="mt-3 flex justify-end">{p.status !== "cancelled" && new Date(p.starts_at).getTime() > Date.now() && <Button size="sm" variant="outline" onClick={() => cancelAttendance(p.id,p.title)}>Cancel my place</Button>}</div></article>; })}</div>}
+            {attending.isLoading ? <Empty>Loading your plans…</Empty> : !attending.data?.length ? <Empty>You haven't joined or requested a place yet.</Empty> : <div className="space-y-2">{GENRES.map(g => { const items = attending.data.filter(r => (r.plans as {genre?:string}|null)?.genre === g.id); return items.length ? <details key={g.id} className={`rounded-xl border border-border ${genreClass(g.id)}`}><summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold"><span>{g.label}</span><span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span></summary><div className="space-y-2 border-t border-border p-3">{items.map(r => { const p = r.plans as {id:string;title:string;starts_at:string;status:string;city:string;area_label:string}|null; if(!p)return null; return <article key={r.id} className="rounded-lg border border-border bg-card p-3"><Link to="/plans/$planId" params={{planId:p.id}} className="font-semibold">{p.title}</Link><p className="mt-1 text-xs text-muted-foreground">{formatWhen(p.starts_at)} · {p.area_label}, {p.city} · {r.status === "approved" ? "Going" : "Awaiting approval"}</p><div className="mt-3 flex justify-end">{p.status !== "cancelled" && new Date(p.starts_at).getTime() > Date.now() && <Button size="sm" variant="outline" onClick={() => cancelAttendance(p.id,p.title)}>Cancel my place</Button>}</div></article>; })}</div></details> : null; })}</div>}
           </div>
           <div>
             <h2 className="mb-3 text-2xl">Saved plans</h2>
-            {!saved.data?.length ? <Empty>No saved plans yet.</Empty> : <ul className="divide-y divide-border border-y border-border">{saved.data.map(s => { const p=s.plans as {id:string;title:string;starts_at:string;status:string}|null; return p ? <li key={p.id} className="py-3"><Link to="/plans/$planId" params={{planId:p.id}} className="font-medium">{p.title}</Link><p className="text-xs text-muted-foreground">{formatWhen(p.starts_at)} {p.status === "cancelled" ? "· Cancelled" : ""}</p></li> : null; })}</ul>}
+            {!saved.data?.length ? <Empty>No saved plans yet.</Empty> : <div className="space-y-2">{GENRES.map(g => { const items = saved.data.filter(s => (s.plans as {genre?:string}|null)?.genre === g.id); return items.length ? <details key={g.id} className={`rounded-xl border border-border ${genreClass(g.id)}`}><summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold"><span>{g.label}</span><span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span></summary><ul className="divide-y divide-border border-t border-border px-3">{items.map(s => { const p=s.plans as {id:string;title:string;starts_at:string;status:string}|null; return p ? <li key={p.id} className="py-3"><Link to="/plans/$planId" params={{planId:p.id}} className="font-medium">{p.title}</Link><p className="text-xs text-muted-foreground">{formatWhen(p.starts_at)} {p.status === "cancelled" ? "· Cancelled" : ""}</p></li> : null; })}</ul></details> : null; })}</div>}
           </div>
         </section>
       ) : tab === "messages" ? (
