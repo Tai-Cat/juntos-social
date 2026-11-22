@@ -5,7 +5,7 @@ import { PhotoCarousel } from "./PhotoCarousel";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { distanceKm } from "@/lib/spatial";
-import { genreClass } from "@/lib/catalog";
+import { genreClass, activityLabel } from "@/lib/catalog";
 import { Link } from "@tanstack/react-router";
 import { Accessibility, MapPin } from "lucide-react";
 import { AUDIENCE_LABEL, formatWhen, hostOf, type PlanWithHost } from "@/lib/tagalong";
@@ -87,7 +87,7 @@ export function PlanCard({
           <span className="absolute bottom-3 left-3 rounded-full bg-foreground px-3 py-1 text-xs font-bold text-background">Sold out</span>
         )}
         <div className="absolute left-3 top-3">
-          <span className={`category-chip ${genreClass(plan.genre)}`}>{plan.activity}</span>
+          <span className={`category-chip ${genreClass(plan.genre)}`}>{activityLabel(plan.activity)}</span>
         </div>
         {plan.is_example && (
           <span className="absolute right-3 top-3 rounded-full bg-card px-2 py-1">
