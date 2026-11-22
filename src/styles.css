@@ -383,3 +383,9 @@ body.welcome-open { overflow: hidden; }
 }
 @keyframes install-fade { from { opacity: 0 } }
 @keyframes install-up { from { transform: translateY(40px); opacity: 0 } }
+
+
+/* Keep multi-word genre names readable in compact category tiles and filter menus. */
+.genre-label {
+  word-spacing: 0.18em;
+}
