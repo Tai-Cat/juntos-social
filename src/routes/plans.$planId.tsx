@@ -514,7 +514,12 @@ function PlanDetail() {
               </Button>
             </Card>
           )}
-          {myReq.data?.status === "declined" && (
+          {myReq.data?.status === "cancelled" && (
+        <Card className="text-center text-sm text-muted-foreground">
+          You cancelled your request or place. The cancellation is saved in your activity history. If you'd like to ask again, contact the host using the plan's existing conversation or another available contact route.
+        </Card>
+      )}
+      {myReq.data?.status === "declined" && (
             <Card className="text-center text-sm text-muted-foreground">
               The host couldn't fit you in this time.
             </Card>
