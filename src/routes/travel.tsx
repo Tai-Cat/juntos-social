@@ -36,7 +36,8 @@ export const Route = createFileRoute("/travel")({
   component: Travel,
 });
 function Travel() {
-  const { user } = useMyProfile();\n  const blocks = useBlocks();
+  const { user } = useMyProfile();
+  const blocks = useBlocks();
   const [citySearch,setCitySearch]=useState("");
   const [dateFrom,setDateFrom]=useState("");
   const [dateTo,setDateTo]=useState("");
