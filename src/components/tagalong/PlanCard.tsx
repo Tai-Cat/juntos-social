@@ -12,6 +12,7 @@ import { AUDIENCE_LABEL, formatWhen, hostOf, type PlanWithHost } from "@/lib/tag
 import { activeTier, nextTierCopy, parseTiers, priceFor, tierLabel, tierProgress } from "@/lib/discount";
 import { ExampleTag, VerifiedBadge } from "./bits";
 import {ageLabel} from "@/lib/age";
+import { useSession } from "@/hooks/use-auth";
 
 export function DiscountBar({ going, basePrice, tiers: raw }: { going: number; basePrice: number; tiers: unknown }) {
   const tiers = parseTiers(raw);
@@ -55,6 +56,7 @@ export function PlanCard({
   plan: PlanWithHost;
   position?: { lat: number; lng: number } | null;
 }) {
+  const { user } = useSession();
   const hostQ = useQuery({
     queryKey: ["public-host", plan.host_id],
     enabled: !!plan.host_id,
@@ -90,6 +92,9 @@ export function PlanCard({
           <span className="absolute right-3 top-3 rounded-full bg-card px-2 py-1">
             <ExampleTag />
           </span>
+        )}
+        {!plan.is_example && plan.host_id === user?.id && (
+          <span className="absolute right-3 bottom-3 rounded-full bg-card px-3 py-1 text-xs font-bold text-tangerine shadow-sm">You're hosting</span>
         )}
       </div>
       <div className="p-5">
