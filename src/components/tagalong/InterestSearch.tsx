@@ -23,7 +23,8 @@ export function InterestSearch({ exclude, onAdd, label = "Add your own interest"
   const all = useMemo(() => [...new Set([...activities, ...community])], [activities, community]);
   const q = normalizeInterest(text);
   const excluded = exclude.map(normalizeInterest);
-  const matches = q ? all.filter((a) => a.includes(q) && !excluded.includes(a)).sort((a, b) => Number(!a.startsWith(q)) - Number(!b.startsWith(q))).slice(0, 6) : [];
+  const compactQuery = q.replace(/\s+/g, "");
+  const matches = q ? all.filter((a) => (a.includes(q) || a.replace(/\s+/g, "").includes(compactQuery)) && !excluded.includes(normalizeInterest(a))).sort((a, b) => Number(!a.startsWith(q)) - Number(!b.startsWith(q))).slice(0, 6) : [];
   const add = (v: string) => { const n = normalizeInterest(v); if (!n) return; onAdd(n); setText(""); };
   return (
     <div className="relative">
@@ -31,7 +32,7 @@ export function InterestSearch({ exclude, onAdd, label = "Add your own interest"
       {q && (
         <ul role="listbox" className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm">
           {matches.map((m) => <li key={m}><Button type="button" variant="ghost" className="w-full justify-start rounded-none" onClick={() => add(m)}>{activityLabel(m)}</Button></li>)}
-          {!all.includes(q) && !excluded.includes(q) && <li><Button type="button" variant="ghost" className="w-full justify-start rounded-none text-tangerine" onClick={() => add(q)}><Plus />Add “{q}”</Button></li>}
+          {!all.map(normalizeInterest).includes(q) && !excluded.includes(q) && <li><Button type="button" variant="ghost" className="w-full justify-start rounded-none text-tangerine" onClick={() => add(q)}><Plus />Add “{q}”</Button></li>}
         </ul>
       )}
     </div>
