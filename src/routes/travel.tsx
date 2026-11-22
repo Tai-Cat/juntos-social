@@ -89,13 +89,20 @@ function Travel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trips")
-        .select("*, profiles(name, verified, reliability_score)")
+        .select("*")
         .eq("is_example", false)
         .neq("user_id", user?.id ?? "")
         .gte("end_date", new Date().toISOString().slice(0, 10))
         .order("start_date");
       if (error) throw error;
-      return data ?? [];
+      // trips has no foreign key to profiles, so names are looked up separately.
+      const ids = [...new Set((data ?? []).map((t) => t.user_id).filter((id): id is string => !!id))];
+      const names = new Map<string, string>();
+      if (ids.length) {
+        const { data: people } = await supabase.from("profiles").select("id, name").in("id", ids);
+        for (const p of people ?? []) if (p.name) names.set(p.id, p.name);
+      }
+      return (data ?? []).map((t) => ({ ...t, profiles: t.user_id && names.has(t.user_id) ? { name: names.get(t.user_id) } : null }));
     },
   });
   const examples = useQuery({
@@ -171,7 +178,7 @@ function Travel() {
         </div>
       )}
       <h2 className="mb-4 mt-8 text-2xl">Travellers on the move <span className="text-sm font-normal text-muted-foreground">· {matchingTravellers.length} matches</span></h2>
-      {matchingTravellers.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingTravellers.map(t=><TripCard key={t.id} trip={t} hostName={t.is_example ? (t.example_name ?? "Traveller") : (t.profiles as { name?: string } | null)?.name ?? "Traveller"}/>)}</div> : <Empty>No travellers match these filters. Try a wider date range, another destination or clear your filters.</Empty>}
+      {matchingTravellers.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingTravellers.map(t=><TripCard key={t.id} trip={t} hostName={t.is_example ? (t.example_name ?? "Traveller") : (t as { profiles?: { name?: string } | null }).profiles?.name ?? "Traveller"}/>)}</div> : <Empty>No travellers match these filters. Try a wider date range, another destination or clear your filters.</Empty>}
       <h2 className="mb-4 mt-8 text-2xl">Plans worth the trip <span className="text-sm font-normal text-muted-foreground">· {matchingPlans.length} matches</span></h2>
       {matchingPlans.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingPlans.map(p=><PlanCard key={p.id} plan={p}/>)}</div> : <Empty>No plans match those dates and preferences yet. Your filters are still saved above, so you can widen the dates or clear them to see more.</Empty>}
     </AppShell>

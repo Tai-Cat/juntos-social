@@ -344,7 +344,7 @@ function PlanDetail() {
         {!isCancelled&&<Button asChild variant="outline" size="sm"><Link to="/edit-plan/$planId" params={{planId:plan.id}}>Edit plan</Link></Button>}
         <Button asChild variant="outline" size="sm"><Link to="/post" search={{from:plan.id}}>Duplicate for another date</Link></Button>
         {!isCancelled&&!isPast&&<Button variant="destructive" size="sm" disabled={busy} onClick={cancelHostedPlan}>{busy?"Cancelling…":"Cancel plan"}</Button>}
-      </div>
+      </div>}
       {isHost&&<PlanVisibilityPanel plan={plan}/>}
       <MemberNote planId={plan.id}/>
       {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-3 inline-flex rounded-full bg-sky-soft px-3 py-1 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
