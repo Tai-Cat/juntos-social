@@ -4,7 +4,7 @@ import { formatDates } from "@/lib/tagalong";
 import { countryFlag } from "@/lib/catalog";
 import { CityPhoto } from "@/hooks/use-city-photo";
 import { ExampleTag } from "./bits";
-export function TripCard({ trip: t }: { trip: Trip }) {
+export function TripCard({ trip: t, hostName }: { trip: Trip; hostName?: string }) {
   return (
     <Link to="/trips/$tripId" params={{ tripId: t.id }} className="plan-card genre-tech block">
       <CityPhoto city={t.city} alt={`${t.city}, ${t.country} skyline`} className="aspect-[16/9] w-full object-cover" />
@@ -14,7 +14,7 @@ export function TripCard({ trip: t }: { trip: Trip }) {
           <span className="text-xs font-semibold">{t.country}</span>
           {t.is_example && <ExampleTag />}
         </div>
-        <h3 className="mt-2 text-3xl">{t.city}</h3>
+        <h3 className="mt-2 text-3xl">{t.city}</h3>\n        {hostName && <p className="mt-1 text-sm font-medium">Travelling with {hostName}</p>}
         <p className="mt-2 text-sm text-muted-foreground">
           {formatDates(t.start_date, t.end_date)}
         </p>
