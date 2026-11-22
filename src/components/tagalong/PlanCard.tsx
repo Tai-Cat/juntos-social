@@ -18,7 +18,7 @@ export function DiscountBar({ going, basePrice, tiers: raw, city }: { going: num
   const currency = city === "Singapore" ? "S$" : "€";
   const tiers = parseTiers(raw);
   const active = activeTier(tiers, going);
-  const next = nextTierCopy(going, tiers);
+  const next = nextTierCopy(going, tiers, currency);
   const top = tiers[tiers.length - 1];
   return (
     <div className="space-y-2">
