@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AdminNav } from "@/components/tagalong/AdminNav";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/tagalong/AppShell";
@@ -60,6 +61,7 @@ function AdminMembers() {
   if (!isAdmin) return <AppShell title="Member accounts" hideBackExplore><Empty>Only Juntos app admins can open this page.</Empty></AppShell>;
 
   return <AppShell title="Member accounts" hideBackExplore>
+    <AdminNav />
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <p className="eyebrow">Juntos administration</p>

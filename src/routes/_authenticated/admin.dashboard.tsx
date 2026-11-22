@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, ClientOnly } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
+const AdminLocationMap = lazy(() => import("@/components/tagalong/AdminLocationMap"));
+import { AdminNav } from "@/components/tagalong/AdminNav";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/tagalong/AppShell";
 import { Empty } from "@/components/tagalong/bits";
@@ -37,6 +40,21 @@ function Bars({ title, data }: { title: string; data: { day: string; count: numb
   </section>;
 }
 
+function CityBars({ title, rows, unit }: { title: string; rows: { city: string; count: number }[]; unit: string }) {
+  const top = rows.slice(0, 7);
+  const rest = rows.slice(7).reduce((n, r) => n + r.count, 0);
+  const all = rest ? [...top, { city: `${rows.length - 7} other places`, count: rest }] : top;
+  const max = Math.max(1, ...all.map((r) => r.count));
+  return <section className="rounded-xl border border-border bg-card p-4">
+    <div className="flex items-baseline justify-between gap-2"><h2 className="text-base font-semibold">{title}</h2><span className="text-xs text-muted-foreground">{rows.length} place{rows.length === 1 ? "" : "s"}</span></div>
+    {all.length ? <ul className="mt-3 space-y-2">{all.map((r) => <li key={r.city} className="grid grid-cols-[minmax(0,7rem)_1fr_2rem] items-center gap-2 text-sm">
+      <span className="truncate">{r.city}</span>
+      <span className="h-3 rounded-full bg-muted"><span className="block h-3 rounded-full bg-tangerine" style={{ width: `${(r.count / max) * 100}%` }} /></span>
+      <span className="text-right tabular-nums text-muted-foreground" title={`${r.count} ${unit}`}>{r.count}</span>
+    </li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">Nothing yet.</p>}
+  </section>;
+}
+
 function MemberRow({ m }: { m: AdminMember }) {
   return <li className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3 first:border-t-0">
     <div className="min-w-0">
@@ -60,6 +78,7 @@ function AdminDashboard() {
   const unconfirmed = s?.memberList.filter((m) => !m.email_confirmed) ?? [];
 
   return <AppShell title="Dashboard" hideBackExplore>
+    <AdminNav />
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
         <p className="eyebrow">Juntos administration</p>
@@ -67,8 +86,6 @@ function AdminDashboard() {
         <p className="mt-1 text-xs text-muted-foreground">{s ? `Updated ${new Date(s.generatedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })} · refreshes every minute` : "Loading…"}</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button asChild variant="outline" size="sm"><Link to="/admin/members">All accounts</Link></Button>
-        <Button asChild variant="outline" size="sm"><Link to="/admin/plans">All plans</Link></Button>
         <Button variant="outline" size="sm" onClick={() => stats.refetch()} disabled={stats.isFetching}>{stats.isFetching ? "Refreshing…" : "Refresh"}</Button>
       </div>
     </div>
@@ -104,6 +121,13 @@ function AdminDashboard() {
         <Bars title="Sign-ups per day" data={s.signups.byDay} />
         <Bars title="Plans created per day" data={s.plans.byDay} />
       </div>
+
+      <h2 className="mt-6 eyebrow">Where</h2>
+      <div className="mt-2 grid gap-3 md:grid-cols-2">
+        <CityBars title="Plans by city" rows={s.locations.plans} unit="plans" />
+        <CityBars title="Members by home city" rows={s.locations.members} unit="members" />
+      </div>
+      <ClientOnly fallback={null}><Suspense fallback={null}><AdminLocationMap plans={s.locations.plans} members={s.locations.members} /></Suspense></ClientOnly>
 
       {s.plans.topHosts.length > 0 && <section className="mt-6">
         <h2 className="eyebrow">Top hosts</h2>

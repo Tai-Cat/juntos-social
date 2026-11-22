@@ -1,9 +1,15 @@
 import { MapLink } from "@/components/tagalong/MapLink";
 import { VisibilitySelect, type Visibility } from "@/components/tagalong/PlanVisibility";
 import { canUseHostTools } from "@/lib/membership";
-import { CITY_CENTERS } from "@/lib/spatial";
+import { ANYWHERE, areaNameFor, blur, geocodeCity, geocodeQuery, type Point } from "@/lib/geo";
+import { PLAN_TEMPLATES, bringSuggestions, matchActivities, matchTemplates, type PlanTemplate } from "@/lib/plan-templates";
+import { Autocomplete } from "@/components/tagalong/Autocomplete";
+import { useExplorePrefs } from "@/lib/explore-prefs";
+import { lazy, Suspense } from "react";
+import { ClientOnly } from "@tanstack/react-router";
+const AreaPreviewMap = lazy(() => import("@/components/tagalong/AreaPreviewMap"));
 import { usePlus } from "@/hooks/use-plus";
-import { ACTIVITIES, genreOf, cityName, GENRES } from "@/lib/catalog";
+import { ACTIVITIES, CITIES, activityLabel, genreOf, cityName } from "@/lib/catalog";
 import { Choice } from "@/components/tagalong/Choice";
 import { PlusCard } from "@/components/tagalong/PlusCard";
 import { useEffect, useState } from "react";
@@ -17,7 +23,7 @@ import {useOrganisations,useOrgMemberships} from "@/hooks/use-organisations";
 import {AGE_BRACKETS} from "@/lib/age";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, Lock, Plus, X } from "lucide-react";
+import { Copy, Lock, Plus, X, MapPin, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile } from "@/hooks/use-auth";
@@ -61,15 +67,7 @@ export const Route = createFileRoute("/_authenticated/post")({
   component: PostPlan,
 });
 
-const TEMPLATES = [
-  { title: "Dog walk", category: "Dog walk", kind: "chill", capacity: 5 },
-  { title: "Laundry run + coffee", category: "Errands", kind: "chill", capacity: 4 },
-  { title: "Market wander", category: "Market", kind: "chill", capacity: 6 },
-  { title: "Co-working session", category: "Co-working", kind: "chill", capacity: 6 },
-  { title: "Pottery class", category: "Pottery", kind: "partner_venue", capacity: 8 },
-  { title: "Dinner", category: "Dinner", kind: "partner_venue", capacity: 6 },
-  { title: "Climbing", category: "Climbing", kind: "chill", capacity: 6 },
-] as const;
+const QUICK = ["Dog walk", "Coffee and a chat", "Co-working session", "Morning run", "Board game night", "Picnic"];
 
 function PostPlan() {
   const s = Route.useSearch();
@@ -112,9 +110,29 @@ function PostPlan() {
   const [weekly, setWeekly] = useState(false);
   const [autoApprove, setAutoApprove] = useState(false);
   const [busy, setBusy] = useState(false);
-  const city = cityName(s.city ?? profile?.home_city ?? "Paris");
-  const country = s.country ?? (city === "Paris" ? "France" : "");
-  const isTravel = s.travel ?? (!!s.city && s.city !== profile?.home_city);
+  const prefs = useExplorePrefs();
+  const [place, setPlace] = useState(() => s.city ?? (prefs.city && prefs.city !== ANYWHERE ? prefs.city : ""));
+  const [placeSeeded, setPlaceSeeded] = useState(false);
+  useEffect(() => { if (placeSeeded || !profile) return; setPlaceSeeded(true); if (!place && profile.home_city) setPlace(profile.home_city); }, [profile, place, placeSeeded]);
+  const city = cityName(place || profile?.home_city || "Paris");
+  const country = s.country ?? (place.includes(",") ? place.split(",").slice(1).join(",").trim() : city === "Paris" || city === "Fontainebleau" ? "France" : "");
+  const isTravel = s.travel ?? (!!place && cityName(place) !== cityName(profile?.home_city ?? ""));
+  const [quick, setQuick] = useState("");
+  const [exact, setExact] = useState<Point | null>(null);
+  const [publicPoint, setPublicPoint] = useState<Point | null>(null);
+  const [radiusKm, setRadiusKm] = useState(2);
+  const [finding, setFinding] = useState(false);
+  const [areaAuto, setAreaAuto] = useState(true);
+  async function findOnMap(q = address) {
+    if (q.trim().length < 5) return;
+    setFinding(true);
+    const point = (await geocodeQuery(`${q}, ${city}`)) ?? (await geocodeQuery(q));
+    setFinding(false);
+    if (!point) { toast.message("Couldn't find that address on the map. The plan will use the city centre for distance."); setExact(null); setPublicPoint(null); return; }
+    setExact(point);
+    setPublicPoint(blur(point, radiusKm * 0.5));
+    if (areaAuto || !area.trim()) { const name = await areaNameFor(point); if (name) { setArea(name); setAreaAuto(true); } }
+  }
 
   // Your recent plans: one tap fills the form again (duplicate, then just change the date).
   const myPlans = useQuery({
@@ -181,23 +199,24 @@ function PostPlan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.from]);
 
-  function useTemplate(t: (typeof TEMPLATES)[number]) {
+  function applyTemplate(t: PlanTemplate) {
     setTitle(t.title);
-    setCategory(t.category);
+    setCategory(t.title);
+    setActivity(t.activity);
     setKind(t.kind);
     setVenueType(t.kind === "partner_venue" ? "partner_venue" : "public");
     setCapacityInput(String(t.capacity));
-    const map: Record<string, string> = {
-      "Dog walk": "dog walks",
-      Errands: "laundry runs",
-      Market: "markets",
-      "Co-working": "co-working",
-      Pottery: "pottery",
-      Dinner: "dinner parties",
-      Climbing: "climbing and bouldering",
-    };
-    setActivity(map[t.category] ?? t.category.toLowerCase());
+    setDuration(t.duration);
+    if (!description.trim()) setDescription(t.description);
+    setQuick("");
   }
+  const quickSuggestions = [
+    ...matchTemplates(quick).map((t) => ({ value: `t:${t.title}`, label: t.title, hint: "Template" })),
+    ...matchActivities(ACTIVITIES, quick, 5).filter((a) => !matchTemplates(quick).some((t) => t.activity === a)).map((a) => ({ value: `a:${a}`, label: activityLabel(a), hint: "Activity" })),
+  ];
+  const bringIdeas = bringSuggestions(activity, title);
+  const bringList = bring.split(",").map((x) => x.trim()).filter(Boolean);
+  const toggleBring = (item: string) => setBring(bringList.some((b) => b.toLowerCase() === item.toLowerCase()) ? bringList.filter((b) => b.toLowerCase() !== item.toLowerCase()).join(", ") : [...bringList, item].join(", "));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -237,6 +256,8 @@ function PostPlan() {
       const spanMin=customAge?ageMin:picked.length?Math.min(...picked.map(b=>b.min)):null;
       const spanMax=customAge?ageMax:picked.length?Math.max(...picked.map(b=>b.max)):null;
       try { if (intro.trim()) localStorage.setItem("juntos-host-intro", intro.trim()); } catch { /* storage blocked */ }
+      // Public pin: a blurred point near the meet-up address, else the city centre. Never the exact address.
+      const pin = publicPoint ?? (await geocodeCity(place || city));
       let firstId = "";
       for (const date of dates) {
       const { data, error } = await supabase
@@ -253,8 +274,8 @@ function PostPlan() {
           age_min:spanMin,
           age_max:spanMax,
           organisation_id:orgId||null,
-          area_lat: CITY_CENTERS[city]?.[0] ?? null,
-          area_lng: CITY_CENTERS[city]?.[1] ?? null,
+          area_lat: pin?.lat ?? null,
+          area_lng: pin?.lng ?? null,
           what_to_bring: bring,
           duration_minutes: duration,
           host_intro: intro,
@@ -302,10 +323,18 @@ function PostPlan() {
   return (
     <AppShell title="New plan" hideBackExplore>
       <h1 className="text-3xl">Post a plan</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        In {city}
-        {isTravel && " · travel plan"}
-      </p>
+      <div className="mt-4 space-y-2">
+        <Label htmlFor="place">Where is it?</Label>
+        <Autocomplete
+          id="place"
+          value={place}
+          onChange={setPlace}
+          onPick={(c) => setPlace(c.value)}
+          placeholder="City, e.g. Fontainebleau"
+          suggestions={CITIES.filter((c) => c.toLowerCase().includes(place.trim().toLowerCase()) && c !== place).slice(0, 6).map((c) => ({ value: c, label: c }))}
+        />
+        <p className="text-xs text-muted-foreground">{isTravel ? "Not your home city, so this is shown as a travel plan too." : "Change this if the plan isn't where you are now."}</p>
+      </div>
 
       {!!myPlans.data?.length && (
         <>
@@ -320,13 +349,26 @@ function PostPlan() {
         </>
       )}
       <p className="eyebrow mb-2 mt-6">Quick start</p>
-      <div className="flex flex-wrap gap-2 pb-1">
-        {TEMPLATES.map((t) => (
-          <Chip key={t.title} active={title === t.title} onClick={() => useTemplate(t)}>
-            {t.title}
-          </Chip>
-        ))}
+      <Autocomplete
+        ariaLabel="Quick start: what are you doing?"
+        value={quick}
+        onChange={setQuick}
+        placeholder="What are you doing? e.g. dog walk, cafe, run"
+        suggestions={quickSuggestions}
+        onPick={(sug) => {
+          if (sug.value.startsWith("t:")) { const t = PLAN_TEMPLATES.find((x) => `t:${x.title}` === sug.value); if (t) applyTemplate(t); return; }
+          const a = sug.value.slice(2);
+          setActivity(a);
+          if (!title.trim()) setTitle(activityLabel(a).charAt(0).toUpperCase() + activityLabel(a).slice(1));
+          setQuick("");
+        }}
+      />
+      <div className="mt-2 flex flex-wrap gap-2 pb-1">
+        {QUICK.map((name) => { const t = PLAN_TEMPLATES.find((x) => x.title === name); return t ? (
+          <Chip key={name} active={title === t.title} onClick={() => applyTemplate(t)}>{t.title}</Chip>
+        ) : null; })}
       </div>
+      <p className="mt-1 text-xs text-muted-foreground">Picking a template fills in the name, activity, group size, length and a short description. You can change any of it.</p>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
         <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
@@ -335,19 +377,17 @@ function PostPlan() {
           </Field>
         <div className="space-y-2">
           <Label>Type of activity</Label>
-          <Input
-            aria-label="Activity"
-            list="post-activities"
+          <Autocomplete
+            ariaLabel="Activity"
             value={activity}
-            onChange={(e) => setActivity(e.target.value)}
+            onChange={setActivity}
+            onPick={(sug) => setActivity(sug.value)}
             required
             maxLength={80}
+            placeholder="Start typing, e.g. architecture, book club"
+            suggestions={matchActivities(ACTIVITIES, activity).filter((a) => a !== activity.toLowerCase().trim()).map((a) => ({ value: a, label: activityLabel(a) }))}
           />
-          <datalist id="post-activities">
-            {ACTIVITIES.map((a) => (
-              <option key={a} value={a} />
-            ))}
-          </datalist>
+          <p className="text-xs text-muted-foreground">Pick a suggestion so people searching for it find your plan, or type your own.</p>
         </div>
         </div>
         {age.data&&!age.data.date_of_birth&&<div className="border-y border-border py-4"><p className="text-sm">Add your date of birth (18+) before hosting.</p><Button asChild variant="outline" className="mt-2"><Link to="/onboarding">Add date of birth</Link></Button></div>}
@@ -386,8 +426,13 @@ function PostPlan() {
         <Field label="Details (optional)" id="d">
           <Textarea id="d" value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>
-        <Field label="What to bring" id="bring">
-          <Input id="bring" value={bring} onChange={(e) => setBring(e.target.value)} />
+        <Field label="What to bring" id="bring" hint={bringIdeas.length ? "Tap a suggestion to add or remove it, or type your own." : "Separate items with commas."}>
+          <Input id="bring" value={bring} onChange={(e) => setBring(e.target.value)} placeholder="e.g. water, comfy shoes" />
+          {bringIdeas.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {bringIdeas.map((item) => <Chip key={item} active={bringList.some((b) => b.toLowerCase() === item.toLowerCase())} onClick={() => toggleBring(item)}>{item}</Chip>)}
+            </div>
+          )}
         </Field>
         <Field label="How long?" id="duration">
           <div className="flex items-center gap-3">
@@ -420,26 +465,43 @@ function PostPlan() {
             </div>
           )}
         </Field>
-        <Field label="Area shown publicly" id="a" hint="Neighbourhood only, e.g. Bastille, 11e">
-          <Input id="a" required value={area} onChange={(e) => setArea(e.target.value)} />
-        </Field>
-        <Field
-          label="Meet-up address and directions"
-          id="ad"
-          hint={
-            <span className="inline-flex items-center gap-1">
-              <Lock className="h-3 w-3" />
-              Private. Shared with approved people 2 hours before.
-            </span>
-          }
-        >
-          <Input id="ad" required value={address} onChange={(e) => setAddress(e.target.value)} />
-          {address.trim().length > 4 && (
-            <p className="mt-1.5 text-xs">
-              <MapLink query={address.trim()}>Check this address on the map</MapLink>
-            </p>
+        <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+          <Field
+            label="Meet-up address and directions"
+            id="ad"
+            hint={
+              <span className="inline-flex items-center gap-1">
+                <Lock className="h-3 w-3" />
+                Private. Shared with approved people 2 hours before.
+              </span>
+            }
+          >
+            <Input id="ad" required value={address} onChange={(e) => setAddress(e.target.value)} onBlur={() => { if (!exact) void findOnMap(); }} placeholder="e.g. 12 Rue Grande, by the fountain" />
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <Button type="button" variant="outline" size="sm" disabled={finding || address.trim().length < 5} onClick={() => void findOnMap()}>
+                {finding ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />} {exact ? "Update map" : "Show on map"}
+              </Button>
+              {address.trim().length > 4 && <MapLink query={address.trim()}>Open in Maps</MapLink>}
+            </div>
+          </Field>
+          <div className="space-y-2">
+            <Label>How wide should the public area be?</Label>
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4, 5].map((km) => <Chip key={km} active={radiusKm === km} onClick={() => { setRadiusKm(km); if (exact) setPublicPoint(blur(exact, km * 0.5)); }}>{km} km</Chip>)}
+            </div>
+            <p className="text-xs text-muted-foreground">Before they're approved, people only see a circle this wide. The exact address stays hidden.</p>
+          </div>
+          {exact && publicPoint && (
+            <ClientOnly fallback={null}>
+              <Suspense fallback={<div className="h-56 rounded-xl border border-border bg-muted" />}>
+                <AreaPreviewMap exact={exact} center={publicPoint} radiusKm={radiusKm} />
+              </Suspense>
+            </ClientOnly>
           )}
-        </Field>
+          <Field label="Area name shown publicly" id="a" hint="Filled in from the address. Neighbourhood only, e.g. Bastille, 11e">
+            <Input id="a" required value={area} onChange={(e) => { setArea(e.target.value); setAreaAuto(false); }} />
+          </Field>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="When" id="w">
             <Input

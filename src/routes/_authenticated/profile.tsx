@@ -148,9 +148,6 @@ function ProfilePage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-4xl">{profile.name || "You"}</h1>
-          {profile.pronouns && (
-            <p className="mt-1 text-sm text-muted-foreground">{profile.pronouns}</p>
-          )}
         </div>
         <Link to="/onboarding" className="text-sm text-muted-foreground hover:text-foreground">
           Edit

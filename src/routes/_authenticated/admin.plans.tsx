@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AdminNav } from "@/components/tagalong/AdminNav";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/tagalong/AppShell";
@@ -60,9 +61,10 @@ function AdminPlans() {
   const realCount = (q.data ?? []).filter(p => !p.is_example).length;
   const exampleCount = (q.data ?? []).filter(p => p.is_example).length;
 
-  if (!isAdmin) return <AppShell title="All plans"><Empty>Only Juntos app admins can open this page.</Empty></AppShell>;
+  if (!isAdmin) return <AppShell title="All plans" hideBackExplore><Empty>Only Juntos app admins can open this page.</Empty></AppShell>;
 
-  return <AppShell title="All plans">
+  return <AppShell title="All plans" hideBackExplore>
+    <AdminNav />
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div><p className="eyebrow">Juntos administration</p><h1 className="text-3xl">All plans</h1><p className="mt-2 max-w-2xl text-sm text-muted-foreground">A site-wide overview across every location, including restricted plans. This view intentionally excludes exact addresses and attendee details.</p></div>
       <div className="flex flex-wrap gap-2"><span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">{q.data?.length ?? 0} total</span><span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">{realCount} real posts</span><span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">{exampleCount} examples</span></div>
