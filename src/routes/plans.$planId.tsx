@@ -128,6 +128,7 @@ function PlanDetail() {
   const hostQ = useQuery({queryKey:["public-host",plan?.host_id],enabled:!!plan?.host_id,queryFn:async()=>{if(!plan?.host_id)return null;return (await supabase.rpc("public_host",{_id:plan.host_id})).data?.[0]??null;}});
   const isHost = !!plan && plan.host_id === user?.id;
   const isPast = !!plan && new Date(plan.ends_at ?? plan.starts_at).getTime() < Date.now();
+  const isCancelled = plan?.status === "cancelled";
   const approved =
     myReq.data?.status === "approved" ||
     (!!user && !!plan?.is_private && plan.private_participants.includes(user.id));
@@ -211,12 +212,20 @@ function PlanDetail() {
     refresh();
   }
   async function cancel() {
-    if (!myReq.data) return;
-    const { error } = await supabase.from("join_requests").delete().eq("id", myReq.data.id);
-    if (error) {
-      toast.error(errMsg(error));
-      return;
-    }
+    if (!myReq.data || !user) return;
+    const { error } = await supabase.rpc("cancel_my_join", { _plan: planId });
+    if (error) { toast.error(errMsg(error)); return; }
+    toast.success(myReq.data.status === "pending" ? "Join request cancelled" : "You've left this plan");
+    refresh();
+  }
+  async function cancelHostedPlan() {
+    if (!plan || !isHost || isCancelled) return;
+    if (!window.confirm("Cancel this plan? People who have joined or requested a place will be notified.")) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("cancel_plan", { _plan: plan.id });
+    setBusy(false);
+    if (error) { toast.error(errMsg(error)); return; }
+    toast.success("Plan cancelled. Attendees have been notified.");
     refresh();
   }
   async function repeat() {
@@ -325,14 +334,20 @@ function PlanDetail() {
         {plan.visibility==="link"&&<span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-bold"><Lock className="h-3 w-3"/>Private</span>}
         {plan.visibility==="friends"&&<span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-bold"><Lock className="h-3 w-3"/>Friends and groups</span>}
         {isPast&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">Past · {new Date(plan.starts_at).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})}</span>}
+        {isCancelled&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">Cancelled</span>}
         {plan.venue_tbc&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Venue to be confirmed</span>}
         {plan.has_virtual_option&&<span className="rounded-full bg-muted px-2 py-0.5 text-xs">Virtual option</span>}
       </div>
-      {isHost&&<div className="mt-4 flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/edit-plan/$planId" params={{planId:plan.id}}>Edit plan</Link></Button><Button asChild variant="outline" size="sm"><Link to="/post" search={{from:plan.id}}>Duplicate for another date</Link></Button></div>}
+      {isHost&&<div className="mt-4 flex flex-wrap gap-2">
+        {!isCancelled&&<Button asChild variant="outline" size="sm"><Link to="/edit-plan/$planId" params={{planId:plan.id}}>Edit plan</Link></Button>}
+        <Button asChild variant="outline" size="sm"><Link to="/post" search={{from:plan.id}}>Duplicate for another date</Link></Button>
+        {!isCancelled&&!isPast&&<Button variant="destructive" size="sm" disabled={busy} onClick={cancelHostedPlan}>{busy?"Cancelling…":"Cancel plan"}</Button>}
+      </div>
       {isHost&&<PlanVisibilityPanel plan={plan}/>}
       <MemberNote planId={plan.id}/>
       {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-3 inline-flex rounded-full bg-sky-soft px-3 py-1 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
       {plan.organisation_id&&organisations.data?.filter(o=>o.id===plan.organisation_id).map(o=><p className="mt-3 text-sm" key={o.id}>Hosted by <Link className="font-bold text-grass" to="/organisations/$slug" params={{slug:o.slug}}>{o.name}</Link></p>)}
+      {isCancelled && <p className="mt-4 rounded-xl border border-border bg-card p-4 text-sm">This plan has been cancelled. New join requests and invitations are closed.</p>}
       {plan.description && <p className="mt-3 text-muted-foreground">{plan.description}</p>}
 
       <section className="mt-6 border-y border-border py-5">
@@ -392,13 +407,13 @@ function PlanDetail() {
         {plan.host_id && !isHost && <SafetyMenu userId={plan.host_id} label={host.name} />}
       </div>
 
-      {plan.kind === "partner_venue" && Number(plan.base_price) > 0 && (
+      {Number(plan.base_price) > 0 && Array.isArray(plan.discount_tiers) && plan.discount_tiers.length > 0 && (
         <Card className="mt-6 space-y-4">
           <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} tiers={plan.discount_tiers} />
         </Card>
       )}
 
-      <PlanInvites planId={plan.id} member={isMember} />
+      <PlanInvites planId={plan.id} member={isMember && !isCancelled} />
       {/* Venue */}
       {isMember && (
         <Card className="mt-6">
@@ -428,9 +443,10 @@ function PlanDetail() {
       )}
 
       {/* Join / status */}
-      {isPast && !isHost && <p className="mt-6 rounded-lg border border-border bg-card p-4 text-sm">This event has already happened, so it can't be joined.</p>}
+      {isCancelled && !isHost && <p className="mt-6 rounded-lg border border-border bg-card p-4 text-sm">This event was cancelled by its host and can no longer be joined.</p>}
+      {isPast && !isHost && !isCancelled && <p className="mt-6 rounded-lg border border-border bg-card p-4 text-sm">This event has already happened, so it can't be joined.</p>}
       {plan.interest_only && !isPast && !isHost && <InterestedButton planId={plan.id}/>}
-      {!isHost && !isPast && !plan.interest_only && (
+      {!isHost && !isPast && !isCancelled && !plan.interest_only && (
         <div className="mt-6 space-y-4">
           {!myReq.data && !ended && (
             <>
