@@ -34,7 +34,7 @@ const topics = [
   { title: "Calendar, photos and planning together", items: [
     ["Can I add a plan to my calendar?", "Open the plan and choose Calendar. Juntos downloads a calendar file that you can import into your preferred calendar app."],
     ["Can I add photos?", "Hosts can add photos to the plan gallery. Plan photos are stored privately and access is controlled through the plan's permissions."],
-    ["Can friends help choose a time and place?", "You can share a plan link and invite friends, then use the existing invitations and direct messages to coordinate. A dedicated place-and-time voting board is not available yet."]
+    ["Can friends help choose a time and place?", "For a one-to-one idea, use Hang again / Make a little plan to send a private proposal with an activity and a time window. The recipient can accept or suggest another time. For an existing plan, invite friends and use the members-only group chat to coordinate, share photos and use the Calendar button. A shared voting board for choosing between several venues and exact time options is not available yet."]
   ]},
   { title: "Safety, reliability and verification", items: [
     ["What does the reliability score mean, and how can I keep it high?", "The score currently reflects recorded no-shows. A host can mark an approved attendee as a no-show after the plan has started; this adds a no-show to the attendee's count and reduces their reliability score by 15 points. The current system does not automatically add points back for attending, so the best way to protect your score is to attend plans you confirm or cancel early when you can no longer go. Contact Juntos support if you believe a no-show was recorded incorrectly."],
