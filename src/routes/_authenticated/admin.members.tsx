@@ -5,7 +5,7 @@ import { AppShell } from "@/components/tagalong/AppShell";
 import { Empty } from "@/components/tagalong/bits";
 import { Input } from "@/components/ui/input";
 import { useIsAppAdmin } from "@/hooks/use-app-config";
-import { supabase } from "@/integrations/supabase/client";
+import { getAdminStats } from "@/lib/admin-stats.functions";
 
 type Member = {
   id: string;
@@ -38,10 +38,8 @@ function AdminMembers() {
     queryKey: ["admin-member-overview"],
     enabled: isAdmin,
     queryFn: async () => {
-      // This RPC is intentionally admin-only and returns a privacy-minimised member record.
-      const { data, error } = await (supabase as any).rpc("admin_member_overview");
-      if (error) throw error;
-      return (data ?? []) as Member[];
+      // Admin-only server function (checks the admin role, then reads with the service role).
+      return (await getAdminStats()).memberList as Member[];
     },
   });
 
