@@ -23,8 +23,8 @@ export function activeTier(tiers: DiscountTier[], going: number): DiscountTier |
   return best;
 }
 
-export function tierLabel(t: DiscountTier): string {
-  return t.type === "pct" ? `${t.value}% off` : `€${t.value} off`;
+export function tierLabel(t: DiscountTier, currency = "€"): string {
+  return t.type === "pct" ? `${t.value}% off` : `${currency}${t.value} off`;
 }
 
 export function priceFor(basePrice: number, going: number, tiers: DiscountTier[]): number {
