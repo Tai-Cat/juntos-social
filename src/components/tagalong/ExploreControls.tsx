@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { PlusCard } from "./PlusCard";
-import { GENRES,activityLabel } from "@/lib/catalog";
+import { GENRES,activityLabel,normalizeActivity } from "@/lib/catalog";
 import { AGE_BRACKETS } from "@/lib/age";
 import { useOrganisations } from "@/hooks/use-organisations";
 import { AUDIENCE_LABEL } from "@/lib/tagalong";
@@ -65,7 +65,7 @@ export function ExploreControls({
           ? GENRES.map((g) => ({ value: g.id, label: g.label }))
           : sheet === "activity"
             ? activities
-                .filter((a) => a.includes(search.toLowerCase()))
+                .filter((a) => a.includes(normalizeActivity(search)))
                 .map((a) => ({ value: a, label: activityLabel(a) }))
             : sheet === "time"
               ? ["morning", "afternoon", "evening", "late"].map((value) => ({
@@ -127,7 +127,7 @@ export function ExploreControls({
               {key === "level" && !plus && <Lock className="h-3 w-3" />}
               {label}
               {f[key] && typeof f[key] !== "boolean" && (
-                <span className="max-w-32 truncate capitalize">· {labelFor(key)}</span>
+                <span className={key === "genre" ? "genre-label max-w-32 truncate" : "max-w-32 truncate capitalize"}>· {labelFor(key)}</span>
               )}
               {typeof f[key] === "boolean" && f[key] && <Check />}
             </Button>
@@ -210,7 +210,7 @@ export function ExploreControls({
                           <Button
                             key={o.value}
                             variant={String(draft) === o.value ? "secondary" : "ghost"}
-                            className={`h-12 w-full justify-between ${o.value==="ai"?"":"capitalize"}`}
+                            className={`h-12 w-full justify-between ${sheet === "genre" ? "genre-label" : o.value==="ai"?"":"capitalize"}`}
                             onClick={() =>
                               setDraft(
                                 ["allAbilities", "stepFree", "daytime"].includes(sheet ?? "")
