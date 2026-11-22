@@ -207,7 +207,6 @@ export function FindPeople({
               </Button>
             </div>
           )}
-        </div>
       </SheetContent>
     </Sheet>
   );
