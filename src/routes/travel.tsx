@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useMyProfile } from "@/hooks/use-auth";
+import { useMyProfile, useBlocks } from "@/hooks/use-auth";
 import { AppShell } from "@/components/tagalong/AppShell";
 import { TripCard } from "@/components/tagalong/TripCard";
 import { AddTripButton } from "@/components/tagalong/TripForm";
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/travel")({
   component: Travel,
 });
 function Travel() {
-  const { user } = useMyProfile();
+  const { user } = useMyProfile();\n  const blocks = useBlocks();
   const [citySearch,setCitySearch]=useState("");
   const [dateFrom,setDateFrom]=useState("");
   const [dateTo,setDateTo]=useState("");
@@ -82,6 +82,21 @@ function Travel() {
       return data;
     },
   });
+  const realTravellers = useQuery({
+    queryKey: ["trips", "public-travellers", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trips")
+        .select("*, profiles(name, verified, reliability_score)")
+        .eq("is_example", false)
+        .neq("user_id", user?.id ?? "")
+        .gte("end_date", new Date().toISOString().slice(0, 10))
+        .order("start_date");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
   const examples = useQuery({
     queryKey: ["trips", "examples"],
     queryFn: async () => {
@@ -109,7 +124,7 @@ function Travel() {
     },
   });
   const cityResults=(()=>{const m=new Map<string,{city:string;country:string}>();for(const r of [...(examples.data??[]),...(plans.data??[])])if(r.city&&!m.has(r.city))m.set(r.city,{city:r.city,country:r.country});const q=citySearch.toLowerCase().trim();return [...m.values()].filter(c=>!q||`${c.city} ${c.country}`.toLowerCase().includes(q)).slice(0,8);})();
-  const matchingTravellers=fadeExamples([...(trips.data??[]).filter(t=>!t.is_example),...(examples.data??[])],{hideAll:examplesHidden}).filter(t=>t.is_example).filter(t=>cityFits(t.city,t.country)&&tripDateFits(t.start_date,t.end_date)&&(!who||t.interests.join(" ").toLowerCase().includes(who.toLowerCase())));
+  const matchingTravellers=fadeExamples([...(realTravellers.data??[]).filter(t=>!t.user_id||!blocks.data?.has(t.user_id)),...(examples.data??[])],{hideAll:examplesHidden}).filter(t=>cityFits(t.city,t.country)&&tripDateFits(t.start_date,t.end_date)&&(!who||t.interests.join(" ").toLowerCase().includes(who.toLowerCase())));
   const matchingPlans=fadeExamples(plans.data??[],{hideAll:examplesHidden}).filter(p=>cityFits(p.city,p.country)&&planDateFits(p.starts_at)&&fits(p)&&planBudgetFits(Number(p.base_price))&&(!who||`${p.activity} ${p.title} ${p.description??""}`.toLowerCase().includes(who.toLowerCase())));
   return (
     <AppShell hideBackExplore>
@@ -155,7 +170,7 @@ function Travel() {
         </div>
       )}
       <h2 className="mb-4 mt-8 text-2xl">Travellers on the move <span className="text-sm font-normal text-muted-foreground">· {matchingTravellers.length} matches</span></h2>
-      {matchingTravellers.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingTravellers.map(t=><TripCard key={t.id} trip={t}/>)}</div> : <Empty>No traveller examples match these filters. Try a wider date range, another destination or clear your filters.</Empty>}
+      {matchingTravellers.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingTravellers.map(t=><TripCard key={t.id} trip={t} hostName={t.is_example ? (t.example_name ?? "Traveller") : (t.profiles as { name?: string } | null)?.name ?? "Traveller"}/>)}</div> : <Empty>No travellers match these filters. Try a wider date range, another destination or clear your filters.</Empty>}
       <h2 className="mb-4 mt-8 text-2xl">Plans worth the trip <span className="text-sm font-normal text-muted-foreground">· {matchingPlans.length} matches</span></h2>
       {matchingPlans.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{matchingPlans.map(p=><PlanCard key={p.id} plan={p}/>)}</div> : <Empty>No plans match those dates and preferences yet. Your filters are still saved above, so you can widen the dates or clear them to see more.</Empty>}
     </AppShell>
