@@ -11,6 +11,7 @@ import { getAdminStats } from "@/lib/admin-stats.functions";
 type Member = {
   id: string;
   name: string;
+  email: string | null;
   home_city: string | null;
   created_at: string;
   onboarded: boolean;
@@ -49,7 +50,7 @@ function AdminMembers() {
       (accountType === "plus" && member.has_plus) ||
       (accountType === "free" && !member.has_plus);
     const textMatches = !query.trim() ||
-      `${member.name} ${member.home_city ?? ""}`.toLowerCase().includes(query.trim().toLowerCase());
+      `${member.name} ${member.email ?? ""} ${member.home_city ?? ""}`.toLowerCase().includes(query.trim().toLowerCase());
     return typeMatches && textMatches;
   }), [members.data, accountType, query]);
 
@@ -66,7 +67,7 @@ function AdminMembers() {
       <div>
         <p className="eyebrow">Juntos administration</p>
         <h1 className="text-3xl">Member accounts</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Registered accounts, including free accounts that have not purchased Plus. This view excludes email addresses, private profile fields, messages and exact locations.</p>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Registered accounts, including free accounts that have not purchased Plus. Admin only. Shows each member's name and sign-up email; private profile fields, messages and exact locations stay hidden.</p>
       </div>
     </div>
 
@@ -78,7 +79,7 @@ function AdminMembers() {
     </div>
 
     <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
-      <Input aria-label="Search members" placeholder="Search name or home city" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <Input aria-label="Search members" placeholder="Search name, email or home city" value={query} onChange={(e) => setQuery(e.target.value)} />
       <select aria-label="Filter account type" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={accountType} onChange={(e) => setAccountType(e.target.value)}>
         <option value="all">All accounts</option>
         <option value="free">Free accounts</option>
@@ -94,7 +95,7 @@ function AdminMembers() {
           <span>Member</span><span>Joined</span><span>Profile</span><span>Account</span>
         </div>
         {rows.map((member) => <article key={member.id} className="grid gap-2 border-t border-border bg-card px-4 py-4 first:border-t-0 sm:grid-cols-[minmax(0,1.4fr)_minmax(120px,1fr)_120px_100px] sm:items-center sm:gap-3">
-          <div className="min-w-0"><p className="font-semibold">{member.name || "New member"}</p><p className="text-xs text-muted-foreground">{member.home_city || "Home city not set"}</p><p className="mt-1 font-mono text-[10px] text-muted-foreground">{member.id.slice(0, 8)}…</p></div>
+          <div className="min-w-0"><p className="break-words font-semibold">{member.name || "New member"}</p>{member.email ? <a href={`mailto:${member.email}`} className="block break-all text-sm text-tangerine underline-offset-2 hover:underline">{member.email}</a> : <p className="text-sm text-muted-foreground">No email</p>}<p className="text-xs text-muted-foreground">{member.home_city || "Home city not set"}</p></div>
           <p className="text-xs text-muted-foreground"><span className="sm:hidden">Joined · </span>{new Date(member.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>
           <div className="text-xs"><span className={member.onboarded ? "text-foreground" : "text-muted-foreground"}>{member.onboarded ? "Onboarded" : "Not completed"}</span><p className="mt-1 text-muted-foreground">{member.verified ? "Verified" : "Not verified"} · {member.reliability_score}% reliable</p></div>
           <div><span className={member.has_plus ? "rounded-full bg-tangerine-soft px-2.5 py-1 text-xs font-semibold text-tangerine" : "rounded-full bg-muted px-2.5 py-1 text-xs font-semibold"}>{member.has_plus ? "Plus" : "Free"}</span>{member.has_plus && member.membership_until && <p className="mt-1 text-[10px] text-muted-foreground">Until {new Date(member.membership_until).toLocaleDateString()}</p>}</div>

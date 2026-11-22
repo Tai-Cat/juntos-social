@@ -58,8 +58,9 @@ function CityBars({ title, rows, unit }: { title: string; rows: { city: string; 
 function MemberRow({ m }: { m: AdminMember }) {
   return <li className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3 first:border-t-0">
     <div className="min-w-0">
-      <p className="truncate font-semibold">{m.name || "New member"}</p>
-      <p className="truncate text-xs text-muted-foreground">{m.email ?? "No email"} · joined {fmtDate(m.created_at)}</p>
+      <p className="break-words font-semibold">{m.name || "New member"}</p>
+      <p className="break-all text-sm text-tangerine">{m.email ?? "No email"}</p>
+      <p className="text-xs text-muted-foreground">Joined {fmtDate(m.created_at)}</p>
     </div>
     <div className="text-right text-xs">
       <span className={m.tier === "free" ? "rounded-full bg-muted px-2.5 py-1 font-semibold" : "rounded-full bg-tangerine-soft px-2.5 py-1 font-semibold text-tangerine"}>{m.tier === "club" ? "Club" : m.tier === "plus" ? "Plus" : "Free"}</span>
