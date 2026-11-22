@@ -1,6 +1,6 @@
 import { FriendReminder } from "./FriendReminder";
 import { SocialExamples } from "./SocialExamples";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { UserPlus, Search, Share2, ScanLine } from "lucide-react";
@@ -41,11 +41,17 @@ export function FindPeople({
   const [search, setSearch] = useState(""),
     [code, setCode] = useState("");
   const [mode, setMode] = useState<"find" | "link" | "code">("find");
+  const [requested, setRequested] = useState<string[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
   const people = useQuery({
-    queryKey: ["people-search", search],
-    enabled: !!user && search.trim().length >= 2,
+    queryKey: ["people-search", debouncedSearch.toLowerCase()],
+    enabled: open && !!user && debouncedSearch.length >= 2,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("find_people", { _search: search });
+      const { data, error } = await supabase.rpc("find_people", { _search: debouncedSearch });
       if (error) throw error;
       return data;
     },
@@ -84,6 +90,7 @@ export function FindPeople({
           : error.message,
       );
     else {
+      setRequested((current) => current.includes(id) ? current : [...current, id]);
       toast.success("Friend request sent");
       qc.invalidateQueries({ queryKey: ["friends"] });
     }
@@ -104,12 +111,12 @@ export function FindPeople({
   }
   return (
     <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
-      <DrawerContent className="flex max-h-[92dvh] flex-col">
-        <div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden p-5">
-          <DrawerHeader>
+      <DrawerContent className="flex h-[min(88dvh,720px)] max-h-[calc(100dvh-16px)] min-h-[320px] flex-col overflow-hidden">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3">
+          <DrawerHeader className="shrink-0">
             <DrawerTitle>Bring your people along</DrawerTitle>
           </DrawerHeader>
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-3 flex shrink-0 flex-wrap gap-2">
             <Button
               variant={mode === "find" ? "secondary" : "outline"}
               onClick={() => setMode("find")}
@@ -134,11 +141,15 @@ export function FindPeople({
           </div>
           {mode === "find" ? (
             <>
-              <div className="sticky top-0 z-10 bg-card pb-3">
-                <Input autoComplete="off" aria-label="Search people" placeholder="Name or interest" value={search} onChange={(e) => setSearch(e.target.value)} />
-                <p className="mt-2 text-xs text-muted-foreground">Type at least two letters. Results stay below the search field.</p>
+              <div className="sticky top-0 z-10 shrink-0 bg-card pb-3">
+                <Input autoFocus autoComplete="off" data-vaul-no-drag aria-label="Search people" placeholder="Start typing a name or interest" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <p className="mt-2 text-xs text-muted-foreground">Type two or more letters. Matches appear automatically below.</p>
               </div>
-              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-3" aria-live="polite">
+                {search.trim().length < 2 && <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Start with a name or interest to find people on Juntos.</p>}
+                {debouncedSearch.length >= 2 && people.isFetching && <p className="p-4 text-sm text-muted-foreground">Searching for people…</p>}
+                {people.isError && <p role="alert" className="rounded-xl border border-border p-4 text-sm">Search couldn't load. Please try again.</p>}
+                {debouncedSearch.length >= 2 && !people.isFetching && !people.isError && people.data?.length === 0 && <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">No members found. Try another spelling or a shorter name.</p>}
                 {people.data?.map((p) => (
                   <div key={p.id} className="flex items-center gap-3 border-b border-border py-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sunflower font-bold">
@@ -152,12 +163,14 @@ export function FindPeople({
                       </p>
                     </div>
                     <Button
-                      size="icon"
-                      title="Add friend"
-                      aria-label={`Add friend ${firstName(p.name)}`}
+                      size="sm"
+                      variant={requested.includes(p.id) ? "secondary" : "outline"}
+                      className="h-11 min-w-[88px] shrink-0"
+                      aria-label={requested.includes(p.id) ? "Request sent to " + firstName(p.name) : "Add " + firstName(p.name) + " as a friend"}
+                      disabled={requested.includes(p.id)}
                       onClick={() => add(p.id)}
                     >
-                      <UserPlus />
+                      <UserPlus className="h-4 w-4" />{requested.includes(p.id) ? "Sent" : "Add"}
                     </Button>
                     <SafetyMenu userId={p.id} label={firstName(p.name)} />
                   </div>
