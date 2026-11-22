@@ -1,3 +1,5 @@
+import { normalizeActivity } from "./catalog";
+
 export const COMMUNITY_THRESHOLD = 3;
 /** Optional skill levels set from Profile; "any" means Not set. Several interests may share a level. */
 export const INTEREST_LEVELS = [
@@ -7,12 +9,13 @@ export const INTEREST_LEVELS = [
   { value: "advanced", label: "Advanced" },
   { value: "professional", label: "Professional" },
 ] as const;
-export const normalizeInterest = (v: string) => v.toLowerCase().trim().replace(/\s+/g, " ").slice(0, 60);
+export const normalizeInterest = (v: string) => normalizeActivity(v).slice(0, 60);
 /** Adds a normalized interest to the end, ignoring duplicates. There is no limit on how many. */
 export function addInterest(list: string[], raw: string): string[] {
+  const normalized = [...new Set(list.map(normalizeInterest).filter(Boolean))];
   const n = normalizeInterest(raw);
-  if (!n || list.includes(n)) return list;
-  return [...list, n];
+  if (!n || normalized.includes(n)) return normalized;
+  return [...normalized, n];
 }
 /** A plan suits someone when its activity or any interest tag is one of their interests. */
 export function matchesInterests(plan: { activity: string; interest_tags?: string[] | null }, interests: string[]) {
