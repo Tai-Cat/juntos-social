@@ -104,8 +104,8 @@ export function FindPeople({
   }
   return (
     <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
-      <DrawerContent>
-        <div className="mx-auto w-full max-w-xl p-5">
+      <DrawerContent className="flex max-h-[92dvh] flex-col">
+        <div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden p-5">
           <DrawerHeader>
             <DrawerTitle>Bring your people along</DrawerTitle>
           </DrawerHeader>
@@ -134,13 +134,11 @@ export function FindPeople({
           </div>
           {mode === "find" ? (
             <>
-              <Input
-                aria-label="Search people"
-                placeholder="Name or interest"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <div className="mt-4 max-h-[45dvh] space-y-2 overflow-y-auto">
+              <div className="sticky top-0 z-10 bg-card pb-3">
+                <Input autoComplete="off" aria-label="Search people" placeholder="Name or interest" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <p className="mt-2 text-xs text-muted-foreground">Type at least two letters. Results stay below the search field.</p>
+              </div>
+              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
                 {people.data?.map((p) => (
                   <div key={p.id} className="flex items-center gap-3 border-b border-border py-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sunflower font-bold">
