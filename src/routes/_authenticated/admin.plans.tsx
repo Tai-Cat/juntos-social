@@ -38,6 +38,7 @@ function AdminPlans() {
   const isAdmin = useIsAppAdmin();
   const [city, setCity] = useState("");
   const [status, setStatus] = useState("");
+  const [scope, setScope] = useState("real");
   const [search, setSearch] = useState("");
   const q = useQuery({
     queryKey: ["admin-all-plans", city, status],
@@ -53,17 +54,20 @@ function AdminPlans() {
   });
   const cities = useMemo(() => [...new Set((q.data ?? []).map(p => p.city).filter(Boolean))].sort(), [q.data]);
   const rows = useMemo(() => (q.data ?? []).filter(p =>
-    !search || `${p.title} ${p.city} ${p.country} ${p.host_name}`.toLowerCase().includes(search.toLowerCase())
-  ), [q.data, search]);
+    (scope === "all" || (scope === "examples" ? p.is_example : !p.is_example)) &&
+    (!search || `${p.title} ${p.city} ${p.country} ${p.host_name}`.toLowerCase().includes(search.toLowerCase()))
+  ), [q.data, search, scope]);
+  const realCount = (q.data ?? []).filter(p => !p.is_example).length;
+  const exampleCount = (q.data ?? []).filter(p => p.is_example).length;
 
   if (!isAdmin) return <AppShell title="All plans"><Empty>Only Juntos app admins can open this page.</Empty></AppShell>;
 
   return <AppShell title="All plans">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div><p className="eyebrow">Juntos administration</p><h1 className="text-3xl">All plans</h1><p className="mt-2 max-w-2xl text-sm text-muted-foreground">A site-wide overview across every location, including restricted plans. This view intentionally excludes exact addresses and attendee details.</p></div>
-      <span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">{rows.length} shown</span>
+      <div className="flex flex-wrap gap-2"><span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">{q.data?.length ?? 0} total</span><span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">{realCount} real posts</span><span className="rounded-full bg-card px-3 py-1 text-xs font-semibold">{exampleCount} examples</span></div>
     </div>
-    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+    <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <Input aria-label="Search plans" placeholder="Search title, city or host" value={search} onChange={e => setSearch(e.target.value)} />
       <select aria-label="Filter by city" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={city} onChange={e => setCity(e.target.value)}>
         <option value="">All locations</option>{cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -71,6 +75,7 @@ function AdminPlans() {
       <select aria-label="Filter by status" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={status} onChange={e => setStatus(e.target.value)}>
         <option value="">All statuses</option><option value="active">Active</option><option value="cancelled">Cancelled</option>
       </select>
+      <select aria-label="Filter real or example plans" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={scope} onChange={e=>setScope(e.target.value)}><option value="real">Real member posts</option><option value="examples">Example posts</option><option value="all">All posts</option></select>
     </div>
     {q.isLoading ? <Empty>Loading all plans…</Empty> : q.error ? <div role="alert" className="mt-5 rounded-xl border border-border p-4 text-sm">Could not load the admin plan list. Refresh and try again.</div> : !rows.length ? <Empty>No plans match these filters.</Empty> : <div className="mt-5 space-y-3">
       {rows.map(p => <article key={p.id} className="rounded-xl border border-border bg-card p-4">
