@@ -79,6 +79,7 @@ function Travel() {
         .from("plans")
         .select(PLAN_SELECT)
         .eq("is_travel", true)
+        .neq("status", "cancelled")
         .gte("starts_at", new Date().toISOString())
         .order("starts_at");
       if (error) throw error;
