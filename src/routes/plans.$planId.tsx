@@ -132,10 +132,10 @@ function PlanDetail() {
   const approved =
     myReq.data?.status === "approved" ||
     (!!user && !!plan?.is_private && plan.private_participants.includes(user.id));
-  const isMember = isHost || approved;
+  const isMember = isHost || (approved && !isCancelled);
   const start = plan ? new Date(plan.starts_at).getTime() : 0;
   const unlockAt = start - 2 * 3600 * 1000;
-  const unlocked = isHost || (approved && now >= unlockAt);
+  const unlocked = isHost || (approved && !isCancelled && now >= unlockAt);
   const ended = plan ? now >= start : false;
   const chatOpen = plan ? now < start + 24 * 3600 * 1000 : false;
 
@@ -325,7 +325,7 @@ function PlanDetail() {
       <div className="mt-6 flex items-center gap-2">
         <span className="eyebrow">
           {plan.category}
-          {plan.kind === "partner_venue" && " · Partner venue"}
+          {plan.venue_type === "private" ? " · Private venue" : plan.venue_type === "partner_venue" || plan.kind === "partner_venue" ? " · Partner venue" : ""}
         </span>
         {plan.is_example && <ExampleTag variant="detail" />}
       </div>
