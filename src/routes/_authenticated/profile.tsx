@@ -184,7 +184,7 @@ function ProfilePage() {
         <ProfileShare />
         <SettingsSheet />
         <MembershipSheet />
-        {isAdmin && <Button asChild variant="outline" size="sm"><Link to="/admin/plans">Admin · All plans</Link></Button>}
+        {isAdmin && <><Button asChild variant="outline" size="sm"><Link to="/admin/plans">Admin · All plans</Link></Button><Button asChild variant="outline" size="sm"><Link to="/admin/members">Admin · All accounts</Link></Button></>}
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="genre-food rounded-lg p-4"><p className="eyebrow">Reliability</p><p className="mt-1 font-display text-3xl">{profile.reliability_score}%</p></div>
