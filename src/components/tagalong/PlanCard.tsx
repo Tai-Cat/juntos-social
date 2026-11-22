@@ -14,7 +14,8 @@ import { ExampleTag, VerifiedBadge } from "./bits";
 import {ageLabel} from "@/lib/age";
 import { useSession } from "@/hooks/use-auth";
 
-export function DiscountBar({ going, basePrice, tiers: raw }: { going: number; basePrice: number; tiers: unknown }) {
+export function DiscountBar({ going, basePrice, tiers: raw, city }: { going: number; basePrice: number; tiers: unknown; city?: string | null }) {
+  const currency = city === "Singapore" ? "S$" : "€";
   const tiers = parseTiers(raw);
   const active = activeTier(tiers, going);
   const next = nextTierCopy(going, tiers);
@@ -25,15 +26,15 @@ export function DiscountBar({ going, basePrice, tiers: raw }: { going: number; b
         <span>
           {active ? (
             <>
-              <span className="font-medium">€{priceFor(basePrice, going, tiers)}</span>{" "}
-              <span className="text-muted-foreground line-through">€{basePrice}</span>
+              <span className="font-medium">{currency}{priceFor(basePrice, going, tiers)}</span>{" "}
+              <span className="text-muted-foreground line-through">{currency}{basePrice}</span>
             </>
           ) : (
-            <span className="font-medium">€{basePrice}</span>
+            <span className="font-medium">{currency}{basePrice}</span>
           )}
           <span className="text-muted-foreground"> / person</span>
         </span>
-        {tiers.length > 0 && <span className="text-xs text-muted-foreground">{next ?? `${tierLabel(active ?? top!)} unlocked`}</span>}
+        {tiers.length > 0 && <span className="text-xs text-muted-foreground">{next ?? `${tierLabel(active ?? top!, currency)} unlocked`}</span>}
       </div>
       {tiers.length > 0 && (
         <>
@@ -41,7 +42,7 @@ export function DiscountBar({ going, basePrice, tiers: raw }: { going: number; b
             <div className="absolute inset-y-0 left-0 rounded-full bg-tangerine" style={{ width: `${tierProgress(going, tiers) * 100}%` }} />
           </div>
           <div className="flex flex-wrap gap-x-3 text-[10px] text-muted-foreground">
-            {tiers.map((t) => <span key={t.min}>{t.min}+ · {tierLabel(t)}</span>)}
+            {tiers.map((t) => <span key={t.min}>{t.min}+ · {tierLabel(t, currency)}</span>)}
           </div>
         </>
       )}
@@ -153,7 +154,7 @@ export function PlanCard({
         {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-2 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
         {Number(plan.base_price) > 0 && (
           <div className="mt-4">
-            <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} tiers={plan.discount_tiers} />
+            <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} tiers={plan.discount_tiers} city={plan.city} />
           </div>
         )}
         <div className="mt-4 flex items-center justify-between text-xs">
