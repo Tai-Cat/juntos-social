@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Choice } from "@/components/tagalong/Choice";
 import { InterestSearch } from "@/components/tagalong/InterestSearch";
 import { useInterestPhoto } from "@/hooks/use-photos";
-import { activityLabel, genreClass, genreOf, imageFor } from "@/lib/catalog";
+import { activityLabel, genreClass, genreOf, imageFor, GENRES } from "@/lib/catalog";
 import { addInterest, INTEREST_LEVELS } from "@/lib/interests";
 
 function Row({ interest, level, onLevel, onRemove }: { interest: string; level?: string | undefined; onLevel?: ((l: string) => void) | undefined; onRemove: () => void }) {
@@ -27,11 +27,20 @@ export function PersonalInterests({ interests, onChange, levels, onLevel }: { in
       <InterestSearch exclude={interests} onAdd={(v) => onChange(addInterest(interests, v))} />
       <p className="text-xs text-muted-foreground">{interests.length} interests · New interests appear for everyone once 3 people add them.</p>
       {interests.length > 0 && (
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {interests.map((i) => (
-            <Row key={i} interest={i} level={levels?.[i]} onLevel={onLevel ? (l) => onLevel(i, l) : undefined} onRemove={() => onChange(interests.filter((x) => x !== i))} />
-          ))}
-        </ul>
+        <div className="space-y-2">
+          {GENRES.map((genre) => {
+            const items = interests.filter((interest) => genreOf(interest) === genre.id);
+            if (!items.length) return null;
+            return <details key={genre.id} className={`rounded-xl border border-border ${genreClass(genre.id)}`}>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold">
+                <span>{genre.label}</span><span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span>
+              </summary>
+              <ul className="grid gap-2 border-t border-border p-3 sm:grid-cols-2">
+                {items.map((i) => <Row key={i} interest={i} level={levels?.[i]} onLevel={onLevel ? (l) => onLevel(i, l) : undefined} onRemove={() => onChange(interests.filter((x) => x !== i))} />)}
+              </ul>
+            </details>;
+          })}
+        </div>
       )}
     </div>
   );
