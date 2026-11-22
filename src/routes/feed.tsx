@@ -71,6 +71,7 @@ export function Feed() {
         .from("plans")
         .select(PLAN_SELECT)
         .gte("starts_at", new Date().toISOString())
+        .neq("status", "cancelled")
         .order("starts_at");
       if (error) throw error;
       return data as unknown as PlanWithHost[];
