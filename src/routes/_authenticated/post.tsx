@@ -300,7 +300,7 @@ function PostPlan() {
   }
 
   return (
-    <AppShell title="New plan">
+    <AppShell title="New plan" hideBackExplore>
       <h1 className="text-3xl">Post a plan</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         In {city}
