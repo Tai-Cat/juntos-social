@@ -19,7 +19,7 @@ const NAV = [
   { to: "/inbox", label: "My Activity", icon: Inbox },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
-export function AppShell({ children }: { children: ReactNode; title?: string }) {
+export function AppShell({ children, hideBackExplore = false }: { children: ReactNode; title?: string; hideBackExplore?: boolean }) {
   const { profile, loading, user } = useMyProfile();
   const auth = useAuthAction();
   const loc = useLocation();
@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode; title?: string }) 
         </div>
       </header>
       <main className="app-main px-4 pb-28 pt-4 sm:px-8">
-        {!onExplore && (
+        {!onExplore && !hideBackExplore && (
           <div className="mb-4 flex items-center gap-1 text-sm">
             <Button variant="ghost" size="sm" className="-ml-2" onClick={() => (window.history.length > 1 ? router.history.back() : navigate({ to: "/feed" }))}>
               <ArrowLeft /> Back
