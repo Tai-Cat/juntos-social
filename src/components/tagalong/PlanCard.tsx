@@ -140,7 +140,7 @@ export function PlanCard({
           </span>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3 text-xs">
-          <span className="font-bold">{host.name}</span>
+          <span className="font-semibold">Hosted by <span className="font-bold">{host.name}</span></span>
           <VerifiedBadge verified={host.verified} />
           <span className="rounded-full bg-card px-2 py-1">{host.reliability}% reliable</span>
         </div>
