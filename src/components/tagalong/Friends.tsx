@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VerifiedBadge } from "./bits";
 import { SafetyMenu } from "./SafetyMenu";
 import { toast } from "sonner";
@@ -110,12 +110,11 @@ export function FindPeople({
     }
   }
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
-      <DrawerContent className="flex h-[min(88dvh,720px)] max-h-[calc(100dvh-16px)] min-h-[320px] flex-col overflow-hidden">
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3">
-          <DrawerHeader className="shrink-0">
-            <DrawerTitle>Bring your people along</DrawerTitle>
-          </DrawerHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="mx-auto flex h-[min(84dvh,700px)] max-h-[calc(100dvh-12px)] min-h-[360px] w-full max-w-2xl flex-col gap-0 overflow-hidden rounded-t-2xl px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-6 sm:px-6">
+          <SheetHeader className="mb-3 shrink-0 pr-8 text-left">
+            <SheetTitle className="font-display text-2xl">Find your people</SheetTitle>
+          </SheetHeader>
           <div className="mb-3 flex shrink-0 flex-wrap gap-2">
             <Button
               variant={mode === "find" ? "secondary" : "outline"}
@@ -141,11 +140,11 @@ export function FindPeople({
           </div>
           {mode === "find" ? (
             <>
-              <div className="sticky top-0 z-10 shrink-0 bg-card pb-3">
-                <Input autoFocus autoComplete="off" data-vaul-no-drag aria-label="Search people" placeholder="Start typing a name or interest" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <div className="sticky top-0 z-10 shrink-0 bg-background pb-3">
+                <Input autoComplete="off" aria-label="Search people" placeholder="Start typing a name or interest" value={search} onChange={(e) => setSearch(e.target.value)} />
                 <p className="mt-2 text-xs text-muted-foreground">Type two or more letters. Matches appear automatically below.</p>
               </div>
-              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-3" aria-live="polite">
+              <div className="min-h-0 flex-1 space-y-2 overflow-x-hidden overflow-y-auto overscroll-contain pb-4 pr-1" aria-live="polite">
                 {search.trim().length < 2 && <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Start with a name or interest to find people on Juntos.</p>}
                 {debouncedSearch.length >= 2 && people.isFetching && <p className="p-4 text-sm text-muted-foreground">Searching for people…</p>}
                 {people.isError && <p role="alert" className="rounded-xl border border-border p-4 text-sm">Search couldn't load. Please try again.</p>}
@@ -209,8 +208,8 @@ export function FindPeople({
             </div>
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   );
 }
 export function FriendsPanel() {
