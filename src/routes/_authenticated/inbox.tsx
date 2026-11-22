@@ -101,7 +101,7 @@ function Inbox() {
   const done = (q.data ?? []).filter((r) => r.status !== "pending");
 
   return (
-    <AppShell title="My Activity">
+    <AppShell title="My Activity" hideBackExplore>
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-4xl">My Activity</h1>
         <Button
