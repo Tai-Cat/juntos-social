@@ -21,12 +21,12 @@ import { errMsg, firstName, formatWhen } from "@/lib/tagalong";
 export const Route = createFileRoute("/_authenticated/inbox")({
   head: () => ({
     meta: [
-      { title: "Join requests — Juntos" },
-      { name: "description", content: "Approve or decline people who want to join your plans." },
-      { property: "og:title", content: "Join requests — Juntos" },
+      { title: "My Activity — Juntos" },
+      { name: "description", content: "Your plans, invitations, messages and activity." },
+      { property: "og:title", content: "My Activity — Juntos" },
       {
         property: "og:description",
-        content: "Approve or decline people who want to join your plans.",
+        content: "Your plans, invitations, messages and activity.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -42,6 +42,18 @@ function Inbox() {
   const [tab, setTab] = useState(search.tab ?? "messages"),
     [find, setFind] = useState(false);
   const qc = useQueryClient();
+  const hosted = useQuery({
+    queryKey: ["activity-hosted", user?.id], enabled: !!user,
+    queryFn: async () => { const { data, error } = await supabase.from("plans").select("id,title,starts_at,status,going_count,capacity,city,area_label").eq("host_id", user?.id ?? "").order("starts_at", { ascending: true }); if (error) throw error; return data ?? []; },
+  });
+  const attending = useQuery({
+    queryKey: ["activity-attending", user?.id], enabled: !!user,
+    queryFn: async () => { const { data, error } = await supabase.from("join_requests").select("id,status,plans!inner(id,title,starts_at,status,city,area_label,host_id)").eq("user_id", user?.id ?? "").in("status", ["pending", "approved"]).order("created_at", { ascending: false }); if (error) throw error; return data ?? []; },
+  });
+  const saved = useQuery({
+    queryKey: ["activity-saved", user?.id], enabled: !!user,
+    queryFn: async () => { const { data, error } = await supabase.from("saved_plans").select("plan_id,plans!inner(id,title,starts_at,city,area_label,status)").eq("user_id", user?.id ?? "").order("created_at", { ascending: false }); if (error) throw error; return data ?? []; },
+  });
   const q = useQuery({
     queryKey: ["inbox", user?.id],
     enabled: !!user,
@@ -58,6 +70,21 @@ function Inbox() {
     },
   });
 
+  async function cancelHosted(id: string, title: string) {
+    if (!window.confirm(`Cancel “${title}”? Attendees and people waiting for approval will be notified.`)) return;
+    const { error } = await supabase.rpc("cancel_plan", { _plan: id });
+    if (error) { toast.error(errMsg(error)); return; }
+    toast.success("Plan cancelled and attendees notified");
+    await Promise.all([qc.invalidateQueries({ queryKey: ["activity-hosted"] }), qc.invalidateQueries({ queryKey: ["activity-attending"] }), qc.invalidateQueries({ queryKey: ["plans"] })]);
+  }
+  async function cancelAttendance(id: string, title: string) {
+    if (!window.confirm(`Cancel your place or request for “${title}”?`)) return;
+    const { error } = await supabase.rpc("cancel_my_join", { _plan: id });
+    if (error) { toast.error(errMsg(error)); return; }
+    toast.success("Your place or request was cancelled");
+    await Promise.all([qc.invalidateQueries({ queryKey: ["activity-attending"] }), qc.invalidateQueries({ queryKey: ["plans"] })]);
+  }
+
   async function decide(id: string, status: "approved" | "declined") {
     const { error } = await supabase.from("join_requests").update({ status }).eq("id", id);
     if (error) {
@@ -73,9 +100,9 @@ function Inbox() {
   const done = (q.data ?? []).filter((r) => r.status !== "pending");
 
   return (
-    <AppShell title="Inbox">
+    <AppShell title="My Activity">
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-4xl">Inbox</h1>
+        <h1 className="text-4xl">My Activity</h1>
         <Button
           size="icon"
           variant="outline"
@@ -87,7 +114,7 @@ function Inbox() {
       </div>
       <FindPeople open={find} onOpenChange={setFind} />
       <div className="mb-6 flex gap-2 overflow-x-auto">
-        {["messages", "notifications", "invites", "requests", "nudges"].map((t) => (
+        {["plans", "messages", "notifications", "invites", "requests", "nudges"].map((t) => (
           <Button
             className="capitalize"
             key={t}
@@ -98,7 +125,22 @@ function Inbox() {
           </Button>
         ))}
       </div>
-      {tab === "messages" ? (
+      {tab === "plans" ? (
+        <section className="space-y-8">
+          <div>
+            <h2 className="mb-3 text-2xl">Plans you're hosting</h2>
+            {hosted.isLoading ? <Empty>Loading your plans…</Empty> : !hosted.data?.length ? <Empty>You haven't hosted a plan yet.</Empty> : <div className="space-y-3">{hosted.data.map(p => <article key={p.id} className="rounded-xl border border-border bg-card p-4"><Link to="/plans/$planId" params={{planId:p.id}} className="font-semibold">{p.title}</Link><p className="mt-1 text-xs text-muted-foreground">{formatWhen(p.starts_at)} · {p.area_label}, {p.city} · {p.going_count}/{p.capacity} going</p><div className="mt-3 flex items-center justify-between"><span className="text-xs capitalize text-muted-foreground">{p.status === "cancelled" ? "Cancelled" : new Date(p.starts_at).getTime() < Date.now() ? "Past" : "Active"}</span>{p.status !== "cancelled" && new Date(p.starts_at).getTime() > Date.now() && <Button size="sm" variant="destructive" onClick={() => cancelHosted(p.id,p.title)}>Cancel plan</Button>}</div></article>)}</div>}
+          </div>
+          <div>
+            <h2 className="mb-3 text-2xl">Plans you're joining</h2>
+            {attending.isLoading ? <Empty>Loading your plans…</Empty> : !attending.data?.length ? <Empty>You haven't joined or requested a place yet.</Empty> : <div className="space-y-3">{attending.data.map(r => { const p = r.plans as {id:string;title:string;starts_at:string;status:string;city:string;area_label:string}|null; if(!p)return null; return <article key={r.id} className="rounded-xl border border-border bg-card p-4"><Link to="/plans/$planId" params={{planId:p.id}} className="font-semibold">{p.title}</Link><p className="mt-1 text-xs text-muted-foreground">{formatWhen(p.starts_at)} · {p.area_label}, {p.city} · {r.status === "approved" ? "Going" : "Awaiting approval"}</p><div className="mt-3 flex justify-end">{p.status !== "cancelled" && new Date(p.starts_at).getTime() > Date.now() && <Button size="sm" variant="outline" onClick={() => cancelAttendance(p.id,p.title)}>Cancel my place</Button>}</div></article>; })}</div>}
+          </div>
+          <div>
+            <h2 className="mb-3 text-2xl">Saved plans</h2>
+            {!saved.data?.length ? <Empty>No saved plans yet.</Empty> : <ul className="divide-y divide-border border-y border-border">{saved.data.map(s => { const p=s.plans as {id:string;title:string;starts_at:string;status:string}|null; return p ? <li key={p.id} className="py-3"><Link to="/plans/$planId" params={{planId:p.id}} className="font-medium">{p.title}</Link><p className="text-xs text-muted-foreground">{formatWhen(p.starts_at)} {p.status === "cancelled" ? "· Cancelled" : ""}</p></li> : null; })}</ul>}
+          </div>
+        </section>
+      ) : tab === "messages" ? (
         <>
           <Conversations /><SocialExamples kind="message"/>
           <AlertsInbox />
