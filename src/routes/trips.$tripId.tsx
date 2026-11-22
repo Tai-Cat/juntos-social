@@ -4,7 +4,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { countryFlag } from "@/lib/catalog";
 import { CityPhoto } from "@/hooks/use-city-photo";
@@ -133,14 +133,7 @@ function TripPage() {
   }
 
   return (
-    <AppShell title="Trip">
-      <Link
-        to="/feed"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Plans
-      </Link>
+    <AppShell title="Trip" hideBackExplore>
       <CityPhoto city={t.city} alt={`${t.city}, ${t.country} skyline`} className="mt-5 aspect-[16/9] max-h-96 w-full rounded-lg object-cover" />
       <p className="eyebrow mt-6">
         {countryFlag(t.country)} {t.country}
