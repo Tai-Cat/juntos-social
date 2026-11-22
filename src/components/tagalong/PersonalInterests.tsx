@@ -23,6 +23,7 @@ function Row({ interest, level, onLevel, onRemove }: { interest: string; level?:
 /** Personal interests: add from search or free text, remove, and (on Profile) an optional level per interest. No limit. */
 export function PersonalInterests({ interests, onChange, levels, onLevel }: { interests: string[]; onChange: (v: string[]) => void; levels?: Record<string, string>; onLevel?: (interest: string, level: string) => void }) {
   const visibleInterests = [...new Set(interests.map(normalizeInterest).filter(Boolean))];
+  const visibleLevels = Object.fromEntries(Object.entries(levels ?? {}).map(([key, value]) => [normalizeInterest(key), value]));
   return (
     <div className="space-y-3">
       <InterestSearch exclude={visibleInterests} onAdd={(v) => onChange(addInterest(interests, v))} />
@@ -37,7 +38,7 @@ export function PersonalInterests({ interests, onChange, levels, onLevel }: { in
                 <span className="genre-label">{genre.label}</span><span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span>
               </summary>
               <ul className="grid gap-2 border-t border-border p-3 sm:grid-cols-2">
-                {items.map((i) => <Row key={i} interest={i} level={levels?.[i]} onLevel={onLevel ? (l) => onLevel(i, l) : undefined} onRemove={() => onChange(visibleInterests.filter((x) => x !== i))} />)}
+                {items.map((i) => <Row key={i} interest={i} level={visibleLevels[i]} onLevel={onLevel ? (l) => onLevel(i, l) : undefined} onRemove={() => onChange(visibleInterests.filter((x) => x !== i))} />)}
               </ul>
             </details>;
           })}
