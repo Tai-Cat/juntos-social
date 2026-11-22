@@ -1125,12 +1125,14 @@ export type Database = {
           auto_approve: boolean
           base_going: number
           base_price: number
+          cancelled_at: string | null
           capacity: number
           category: string
           city: string
           country: string
           created_at: string
           description: string | null
+          discount_tiers: Json
           duration_minutes: number
           early_booking: boolean
           ends_at: string | null
@@ -1161,10 +1163,12 @@ export type Database = {
           required_level: string
           share_token: string
           starts_at: string
+          status: string
           step_free: boolean
           ticket_url: string | null
           title: string
           venue_tbc: boolean
+          venue_type: string
           visibility: string
           what_to_bring: string
         }
@@ -1179,12 +1183,14 @@ export type Database = {
           auto_approve?: boolean
           base_going?: number
           base_price?: number
+          cancelled_at?: string | null
           capacity?: number
           category: string
           city?: string
           country?: string
           created_at?: string
           description?: string | null
+          discount_tiers?: Json
           duration_minutes?: number
           early_booking?: boolean
           ends_at?: string | null
@@ -1215,10 +1221,12 @@ export type Database = {
           required_level?: string
           share_token?: string
           starts_at: string
+          status?: string
           step_free?: boolean
           ticket_url?: string | null
           title: string
           venue_tbc?: boolean
+          venue_type?: string
           visibility?: string
           what_to_bring?: string
         }
@@ -1233,12 +1241,14 @@ export type Database = {
           auto_approve?: boolean
           base_going?: number
           base_price?: number
+          cancelled_at?: string | null
           capacity?: number
           category?: string
           city?: string
           country?: string
           created_at?: string
           description?: string | null
+          discount_tiers?: Json
           duration_minutes?: number
           early_booking?: boolean
           ends_at?: string | null
@@ -1269,10 +1279,12 @@ export type Database = {
           required_level?: string
           share_token?: string
           starts_at?: string
+          status?: string
           step_free?: boolean
           ticket_url?: string | null
           title?: string
           venue_tbc?: boolean
+          venue_type?: string
           visibility?: string
           what_to_bring?: string
         }
@@ -1774,6 +1786,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_all_plans: {
+        Args: { _city?: string; _status?: string }
+        Returns: {
+          area_label: string
+          base_price: number
+          capacity: number
+          city: string
+          country: string
+          going_count: number
+          host_name: string
+          id: string
+          is_example: boolean
+          starts_at: string
+          status: string
+          title: string
+          venue_type: string
+          visibility: string
+        }[]
+      }
       alert_matches: {
         Args: { f: Json; p: Database["public"]["Tables"]["plans"]["Row"] }
         Returns: boolean
@@ -1796,6 +1827,8 @@ export type Database = {
         }[]
       }
       can_view_plan: { Args: { _plan: string; _uid: string }; Returns: boolean }
+      cancel_my_join: { Args: { _plan: string }; Returns: undefined }
+      cancel_plan: { Args: { _plan: string }; Returns: undefined }
       community_interests: {
         Args: never
         Returns: {

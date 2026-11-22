@@ -1,29 +1,49 @@
-// Partner venue group discounts: 4+ people = 15% off, 6+ people = 25% off.
-export const DISCOUNT_TIERS = [
-  { min: 4, pct: 15 },
-  { min: 6, pct: 25 },
-] as const;
+// Host-defined group discounts. Each plan stores its own tiers (plans.discount_tiers);
+// the database validates them. Plans with no tiers have no discount.
+export type DiscountTier = { min: number; type: "pct" | "amount"; value: number };
 
-export function discountFor(going: number): number {
-  let pct = 0;
-  for (const t of DISCOUNT_TIERS) if (going >= t.min) pct = t.pct;
-  return pct;
+/** The tiers every plan had before hosts could set their own (kept on old plans). */
+export const LEGACY_TIERS: DiscountTier[] = [
+  { min: 4, type: "pct", value: 15 },
+  { min: 6, type: "pct", value: 25 },
+];
+
+export function parseTiers(raw: unknown): DiscountTier[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((t): t is DiscountTier => !!t && typeof t === "object" && Number((t as DiscountTier).min) >= 2 && ((t as DiscountTier).type === "pct" || (t as DiscountTier).type === "amount") && Number((t as DiscountTier).value) > 0)
+    .map((t) => ({ min: Math.round(Number(t.min)), type: t.type, value: Number(t.value) }))
+    .sort((a, b) => a.min - b.min);
 }
 
-export function priceFor(basePrice: number, going: number): number {
-  return Math.round(basePrice * (1 - discountFor(going) / 100) * 100) / 100;
+/** The best tier reached with this many people going, or null. */
+export function activeTier(tiers: DiscountTier[], going: number): DiscountTier | null {
+  let best: DiscountTier | null = null;
+  for (const t of parseTiers(tiers)) if (going >= t.min) best = t;
+  return best;
 }
 
-/** e.g. "2 more for 15% off", or null when the top tier is reached */
-export function nextTierCopy(going: number): string | null {
-  const next = DISCOUNT_TIERS.find((t) => going < t.min);
+export function tierLabel(t: DiscountTier): string {
+  return t.type === "pct" ? `${t.value}% off` : `€${t.value} off`;
+}
+
+export function priceFor(basePrice: number, going: number, tiers: DiscountTier[]): number {
+  const t = activeTier(tiers, going);
+  if (!t) return basePrice;
+  const p = t.type === "pct" ? basePrice * (1 - Math.min(t.value, 50) / 100) : basePrice - t.value;
+  return Math.max(0, Math.round(p * 100) / 100);
+}
+
+/** e.g. "2 more for 15% off", or null when the top tier is reached / no tiers. */
+export function nextTierCopy(going: number, tiers: DiscountTier[]): string | null {
+  const next = parseTiers(tiers).find((t) => going < t.min);
   if (!next) return null;
-  const n = next.min - going;
-  return `${n} more for ${next.pct}% off`;
+  return `${next.min - going} more for ${tierLabel(next)}`;
 }
 
 /** 0..1 progress toward the top tier */
-export function tierProgress(going: number): number {
-  const top = DISCOUNT_TIERS[DISCOUNT_TIERS.length - 1]!.min;
-  return Math.min(1, going / top);
+export function tierProgress(going: number, tiers: DiscountTier[]): number {
+  const list = parseTiers(tiers);
+  const top = list[list.length - 1];
+  return top ? Math.min(1, going / top.min) : 0;
 }

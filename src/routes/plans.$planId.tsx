@@ -394,7 +394,7 @@ function PlanDetail() {
 
       {plan.kind === "partner_venue" && Number(plan.base_price) > 0 && (
         <Card className="mt-6 space-y-4">
-          <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} />
+          <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} tiers={plan.discount_tiers} />
         </Card>
       )}
 

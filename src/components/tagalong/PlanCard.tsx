@@ -9,20 +9,22 @@ import { genreClass } from "@/lib/catalog";
 import { Link } from "@tanstack/react-router";
 import { Accessibility, MapPin } from "lucide-react";
 import { AUDIENCE_LABEL, formatWhen, hostOf, type PlanWithHost } from "@/lib/tagalong";
-import { discountFor, nextTierCopy, priceFor, tierProgress } from "@/lib/discount";
+import { activeTier, nextTierCopy, parseTiers, priceFor, tierLabel, tierProgress } from "@/lib/discount";
 import { ExampleTag, VerifiedBadge } from "./bits";
 import {ageLabel} from "@/lib/age";
 
-export function DiscountBar({ going, basePrice }: { going: number; basePrice: number }) {
-  const pct = discountFor(going);
-  const next = nextTierCopy(going);
+export function DiscountBar({ going, basePrice, tiers: raw }: { going: number; basePrice: number; tiers: unknown }) {
+  const tiers = parseTiers(raw);
+  const active = activeTier(tiers, going);
+  const next = nextTierCopy(going, tiers);
+  const top = tiers[tiers.length - 1];
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between text-sm">
         <span>
-          {pct > 0 ? (
+          {active ? (
             <>
-              <span className="font-medium">€{priceFor(basePrice, going)}</span>{" "}
+              <span className="font-medium">€{priceFor(basePrice, going, tiers)}</span>{" "}
               <span className="text-muted-foreground line-through">€{basePrice}</span>
             </>
           ) : (
@@ -30,23 +32,18 @@ export function DiscountBar({ going, basePrice }: { going: number; basePrice: nu
           )}
           <span className="text-muted-foreground"> / person</span>
         </span>
-        <span className="text-xs text-muted-foreground">{next ?? "25% off unlocked"}</span>
+        {tiers.length > 0 && <span className="text-xs text-muted-foreground">{next ?? `${tierLabel(active ?? top!)} unlocked`}</span>}
       </div>
-      <div className="relative h-1 w-full rounded-full bg-muted">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-tangerine"
-          style={{ width: `${tierProgress(going) * 100}%` }}
-        />
-        <div
-          className="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-muted-foreground/50"
-          style={{ left: `${(4 / 6) * 100}%` }}
-        />
-      </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
-        <span>0</span>
-        <span className="ml-auto mr-[28%]">4+ · 15%</span>
-        <span>6+ · 25%</span>
-      </div>
+      {tiers.length > 0 && (
+        <>
+          <div className="relative h-1 w-full rounded-full bg-muted">
+            <div className="absolute inset-y-0 left-0 rounded-full bg-tangerine" style={{ width: `${tierProgress(going, tiers) * 100}%` }} />
+          </div>
+          <div className="flex flex-wrap gap-x-3 text-[10px] text-muted-foreground">
+            {tiers.map((t) => <span key={t.min}>{t.min}+ · {tierLabel(t)}</span>)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -149,9 +146,9 @@ export function PlanCard({
           <p className="mt-2 text-xs">{AUDIENCE_LABEL[plan.audience]}</p>
         )}
         {ageLabel(plan.age_min,plan.age_max)&&<p className="mt-2 text-xs font-bold">Ages {ageLabel(plan.age_min,plan.age_max)}</p>}
-        {plan.kind === "partner_venue" && Number(plan.base_price) > 0 && (
+        {Number(plan.base_price) > 0 && (
           <div className="mt-4">
-            <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} />
+            <DiscountBar going={plan.going_count} basePrice={Number(plan.base_price)} tiers={plan.discount_tiers} />
           </div>
         )}
         <div className="mt-4 flex items-center justify-between text-xs">
